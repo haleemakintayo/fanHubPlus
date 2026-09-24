@@ -15,15 +15,13 @@ export default function Footer({
     <footer id="sitemap" className="bg-white dark:bg-[#0D1117] border-t-3 border-black dark:border-neutral-100 transition-colors">
 
       {/* Top Banner Notice for TechWiz 7 SRS Mandate */}
-      <div className="bg-[#FACC15] text-black border-b-2 border-black py-1.5 sm:py-2 px-3 sm:px-4 md:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-2 text-[10px] sm:text-xs font-mono font-black uppercase">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="bg-black text-[#FACC15] px-1 py-0.5 sm:px-1.5 sm:py-0.5">SECTION 1.9</span>
-            <span className="hidden sm:inline">MANDATORY HOMEPAGE SITEMAP DIRECTORY • SRS COMPLIANCE VERIFIED</span>
-            <span className="sm:hidden">SITEMAP • SRS VERIFIED</span>
+      <div className="bg-[#FACC15] text-black border-b-2 border-black py-2 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono font-black uppercase">
+          <div className="flex items-center gap-2">
+            <span className="bg-black text-[#FACC15] px-1.5 py-0.5">SECTION 1.9</span>
+            
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <span className="text-[9px] sm:text-xs">TECHWIZ 7</span>
+          <div className="flex items-center gap-3">
             <span className="hidden md:inline">• ZERO TRACKERS • NO CLUTTER</span>
           </div>
         </div>
@@ -40,16 +38,14 @@ export default function Footer({
             </div>
             
             <p className="text-xs text-neutral-700 dark:text-neutral-300 font-medium leading-relaxed">
-              The unified Pop-Brutalist fandom portal for anime lore, gaming metas, K-pop comebacks, comic drops, and cosplay spotlights.
+              The unified fandom portal for anime lore, gaming metas, K-pop comebacks, comic drops, and cosplay spotlights.
             </p>
 
             <div className="p-3 bg-neutral-100 dark:bg-[#161B22] border-2 border-black dark:border-neutral-700 space-y-1">
               <span className="font-mono text-[10px] font-black uppercase text-neutral-500 block">
                 COMPETITION SPEC
               </span>
-              <p className="text-[11px] font-bold text-black dark:text-white leading-tight">
-                TechWiz 7 Global Showcase Submission. Fully responsive Single Page Application.
-              </p>
+              
             </div>
 
             <div className="flex items-center gap-2 pt-2">

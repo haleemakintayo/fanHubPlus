@@ -51,11 +51,7 @@ export default function Hero({
       <div className="max-w-6xl mx-auto relative z-10 text-center">
         
         {/* Micro-Badge */}
-        <div className="inline-flex items-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
-          <div className="bg-[#A3E635] text-black font-black text-[10px] sm:text-xs sm:text-sm uppercase tracking-wider px-2 sm:px-3.5 py-1 sm:py-1.5 border-2 border-black brutal-shadow-sm hover:rotate-1 transition-transform cursor-default">
-            <span className="hidden sm:inline">⚡ TECHWIZ 7 SHOWCASE • ALL-IN-ONE FANDOM PORTAL</span>
-            <span className="sm:hidden">⚡ TECHWIZ 7</span>
-          </div>
+        <div className="inline-flex items-center gap-2 mb-6">
         </div>
 
         {/* Main Headline */}
