@@ -1,30 +1,31 @@
-import { useState } from 'react'
-import { 
-  X, 
-  Bookmark, 
-  Check, 
-  User, 
-  Lock, 
-  Mail, 
-  Upload, 
+import { useEffect, useState } from 'react'
+import {
+  X,
+  Bookmark,
+  Check,
+  Upload,
   Trash2
 } from 'lucide-react'
+import Login from './Login'
+import Register from './Register'
 
 
-export default function Modals({ 
-  activeModal, 
-  activeLoreCharacter, 
-  onClose, 
-  onShowToast, 
-  bookmarkedItems, 
-  toggleBookmark 
+export default function Modals({
+  activeModal,
+  activeLoreCharacter,
+  onClose,
+  onShowToast,
+  bookmarkedItems,
+  toggleBookmark
 }) {
   // Auth Form State
   const [authMode, setAuthMode] = useState(activeModal === 'register' ? 'register' : 'login')
-  const [authEmail, setAuthEmail] = useState('')
-  const [authUsername, setAuthUsername] = useState('')
-  const [authPassword, setAuthPassword] = useState('')
-  const [favoriteUniverses, setFavoriteUniverses] = useState(['anime', 'gaming'])
+
+  useEffect(() => {
+    if (activeModal === 'login' || activeModal === 'register') {
+      setAuthMode(activeModal)
+    }
+  }, [activeModal])
 
   // Feedback State
   const [feedbackCategory, setFeedbackCategory] = useState('bug')
@@ -73,13 +74,14 @@ export default function Modals({
     const isBookmarked = !!bookmarkedItems[activeLoreCharacter.id]
 
     return (
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="lore-modal-title"
+        onClick={onClose}
       >
-        <div className="relative w-full max-w-3xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto">
+        <div className="relative w-full max-w-3xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
           
           {/* Header */}
           <div className="flex items-start justify-between gap-4 pb-4 border-b-2 border-black dark:border-neutral-700 mb-6">
@@ -208,27 +210,19 @@ export default function Modals({
   if (activeModal === 'login' || activeModal === 'register') {
     const isRegister = authMode === 'register'
 
-    const handleAuthSubmit = (e) => {
-      e.preventDefault()
-      onShowToast({
-        title: isRegister ? 'Welcome to Fan Hub Plus!' : 'Authenticated Successfully',
-        message: isRegister 
-          ? `Account created for ${authUsername || 'Collector'}. Universe telemetry active.` 
-          : 'Welcome back, Collector! Your bookmarks and ratings synced.',
-        type: 'success'
-      })
-      onClose()
-    }
-
     return (
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-modal-title"
+        onClick={onClose}
       >
-        <div className="relative w-full max-w-md bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg">
-          
+        <div
+          className="relative w-full max-w-md bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
+
           {/* Header */}
           <div className="flex items-center justify-between pb-3 border-b-2 border-black dark:border-neutral-700 mb-6">
             <div className="flex items-center gap-2">
@@ -271,100 +265,9 @@ export default function Modals({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleAuthSubmit} className="space-y-4">
-            {isRegister && (
-              <div>
-                <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
-                  Collector Handle / Username
-                </label>
-                <div className="flex items-center border-2 border-black dark:border-white px-2.5 py-2 bg-neutral-50 dark:bg-[#0D1117]">
-                  <User className="w-4 h-4 text-neutral-500 mr-2 shrink-0" />
-                  <input
-                    type="text"
-                    required
-                    value={authUsername}
-                    onChange={(e) => setAuthUsername(e.target.value)}
-                    placeholder="e.g. CyberShinobi99"
-                    className="w-full bg-transparent text-xs sm:text-sm font-bold text-black dark:text-white focus:outline-none"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
-                Email Address
-              </label>
-              <div className="flex items-center border-2 border-black dark:border-white px-2.5 py-2 bg-neutral-50 dark:bg-[#0D1117]">
-                <Mail className="w-4 h-4 text-neutral-500 mr-2 shrink-0" />
-                <input
-                  type="email"
-                  required
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                  placeholder="fandom@hubplus.com"
-                  className="w-full bg-transparent text-xs sm:text-sm font-bold text-black dark:text-white focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
-                Password
-              </label>
-              <div className="flex items-center border-2 border-black dark:border-white px-2.5 py-2 bg-neutral-50 dark:bg-[#0D1117]">
-                <Lock className="w-4 h-4 text-neutral-500 mr-2 shrink-0" />
-                <input
-                  type="password"
-                  required
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full bg-transparent text-xs sm:text-sm font-bold text-black dark:text-white focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {isRegister && (
-              <div>
-                <label className="block text-[11px] font-mono font-black uppercase text-neutral-500 mb-1">
-                  Primary Sector Affiliations
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {['anime', 'gaming', 'kpop', 'comics'].map((u) => {
-                    const isFav = favoriteUniverses.includes(u)
-                    return (
-                      <button
-                        key={u}
-                        type="button"
-                        onClick={() => {
-                          setFavoriteUniverses(prev => 
-                            prev.includes(u) ? prev.filter(x => x !== u) : [...prev, u]
-                          )
-                        }}
-                        className={`px-2 py-0.5 text-[10px] font-mono font-black uppercase border border-black ${
-                          isFav ? 'bg-[#FACC15] text-black font-black' : 'bg-white dark:bg-neutral-800 text-neutral-600'
-                        }`}
-                      >
-                        {isFav ? '✓ ' : '+ '} {u}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="w-full py-3 bg-[#A3E635] text-black font-black text-sm uppercase tracking-tight border-2 border-black brutal-shadow brutal-btn mt-4 hover:bg-[#86efac]"
-            >
-              {isRegister ? 'Create Collector Account' : 'Authenticate & Enter Hub'}
-            </button>
-
-            <p className="text-[11px] font-mono text-center text-neutral-500 mt-3">
-              Protected by Fan Hub Zero-Spam Policy • SRS TechWiz 7 Compliance
-            </p>
-          </form>
+          <div>
+            {isRegister ? <Register onShowToast={onShowToast} onClose={onClose} /> : <Login onShowToast={onShowToast} onClose={onClose} />}
+          </div>
 
         </div>
       </div>
@@ -392,13 +295,14 @@ export default function Modals({
     }
 
     return (
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="admin-modal-title"
+        onClick={onClose}
       >
-        <div className="relative w-full max-w-3xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto">
+        <div className="relative w-full max-w-3xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
           
           <div className="flex items-center justify-between pb-3 border-b-2 border-black dark:border-neutral-700 mb-6">
             <div className="flex items-center gap-2">
@@ -506,13 +410,14 @@ export default function Modals({
     }
 
     return (
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="feedback-modal-title"
+        onClick={onClose}
       >
-        <div className="relative w-full max-w-lg bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg">
+        <div className="relative w-full max-w-lg bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg" onClick={(e) => e.stopPropagation()}>
           
           <div className="flex items-center justify-between pb-3 border-b-2 border-black dark:border-neutral-700 mb-6">
             <div className="flex items-center gap-2">
@@ -589,13 +494,14 @@ export default function Modals({
     }
 
     return (
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="submission-modal-title"
+        onClick={onClose}
       >
-        <div className="relative w-full max-w-lg bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg">
+        <div className="relative w-full max-w-lg bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg" onClick={(e) => e.stopPropagation()}>
           
           <div className="flex items-center justify-between pb-3 border-b-2 border-black dark:border-neutral-700 mb-6">
             <div className="flex items-center gap-2">
@@ -680,13 +586,14 @@ export default function Modals({
   // ================= 6. ABOUT MODAL =================
   if (activeModal === 'about' || activeModal === 'policy') {
     return (
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="about-modal-title"
+        onClick={onClose}
       >
-        <div className="relative w-full max-w-xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto">
+        <div className="relative w-full max-w-xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
           
           <div className="flex items-center justify-between pb-3 border-b-2 border-black dark:border-neutral-700 mb-6">
             <div className="flex items-center gap-2">
@@ -753,13 +660,14 @@ export default function Modals({
     const bookmarkedCount = Object.keys(bookmarkedItems).length
 
     return (
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="dash-modal-title"
+        onClick={onClose}
       >
-        <div className="relative w-full max-w-2xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto">
+        <div className="relative w-full max-w-2xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
           
           <div className="flex items-center justify-between pb-3 border-b-2 border-black dark:border-neutral-700 mb-6">
             <div className="flex items-center gap-2">
