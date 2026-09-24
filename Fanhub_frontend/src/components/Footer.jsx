@@ -220,7 +220,7 @@ export default function Footer({
         {/* Bottom Bar: Copyright & Back to Top */}
         <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t-2 border-black/10 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
           <div className="text-[10px] sm:text-xs font-mono text-neutral-600 dark:text-neutral-400 text-center sm:text-left px-2">
-            <span>© 2026 Fan Hub Plus • TechWiz 7 Project • All Rights Reserved.</span>
+            <span>© 2026 Fan Hub Plus  • All Rights Reserved.</span>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">

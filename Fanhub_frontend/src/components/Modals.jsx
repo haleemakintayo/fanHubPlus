@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import Login from './Login'
 import Register from './Register'
+import Dashboard from './Dashboard'
 
 
 export default function Modals({
@@ -657,8 +658,6 @@ export default function Modals({
 
   // ================= 7. COLLECTOR DASHBOARD MODAL =================
   if (activeModal === 'dashboard') {
-    const bookmarkedCount = Object.keys(bookmarkedItems).length
-
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in"
@@ -687,72 +686,13 @@ export default function Modals({
             </button>
           </div>
 
-          {/* Stats Bar */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="p-3 bg-neutral-100 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 text-center">
-              <span className="font-mono text-2xl font-black text-black dark:text-white block">
-                {bookmarkedCount}
-              </span>
-              <span className="font-mono text-[10px] uppercase font-bold text-neutral-500">
-                Bookmarks Saved
-              </span>
-            </div>
-            <div className="p-3 bg-neutral-100 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 text-center">
-              <span className="font-mono text-2xl font-black text-black dark:text-white block">
-                8 / 8
-              </span>
-              <span className="font-mono text-[10px] uppercase font-bold text-neutral-500">
-                Sectors Explored
-              </span>
-            </div>
-            <div className="p-3 bg-neutral-100 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 text-center">
-              <span className="font-mono text-2xl font-black text-black dark:text-white block">
-                Tier 4
-              </span>
-              <span className="font-mono text-[10px] uppercase font-bold text-neutral-500">
-                Hub Rank
-              </span>
-            </div>
-          </div>
-
-          {/* Bookmarked items list */}
-          <div>
-            <h4 className="font-mono text-xs font-black uppercase tracking-wider text-black dark:text-white mb-2">
-              SAVED VAULT ITEMS
-            </h4>
-            {bookmarkedCount === 0 ? (
-              <div className="p-6 bg-neutral-50 dark:bg-[#0D1117] border-2 border-dashed border-black dark:border-neutral-700 text-center">
-                <Bookmark className="w-6 h-6 mx-auto text-neutral-400 mb-2" />
-                <p className="font-bold text-xs text-neutral-600 dark:text-neutral-400">
-                  No items bookmarked yet! Click the bookmark icon on any character or trailer to save them here.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {Object.entries(bookmarkedItems).map(([id, item]) => (
-                  <div 
-                    key={id}
-                    className="p-3 bg-white dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 flex items-center justify-between gap-2"
-                  >
-                    <div>
-                      <span className="text-[10px] font-mono font-bold text-[#F43F5E] uppercase block">
-                        {item.type || 'Fandom Entry'}
-                      </span>
-                      <h5 className="font-black text-xs uppercase text-black dark:text-white">
-                        {item.title}
-                      </h5>
-                    </div>
-                    <button
-                      onClick={() => toggleBookmark(id, item.title, item.type)}
-                      className="text-xs font-bold text-red-500 hover:underline px-2 py-1"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <Dashboard
+            embedded={true}
+            bookmarkedItems={bookmarkedItems}
+            toggleBookmark={toggleBookmark}
+            onShowToast={onShowToast}
+            onClose={onClose}
+          />
 
           <div className="mt-6 pt-4 border-t-2 border-black dark:border-neutral-700 flex justify-end">
             <button
@@ -767,6 +707,7 @@ export default function Modals({
       </div>
     )
   }
+
 
   return null
 }

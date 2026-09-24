@@ -12,8 +12,12 @@ import {
   ShoppingBag, 
   FileText,
   LogIn,
-  UserPlus
+  UserPlus,
+  LogOut,
+  User,
+  ShieldAlert
 } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
 
 
 export default function Header({ 
@@ -24,6 +28,7 @@ export default function Header({
   onOpenAuth 
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { isAuthenticated, user, logout } = useAuth()
 
   const navLinks = [
     { name: 'Explore', href: '#explore', icon: Compass },
@@ -117,25 +122,62 @@ export default function Header({
             )}
           </button>
 
+          {/* Auth Actions: Logged In vs Guest */}
+          {isAuthenticated ? (
+            <>
+              {user?.role === 'ADMIN' && (
+                <button
+                  onClick={() => onOpenAuth('admin')}
+                  className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#F43F5E] text-white font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn"
+                  title="Open Admin Moderation Queue"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>Admin</span>
+                </button>
+              )}
 
-          {/* Auth Actions: Log In & Join The Hub */}
-          <button
-            onClick={() => onOpenAuth('login')}
-            className="hidden sm:inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 font-bold text-[10px] sm:text-xs uppercase tracking-tight text-neutral-800 dark:text-neutral-200 hover:text-black dark:hover:text-white border-2 border-black dark:border-neutral-200 bg-white dark:bg-[#161B22] brutal-shadow-sm brutal-btn"
-            aria-label="Log in to account"
-          >
-            <LogIn className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span className="hidden md:inline">Log In</span>
-          </button>
+              <button
+                onClick={() => onOpenAuth('dashboard')}
+                className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-[#A3E635] text-black font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn hover:bg-[#86efac]"
+                title="Open Collector Vault & Dashboard"
+              >
+                <User className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="max-w-[90px] sm:max-w-[130px] truncate">
+                  {user?.username || 'Collector'}
+                </span>
+              </button>
 
-          <button
-            onClick={() => onOpenAuth('register')}
-            className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 sm:py-1.5 bg-[#A3E635] text-black font-black text-[10px] sm:text-sm uppercase tracking-tight border-2 border-black brutal-shadow brutal-btn hover:bg-[#86efac]"
-            aria-label="Join Fan Hub Plus community"
-          >
-            <UserPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span className="hidden sm:inline">Join The Hub</span>
-          </button>
+              <button
+                onClick={logout}
+                className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 font-bold text-[10px] sm:text-xs uppercase tracking-tight text-neutral-800 dark:text-neutral-200 hover:text-black dark:hover:text-white border-2 border-black dark:border-neutral-200 bg-white dark:bg-[#161B22] brutal-shadow-sm brutal-btn"
+                title="Log Out"
+                aria-label="Log out of account"
+              >
+                <LogOut className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden md:inline">Exit</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => onOpenAuth('login')}
+                className="hidden sm:inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 font-bold text-[10px] sm:text-xs uppercase tracking-tight text-neutral-800 dark:text-neutral-200 hover:text-black dark:hover:text-white border-2 border-black dark:border-neutral-200 bg-white dark:bg-[#161B22] brutal-shadow-sm brutal-btn"
+                aria-label="Log in to account"
+              >
+                <LogIn className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden md:inline">Log In</span>
+              </button>
+
+              <button
+                onClick={() => onOpenAuth('register')}
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 sm:py-1.5 bg-[#A3E635] text-black font-black text-[10px] sm:text-sm uppercase tracking-tight border-2 border-black brutal-shadow brutal-btn hover:bg-[#86efac]"
+                aria-label="Join Fan Hub Plus community"
+              >
+                <UserPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden sm:inline">Join The Hub</span>
+              </button>
+            </>
+          )}
 
           {/* Mobile Menu Button */}
           <button
@@ -170,24 +212,49 @@ export default function Header({
           </div>
 
           <div className="pt-2 border-t-2 border-black/20 dark:border-neutral-800 flex items-center justify-between gap-2">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false)
-                onOpenAuth('login')
-              }}
-              className="flex-1 py-1.5 sm:py-2 font-bold text-[10px] sm:text-xs uppercase border-2 border-black dark:border-neutral-200 bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm"
-            >
-              Log In
-            </button>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false)
-                onOpenAuth('register')
-              }}
-              className="flex-1 py-1.5 sm:py-2 font-black text-[10px] sm:text-xs uppercase border-2 border-black bg-[#A3E635] text-black brutal-shadow-sm"
-            >
-              Join The Hub
-            </button>
+            {isAuthenticated ? (
+              <>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    onOpenAuth('dashboard')
+                  }}
+                  className="flex-1 py-1.5 sm:py-2 font-black text-[10px] sm:text-xs uppercase border-2 border-black bg-[#A3E635] text-black brutal-shadow-sm"
+                >
+                  Vault ({user?.username || 'Collector'})
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    logout()
+                  }}
+                  className="flex-1 py-1.5 sm:py-2 font-bold text-[10px] sm:text-xs uppercase border-2 border-black dark:border-neutral-200 bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm"
+                >
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    onOpenAuth('login')
+                  }}
+                  className="flex-1 py-1.5 sm:py-2 font-bold text-[10px] sm:text-xs uppercase border-2 border-black dark:border-neutral-200 bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    onOpenAuth('register')
+                  }}
+                  className="flex-1 py-1.5 sm:py-2 font-black text-[10px] sm:text-xs uppercase border-2 border-black bg-[#A3E635] text-black brutal-shadow-sm"
+                >
+                  Join The Hub
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
