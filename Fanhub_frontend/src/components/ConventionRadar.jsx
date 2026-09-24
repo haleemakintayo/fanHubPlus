@@ -56,38 +56,38 @@ export default function ConventionRadar({
   }
 
   return (
-    <section id="events" className="py-16 px-4 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
+    <section id="events" className="py-8 sm:py-16 px-3 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
 
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 pb-6 border-b-2 border-black dark:border-neutral-800">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4 mb-6 sm:mb-10 pb-4 sm:pb-6 border-b-2 border-black dark:border-neutral-800">
           <div>
-            <div className="inline-flex items-center gap-2 mb-2">
-              <span className="bg-[#C084FC] text-black font-black text-xs uppercase px-2.5 py-0.5 border-2 border-black brutal-shadow-sm">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <span className="bg-[#C084FC] text-black font-black text-[10px] sm:text-xs uppercase px-2 sm:px-2.5 py-0.5 border-2 border-black brutal-shadow-sm">
                 GEO-RADAR & TELEMETRY
               </span>
-              <span className="font-mono text-xs font-bold uppercase text-neutral-600 dark:text-neutral-400">
+              <span className="font-mono text-[10px] sm:text-xs font-bold uppercase text-neutral-600 dark:text-neutral-400">
                 GLOBAL FANDOM MEETUPS
               </span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-black dark:text-white">
-              CONVENTIONS & FAN GATHERINGS
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black uppercase tracking-tight text-black dark:text-white">
+              CONVENTIONS & GATHERINGS
             </h2>
-            <p className="text-neutral-700 dark:text-neutral-300 font-medium text-sm sm:text-base mt-1 max-w-2xl">
+            <p className="text-neutral-700 dark:text-neutral-300 font-medium text-xs sm:text-sm md:text-base mt-1 max-w-2xl">
               Find fan meetups, comic cons, and screening events near you.
             </p>
           </div>
 
           {/* City Filter Buttons */}
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 sm:gap-2">
             {cities.map((city) => {
               const isSelected = selectedCity === city
               return (
                 <button
                   key={city}
                   onClick={() => setSelectedCity(city)}
-                  className={`px-3 py-1.5 font-bold text-xs sm:text-sm uppercase tracking-tight border-2 border-black dark:border-white transition-all brutal-btn ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 font-bold text-[10px] sm:text-sm uppercase tracking-tight border-2 border-black dark:border-white transition-all brutal-btn ${
                     isSelected
                       ? 'bg-black text-white dark:bg-white dark:text-black brutal-shadow-sm'
                       : 'bg-white dark:bg-[#161B22] text-black dark:text-white hover:bg-neutral-100'

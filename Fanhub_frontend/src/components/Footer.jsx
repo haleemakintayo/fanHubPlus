@@ -13,24 +13,25 @@ export default function Footer({
 
   return (
     <footer id="sitemap" className="bg-white dark:bg-[#0D1117] border-t-3 border-black dark:border-neutral-100 transition-colors">
-      
+
       {/* Top Banner Notice for TechWiz 7 SRS Mandate */}
-      <div className="bg-[#FACC15] text-black border-b-2 border-black py-2 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono font-black uppercase">
-          <div className="flex items-center gap-2">
-            <span className="bg-black text-[#FACC15] px-1.5 py-0.5">SECTION 1.9</span>
-            <span>MANDATORY HOMEPAGE SITEMAP DIRECTORY • SRS COMPLIANCE VERIFIED</span>
+      <div className="bg-[#FACC15] text-black border-b-2 border-black py-1.5 sm:py-2 px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-2 text-[10px] sm:text-xs font-mono font-black uppercase">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="bg-black text-[#FACC15] px-1 py-0.5 sm:px-1.5 sm:py-0.5">SECTION 1.9</span>
+            <span className="hidden sm:inline">MANDATORY HOMEPAGE SITEMAP DIRECTORY • SRS COMPLIANCE VERIFIED</span>
+            <span className="sm:hidden">SITEMAP • SRS VERIFIED</span>
           </div>
-          <div className="flex items-center gap-3">
-            <span>SPEC: TECHWIZ 7 GLOBAL FINALS</span>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-[9px] sm:text-xs">TECHWIZ 7</span>
             <span className="hidden md:inline">• ZERO TRACKERS • NO CLUTTER</span>
           </div>
         </div>
       </div>
 
       {/* Main 5-Column Sitemap Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8">
           
           {/* ================= COLUMN 1: BRAND OVERVIEW & DISCLAIMER ================= */}
           <div className="lg:col-span-1 space-y-4">
@@ -221,19 +222,20 @@ export default function Footer({
         </div>
 
         {/* Bottom Bar: Copyright & Back to Top */}
-        <div className="mt-12 pt-6 border-t-2 border-black/10 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs font-mono text-neutral-600 dark:text-neutral-400 text-center sm:text-left">
-            <span>© 2026 Fan Hub Plus • TechWiz 7 Project • All Rights Reserved to Original Creators.</span>
+        <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t-2 border-black/10 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+          <div className="text-[10px] sm:text-xs font-mono text-neutral-600 dark:text-neutral-400 text-center sm:text-left px-2">
+            <span>© 2026 Fan Hub Plus • TechWiz 7 Project • All Rights Reserved.</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={scrollToTop}
-              className="px-3.5 py-1.5 bg-[#FACC15] text-black font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn flex items-center gap-1.5"
+              className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 bg-[#FACC15] text-black font-black text-[10px] sm:text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn flex items-center gap-1 sm:gap-1.5"
               aria-label="Scroll back to top of page"
             >
-              <span>Back To Top</span>
-              <ArrowUp className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Back To Top</span>
+              <span className="sm:hidden">↑ Top</span>
+              <ArrowUp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </button>
           </div>
         </div>

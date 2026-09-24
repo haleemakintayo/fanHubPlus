@@ -50,41 +50,41 @@ export default function UniverseMatrix({
   })
 
   return (
-    <section id="explore" className="py-16 px-4 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
+    <section id="explore" className="py-8 sm:py-16 px-3 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
 
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 pb-6 border-b-2 border-black dark:border-neutral-800">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4 mb-6 sm:mb-10 pb-4 sm:pb-6 border-b-2 border-black dark:border-neutral-800">
           <div>
-            <div className="inline-flex items-center gap-2 mb-2">
-              <span className="bg-[#38BDF8] text-black font-black text-xs uppercase px-2.5 py-0.5 border-2 border-black brutal-shadow-sm">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <span className="bg-[#38BDF8] text-black font-black text-[10px] sm:text-xs uppercase px-2 sm:px-2.5 py-0.5 border-2 border-black brutal-shadow-sm">
                 MULTIVERSE MATRIX
               </span>
-              <span className="font-mono text-xs font-bold uppercase text-neutral-600 dark:text-neutral-400">
+              <span className="font-mono text-[10px] sm:text-xs font-bold uppercase text-neutral-600 dark:text-neutral-400">
                 8 CORE SECTORS
               </span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-black dark:text-white">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black uppercase tracking-tight text-black dark:text-white">
               UNIVERSE DIRECTORY
             </h2>
-            <p className="text-neutral-700 dark:text-neutral-300 font-medium text-sm sm:text-base mt-1 max-w-2xl">
+            <p className="text-neutral-700 dark:text-neutral-300 font-medium text-xs sm:text-sm md:text-base mt-1 max-w-2xl">
               Curated by dedicated guild masters. Instant access to simulcast schedules, verified lore bibles, and fan discussions.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             {selectedUniverse !== 'all' && (
               <button
                 onClick={() => onSelectUniverse('all')}
-                className="px-3 py-1.5 bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white font-bold text-xs uppercase border-2 border-black dark:border-neutral-300 brutal-shadow-sm flex items-center gap-1.5"
+                className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white font-bold text-[10px] sm:text-xs uppercase border-2 border-black dark:border-neutral-300 brutal-shadow-sm flex items-center gap-1 sm:gap-1.5"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>Reset Filter</span>
               </button>
             )}
-            <span className="font-mono text-xs font-bold uppercase px-3 py-1.5 bg-black text-[#A3E635] border-2 border-black">
-              Showing {filteredUniverses.length} / 8 Sectors
+            <span className="font-mono text-[10px] sm:text-xs font-bold uppercase px-2.5 sm:px-3 py-1 sm:py-1.5 bg-black text-[#A3E635] border-2 border-black">
+              Showing {filteredUniverses.length} / 8
             </span>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function UniverseMatrix({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {filteredUniverses.map((item) => {
               const Icon = ICON_COMPONENTS[item.icon] || Tv
               const isSelected = selectedUniverse === item.id
@@ -117,7 +117,7 @@ export default function UniverseMatrix({
               return (
                 <div
                   key={item.id}
-                  className={`group bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-5 flex flex-col justify-between transition-all brutal-btn relative ${
+                  className={`group bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-4 sm:p-5 flex flex-col justify-between transition-all brutal-btn relative ${
                     isSelected ? 'ring-4 ring-[#FACC15]' : ''
                   }`}
                   style={{
@@ -125,45 +125,45 @@ export default function UniverseMatrix({
                   }}
                 >
                   {/* Accent Top Strip with Category Color */}
-                  <div 
-                    className="absolute -top-1.5 left-4 right-4 h-1.5 border-t-2 border-x-2 border-black"
+                  <div
+                    className="absolute -top-1.5 left-3 right-3 sm:left-4 sm:right-4 h-1.5 border-t-2 border-x-2 border-black"
                     style={{ backgroundColor: item.accentColor }}
                   />
 
                   {/* Header: Icon & Entry Count Badge */}
                   <div>
-                    <div className="flex items-center justify-between gap-2 mb-4">
-                      <div 
-                        className="w-12 h-12 border-2 border-black flex items-center justify-center brutal-shadow-sm group-hover:rotate-3 transition-transform"
+                    <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                      <div
+                        className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-black flex items-center justify-center brutal-shadow-sm group-hover:rotate-3 transition-transform"
                         style={{ backgroundColor: item.accentColor }}
                       >
-                        <Icon className="w-6 h-6 text-black" />
+                        <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
                       </div>
-                      
+
                       {/* Entry Count Badge */}
-                      <span className="px-2.5 py-1 text-xs font-mono font-black uppercase tracking-tight border-2 border-black bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white brutal-shadow-sm">
+                      <span className="px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-mono font-black uppercase tracking-tight border-2 border-black bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white brutal-shadow-sm">
                         {item.entryCount}
                       </span>
                     </div>
 
                     {/* Universe Title */}
-                    <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-black dark:text-white mb-2 group-hover:text-black transition-colors">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight text-black dark:text-white mb-1.5 sm:mb-2 group-hover:text-black transition-colors">
                       {item.name}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-neutral-700 dark:text-neutral-300 text-sm font-medium leading-snug mb-4">
+                    <p className="text-neutral-700 dark:text-neutral-300 text-xs sm:text-sm font-medium leading-snug mb-3 sm:mb-4">
                       {item.description}
                     </p>
                   </div>
 
                   {/* Tags & Action Button */}
-                  <div className="pt-3 border-t-2 border-black/10 dark:border-neutral-800">
-                    <div className="flex flex-wrap gap-1.5 mb-4">
+                  <div className="pt-2 sm:pt-3 border-t-2 border-black/10 dark:border-neutral-800">
+                    <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-3 sm:mb-4">
                       {item.tags.slice(0, 3).map((tag, tIdx) => (
                         <span
                           key={tIdx}
-                          className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 border border-black dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 hover:rotate-1 transition-transform"
+                          className="text-[9px] sm:text-[10px] font-mono font-bold uppercase px-1.5 sm:px-2 py-0.5 border border-black dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 hover:rotate-1 transition-transform"
                         >
                           #{tag}
                         </span>
@@ -173,12 +173,12 @@ export default function UniverseMatrix({
                     {/* Explore CTA */}
                     <button
                       onClick={() => setActiveModalUniverse(item)}
-                      className="w-full py-2 px-3 font-black text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn flex items-center justify-between gap-1 transition-colors"
+                      className="w-full py-1.5 sm:py-2 px-2 sm:px-3 font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn flex items-center justify-between gap-1 transition-colors"
                       style={{ backgroundColor: item.accentColor }}
                       aria-label={`Explore ${item.name} Universe details`}
                     >
-                      <span className="text-black">Explore Universe</span>
-                      <ArrowUpRight className="w-4 h-4 text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      <span className="text-black">Explore</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </button>
                   </div>
                 </div>

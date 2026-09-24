@@ -48,39 +48,39 @@ export default function MerchRadar({
   }
 
   return (
-    <section id="merch" className="py-16 px-4 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
+    <section id="merch" className="py-8 sm:py-16 px-3 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 pb-6 border-b-2 border-black dark:border-neutral-800">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4 mb-6 sm:mb-10 pb-4 sm:pb-6 border-b-2 border-black dark:border-neutral-800">
           <div>
-            <div className="inline-flex items-center gap-2 mb-2">
-              <span className="bg-[#F43F5E] text-white font-black text-xs uppercase px-2.5 py-0.5 border-2 border-black brutal-shadow-sm">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+              <span className="bg-[#F43F5E] text-white font-black text-[10px] sm:text-xs uppercase px-2 sm:px-2.5 py-0.5 border-2 border-black brutal-shadow-sm">
                 COLLECTIBLE PREVIEWS
               </span>
-              <span className="font-mono text-xs font-bold uppercase text-neutral-600 dark:text-neutral-400">
+              <span className="font-mono text-[10px] sm:text-xs font-bold uppercase text-neutral-600 dark:text-neutral-400">
                 DISCOVERY ONLY • NO CHECKOUT
               </span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-black dark:text-white">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black uppercase tracking-tight text-black dark:text-white">
               THE DROP RADAR
             </h2>
-            <p className="text-neutral-700 dark:text-neutral-300 font-medium text-sm sm:text-base mt-1 max-w-2xl">
+            <p className="text-neutral-700 dark:text-neutral-300 font-medium text-xs sm:text-sm md:text-base mt-1 max-w-2xl">
               Track official collectible runs, pre-orders, and vinyl releases before they sell out.
             </p>
           </div>
 
           {/* SRS Mandate Notice Pill */}
-          <div className="bg-white dark:bg-[#161B22] p-2.5 border-2 border-black dark:border-white brutal-shadow-sm max-w-xs">
-            <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-neutral-800 dark:text-neutral-200">
-              <Info className="w-4 h-4 text-[#FACC15] shrink-0" />
-              <span>Catalog Showcase • Direct Partner Links Only</span>
+          <div className="bg-white dark:bg-[#161B22] p-2 sm:p-2.5 border-2 border-black dark:border-white brutal-shadow-sm max-w-xs sm:max-w-sm">
+            <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-mono font-bold text-neutral-800 dark:text-neutral-200">
+              <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FACC15] shrink-0" />
+              <span>Showcase • Partner Links Only</span>
             </div>
           </div>
         </div>
 
         {/* Collectible Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {merchDrops.map((item) => {
             const isAlertSet = !!alertItems[item.id]
             const currentViews = viewCounters[item.id] || item.viewCountNum
@@ -88,23 +88,23 @@ export default function MerchRadar({
             return (
               <div
                 key={item.id}
-                className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-5 flex flex-col justify-between brutal-shadow-md hover:-translate-y-1 transition-transform relative group"
+                className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-4 sm:p-5 flex flex-col justify-between brutal-shadow-md hover:-translate-y-1 transition-transform relative group"
                 onClick={() => handleIncrementView(item.id)}
               >
                 {/* Accent Top Strip */}
-                <div 
-                  className="absolute -top-1.5 left-4 right-4 h-1.5 border-t-2 border-x-2 border-black"
+                <div
+                  className="absolute -top-1.5 left-3 right-3 sm:left-4 sm:right-4 h-1.5 border-t-2 border-x-2 border-black"
                   style={{ backgroundColor: item.universeColor }}
                 />
 
                 <div>
                   {/* Top Status Tag & Universe */}
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <span className={`font-mono text-[11px] font-black uppercase px-2.5 py-1 border-2 border-black ${item.statusTagColor} brutal-shadow-sm`}>
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                    <span className={`font-mono text-[10px] sm:text-[11px] font-black uppercase px-2 sm:px-2.5 py-0.5 sm:py-1 border-2 border-black ${item.statusTagColor} brutal-shadow-sm`}>
                       {item.statusTag}
                     </span>
-                    <span 
-                      className="font-mono text-[10px] font-black uppercase px-2 py-0.5 border border-black text-black"
+                    <span
+                      className="font-mono text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 border border-black text-black"
                       style={{ backgroundColor: item.universeColor }}
                     >
                       {item.universe}

@@ -36,7 +36,7 @@ export default function Hero({
   ]
 
   return (
-    <section id="top" className="relative pt-12 pb-16 px-4 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 overflow-hidden bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
+    <section id="top" className="relative pt-6 sm:pt-12 pb-8 sm:pb-16 px-3 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 overflow-hidden bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
 
       
       {/* Background Pop-Brutalist decorative geometric grid lines */}
@@ -51,36 +51,37 @@ export default function Hero({
       <div className="max-w-6xl mx-auto relative z-10 text-center">
         
         {/* Micro-Badge */}
-        <div className="inline-flex items-center gap-2 mb-6">
-          <div className="bg-[#A3E635] text-black font-black text-xs sm:text-sm uppercase tracking-wider px-3.5 py-1.5 border-2 border-black brutal-shadow-sm hover:rotate-1 transition-transform cursor-default">
-            <span>⚡ TECHWIZ 7 SHOWCASE • ALL-IN-ONE FANDOM PORTAL</span>
+        <div className="inline-flex items-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
+          <div className="bg-[#A3E635] text-black font-black text-[10px] sm:text-xs sm:text-sm uppercase tracking-wider px-2 sm:px-3.5 py-1 sm:py-1.5 border-2 border-black brutal-shadow-sm hover:rotate-1 transition-transform cursor-default">
+            <span className="hidden sm:inline">⚡ TECHWIZ 7 SHOWCASE • ALL-IN-ONE FANDOM PORTAL</span>
+            <span className="sm:hidden">⚡ TECHWIZ 7</span>
           </div>
         </div>
 
         {/* Main Headline */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight text-black dark:text-white leading-[0.95] mb-6">
+        <h1 className="text-2xl sm:text-4xl md:text-6xl lg:text-8xl font-black uppercase tracking-tight text-black dark:text-white leading-[0.95] mb-4 sm:mb-6">
           ONE PORTAL.{' '}
-          <span className="relative inline-block px-2 text-black bg-[#FACC15] border-3 border-black brutal-shadow-yellow hover:scale-[1.01] transition-transform">
+          <span className="relative inline-block px-1 sm:px-2 text-black bg-[#FACC15] border-3 border-black brutal-shadow-yellow hover:scale-[1.01] transition-transform">
             INFINITE UNIVERSES.
           </span>
         </h1>
 
         {/* Subtitle */}
-        <p className="max-w-3xl mx-auto text-base sm:text-lg md:text-xl font-medium text-neutral-800 dark:text-neutral-300 leading-relaxed mb-10">
+        <p className="max-w-3xl mx-auto text-sm sm:text-base md:text-xl font-medium text-neutral-800 dark:text-neutral-300 leading-relaxed mb-6 sm:mb-10 px-2 sm:px-0">
           Stop jumping across fragmented forums and cluttered feeds. Explore curated anime lore, gaming metas, K-pop comebacks, comic drops, and cosplay spotlights in one unified, ad-free hub.
         </p>
 
         {/* Interactive Search Bar Box */}
-        <div className="max-w-3xl mx-auto mb-8">
-          <div className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-2.5 sm:p-3 brutal-shadow-lg flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-3 w-full px-2">
-              <Search className="w-6 h-6 text-neutral-800 dark:text-neutral-200 shrink-0" />
+        <div className="max-w-3xl mx-auto mb-6 sm:mb-8 px-2 sm:px-0">
+          <div className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-2 sm:p-2.5 brutal-shadow-lg flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 w-full px-1.5 sm:px-2">
+              <Search className="w-4 h-4 sm:w-6 sm:h-6 text-neutral-800 dark:text-neutral-200 shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search across 8 universes, characters, soundtracks, trailers..."
-                className="w-full bg-transparent font-bold text-sm sm:text-base text-black dark:text-white placeholder:text-neutral-500 focus:outline-none"
+                placeholder="Search universes, characters, trailers..."
+                className="w-full bg-transparent font-bold text-xs sm:text-sm md:text-base text-black dark:text-white placeholder:text-neutral-500 focus:outline-none"
                 aria-label="Universal fandom search input"
               />
               {searchQuery && (
@@ -89,35 +90,35 @@ export default function Hero({
                   className="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-none border border-black dark:border-neutral-400"
                   aria-label="Clear search query"
                 >
-                  <X className="w-4 h-4 text-black dark:text-white" />
+                  <X className="w-3 h-3 sm:w-4 sm:h-4 text-black dark:text-white" />
                 </button>
               )}
             </div>
 
-            <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-2 border-t-2 sm:border-t-0 sm:border-l-2 border-black/20 dark:border-neutral-700 pt-2 sm:pt-0 sm:pl-3">
-              <span className="text-[11px] font-mono font-bold uppercase text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
+            <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2 border-t-2 sm:border-t-0 sm:border-l-2 border-black/20 dark:border-neutral-700 pt-1.5 sm:pt-0 sm:pl-2 sm:pl-3">
+              <span className="text-[9px] sm:text-[11px] font-mono font-bold uppercase text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
                 {totalResultsCount} Matches
               </span>
               <a
                 href="#explore"
-                className="px-4 py-2 bg-[#FACC15] text-black font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn flex items-center gap-1.5 shrink-0"
+                className="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-[#FACC15] text-black font-black text-[10px] sm:text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn flex items-center gap-1 sm:gap-1.5 shrink-0"
               >
                 <span>Browse</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </a>
             </div>
           </div>
         </div>
 
         {/* Instant Filter Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-2 max-w-4xl mx-auto mb-12">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 max-w-4xl mx-auto mb-8 sm:mb-12 px-2 sm:px-0">
           {filterPills.map((pill) => {
             const isSelected = selectedUniverse === pill.id
             return (
               <button
                 key={pill.id}
                 onClick={() => setSelectedUniverse(pill.id)}
-                className={`px-3 py-1.5 font-bold text-xs sm:text-sm uppercase tracking-tight border-2 border-black dark:border-white transition-all brutal-btn ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 font-bold text-[10px] sm:text-sm uppercase tracking-tight border-2 border-black dark:border-white transition-all brutal-btn ${
                   isSelected
                     ? 'bg-black text-white dark:bg-white dark:text-black brutal-shadow-sm scale-105'
                     : 'bg-white dark:bg-[#161B22] text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'
@@ -132,18 +133,18 @@ export default function Hero({
         </div>
 
         {/* Trust Badges */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto pt-6 border-t-2 border-black/10 dark:border-neutral-800">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 max-w-4xl mx-auto pt-4 sm:pt-6 border-t-2 border-black/10 dark:border-neutral-800 px-2 sm:px-0">
           {trustBadges.map((badge, idx) => {
             const Icon = badge.icon
             return (
               <div
                 key={idx}
-                className="bg-white dark:bg-[#161B22] border-2 border-black dark:border-neutral-200 p-3 brutal-shadow-sm flex items-center justify-center gap-2.5 text-left group hover:-translate-y-0.5 transition-transform"
+                className="bg-white dark:bg-[#161B22] border-2 border-black dark:border-neutral-200 p-2 sm:p-3 brutal-shadow-sm flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2.5 text-left group hover:-translate-y-0.5 transition-transform"
               >
-                <div className={`p-1.5 border border-black ${badge.highlight} text-black shrink-0`}>
-                  <Icon className="w-4 h-4" />
+                <div className={`p-1 sm:p-1.5 border border-black ${badge.highlight} text-black shrink-0`}>
+                  <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
                 </div>
-                <span className="font-black text-xs uppercase tracking-tight text-neutral-900 dark:text-neutral-100 leading-tight">
+                <span className="font-black text-[10px] sm:text-xs uppercase tracking-tight text-neutral-900 dark:text-neutral-100 leading-tight">
                   {badge.label}
                 </span>
               </div>

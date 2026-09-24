@@ -103,32 +103,32 @@ export default function MultimediaCenter({
   const isTrailerBookmarked = !!bookmarkedItems[activeTrailer.id]
 
   return (
-    <section id="multimedia" className="py-16 px-4 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
+    <section id="multimedia" className="py-8 sm:py-16 px-3 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Section Header */}
-        <div className="mb-12">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <span className="bg-[#FB923C] text-black font-black text-xs uppercase px-2.5 py-0.5 border-2 border-black brutal-shadow-sm">
+        <div className="mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+            <span className="bg-[#FB923C] text-black font-black text-[10px] sm:text-xs uppercase px-2 sm:px-2.5 py-0.5 border-2 border-black brutal-shadow-sm">
               AUDIOVISUAL VAULT
             </span>
-            <span className="font-mono text-xs font-bold uppercase text-neutral-600 dark:text-neutral-400">
+            <span className="font-mono text-[10px] sm:text-xs font-bold uppercase text-neutral-600 dark:text-neutral-400">
               ZERO-BUFFER REPLAY
             </span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-black dark:text-white">
-            STREAM, LISTEN & DISCOVER
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black uppercase tracking-tight text-black dark:text-white">
+            STREAM & DISCOVER
           </h2>
-          <p className="text-neutral-700 dark:text-neutral-300 font-medium text-sm sm:text-base mt-1 max-w-2xl">
+          <p className="text-neutral-700 dark:text-neutral-300 font-medium text-xs sm:text-sm md:text-base mt-1 max-w-2xl">
             Trailers, original soundtracks, and animated explainers without leaving the page.
           </p>
         </div>
 
         {/* Two-Column Split Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 items-start">
+
           {/* ================= LEFT: VIDEO PLAYER COMPONENT (7 COLS) ================= */}
-          <div className="lg:col-span-7 bg-white dark:bg-[#161B22] border-3 border-black dark:border-white brutal-shadow-lg p-4 sm:p-6 flex flex-col">
+          <div className="lg:col-span-7 bg-white dark:bg-[#161B22] border-3 border-black dark:border-white brutal-shadow-lg p-3 sm:p-4 md:p-6 flex flex-col">
             
             {/* Player Top Meta Bar */}
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-black dark:border-neutral-700">
