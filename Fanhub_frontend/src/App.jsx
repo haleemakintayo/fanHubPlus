@@ -15,6 +15,7 @@ import Dashboard from './components/Dashboard'
 import Admin from './components/Admin'
 import UniversePage from './components/UniversePage'
 import ArticlePage from './components/ArticlePage'
+import AboutPage from './components/AboutPage'
 import { interactionsApi, adminApi, getAuthToken } from './services/api'
 
 import {
@@ -54,9 +55,12 @@ function parseRouteFromLocation() {
     const slug = decodeURIComponent(path.slice('/universe/'.length).replace(/\/+$/, ''))
     return { page: 'universe', slug: slug || 'anime' }
   }
-  if (lowerPath.startsWith('/article/')) {
+   if (lowerPath.startsWith('/article/')) {
     const slug = decodeURIComponent(path.slice('/article/'.length).replace(/\/+$/, ''))
     return { page: 'article', slug: slug || ARTICLES_DATA[0]?.slug }
+  }
+  if (lowerPath === '/about' || lowerPath === '/about/') {
+    return { page: 'about', slug: null }
   }
   if (lowerPath.startsWith('/dashboard') || hash === '#dashboard' || hash === '#/dashboard') {
     return { page: 'dashboard', slug: null }
@@ -333,6 +337,15 @@ export default function App() {
       return
     }
 
+    if (page === 'about') {
+      setActivePage('about')
+      if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', '/about')
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      return
+    }
+
     // Default: 'home'
     setActivePage('home')
     if (typeof window !== 'undefined') {
@@ -353,7 +366,7 @@ export default function App() {
 
   // Unified handler for opening either a dedicated page ('dashboard', 'admin', 'moderation') or a modal ('login', 'register', 'feedback', 'submission', 'about')
   const handleOpenRouteOrModal = useCallback((target) => {
-    if (target === 'dashboard' || target === 'admin' || target === 'moderation') {
+    if (target === 'dashboard' || target === 'admin' || target === 'moderation' || target === 'about') {
       navigateToPage(target)
     } else {
       setActiveLoreCharacter(null)
@@ -676,7 +689,12 @@ export default function App() {
               addToast({ title: 'Article Dispatch', message: msg, type })
             }
           />
-        ) : activePage === 'dashboard' ? (
+         ) : activePage === 'about' ? (
+           <AboutPage
+             onNavigateHome={() => navigateToPage('home', '#top')}
+             onOpenModal={handleOpenRouteOrModal}
+           />
+         ) : activePage === 'dashboard' ? (
           <section className="py-8 sm:py-12 px-3 sm:px-6 lg:px-8 bg-[#FDFBF7] dark:bg-[#0D1117] border-b-2 border-black dark:border-neutral-100">
             <div className="max-w-7xl mx-auto">
               {/* Dedicated Page Top Navigation & Quick Actions */}
