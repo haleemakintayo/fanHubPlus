@@ -53,6 +53,7 @@ export default function MultimediaCenter({
   const [hoverRating, setHoverRating] = useState(0)
 
   const iframeRef = useRef(null)
+  const audioIframeRef = useRef(null)
   const videoContainerRef = useRef(null)
 
   // Sync with props if multimediaData changes
@@ -91,7 +92,18 @@ export default function MultimediaCenter({
   const activeYouTubeId = extractYouTubeId(activeTrailer)
   const trailerDurationSec = activeTrailer?.durationSec || activeTrailer?.duration_seconds || 165
 
-  // Send command to YouTube IFrame API via postMessage
+  // Audio Streamer State
+  const [activeTrackIndex, setActiveTrackIndex] = useState(0)
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
+  const [hasStartedAudio, setHasStartedAudio] = useState(false)
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0) // seconds
+  const [likedTracks, setLikedTracks] = useState({ 'kpop-supernova': true })
+
+  const activeTrack = audioTracks[activeTrackIndex] || audioTracks[0]
+  const activeAudioYouTubeId = extractYouTubeId(activeTrack)
+  const trackDurationSec = activeTrack?.durationSec || activeTrack?.duration_seconds || 180
+
+  // Send command to Video YouTube IFrame API via postMessage
   const sendYouTubeCommand = useCallback((func, args = []) => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
@@ -101,8 +113,23 @@ export default function MultimediaCenter({
     }
   }, [])
 
+  // Send command to Audio YouTube IFrame API via postMessage
+  const sendAudioYouTubeCommand = useCallback((func, args = []) => {
+    if (audioIframeRef.current && audioIframeRef.current.contentWindow) {
+      audioIframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func, args }),
+        '*'
+      )
+    }
+  }, [])
+
   // Toggle video play/pause while keeping custom UI controls in sync
   const handleToggleVideoPlay = () => {
+    // Pause audio stream if starting video
+    if (!isVideoPlaying && isAudioPlaying) {
+      setIsAudioPlaying(false)
+      sendAudioYouTubeCommand('pauseVideo')
+    }
     if (!hasStartedVideo) {
       setHasStartedVideo(true)
       setIsVideoPlaying(true)
@@ -132,13 +159,48 @@ export default function MultimediaCenter({
     }
   }
 
-  // Audio Streamer State
-  const [activeTrackIndex, setActiveTrackIndex] = useState(0)
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
-  const [audioCurrentTime, setAudioCurrentTime] = useState(42) // seconds
-  const [likedTracks, setLikedTracks] = useState({ 'kpop-supernova': true })
+  // Toggle audio play/pause while keeping custom UI controls in sync
+  const handleToggleAudioPlay = () => {
+    // Pause video trailer if starting audio
+    if (!isAudioPlaying && isVideoPlaying) {
+      setIsVideoPlaying(false)
+      sendYouTubeCommand('pauseVideo')
+    }
+    if (!hasStartedAudio) {
+      setHasStartedAudio(true)
+      setIsAudioPlaying(true)
+      return
+    }
+    const nextPlaying = !isAudioPlaying
+    setIsAudioPlaying(nextPlaying)
+    sendAudioYouTubeCommand(nextPlaying ? 'playVideo' : 'pauseVideo')
+  }
 
-  const activeTrack = audioTracks[activeTrackIndex] || audioTracks[0]
+  // Select a specific audio track from playlist or prev/next buttons
+  const handleSelectAudioTrack = (nextIndex, autoPlay = true) => {
+    if (autoPlay && isVideoPlaying) {
+      setIsVideoPlaying(false)
+      sendYouTubeCommand('pauseVideo')
+    }
+    setActiveTrackIndex(nextIndex)
+    setAudioCurrentTime(0)
+    if (autoPlay) {
+      setHasStartedAudio(true)
+      setIsAudioPlaying(true)
+    }
+  }
+
+  // Seek audio via custom progress bar
+  const handleSeekAudio = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const percent = Math.max(0, Math.min(1, clickX / rect.width))
+    const targetSeconds = Math.floor(percent * trackDurationSec)
+    setAudioCurrentTime(targetSeconds)
+    if (hasStartedAudio) {
+      sendAudioYouTubeCommand('seekTo', [targetSeconds, true])
+    }
+  }
 
   // Video progress timer
   useEffect(() => {
@@ -154,13 +216,13 @@ export default function MultimediaCenter({
     return () => clearInterval(interval)
   }, [isVideoPlaying, trailerDurationSec])
 
-  // Audio progress timer simulation
+  // Audio progress timer
   useEffect(() => {
     let interval
     if (isAudioPlaying && activeTrack) {
       interval = setInterval(() => {
         setAudioCurrentTime((prev) => {
-          if (prev >= (activeTrack.durationSec || 180)) {
+          if (prev >= trackDurationSec) {
             return 0
           }
           return prev + 1
@@ -168,7 +230,7 @@ export default function MultimediaCenter({
       }, 1000)
     }
     return () => clearInterval(interval)
-  }, [isAudioPlaying, activeTrack])
+  }, [isAudioPlaying, activeTrack, trackDurationSec])
 
   // Handle rating click (persists to backend + updates UI)
   const handleRate = (stars) => {
@@ -531,7 +593,21 @@ export default function MultimediaCenter({
               </div>
 
               {/* Now Playing Featured Card */}
-              <div className="p-4 border-2 border-black dark:border-white bg-[#FDFBF7] dark:bg-[#0D1117] brutal-shadow-sm mb-6 relative">
+              <div className="p-4 border-2 border-black dark:border-white bg-[#FDFBF7] dark:bg-[#0D1117] brutal-shadow-sm mb-6 relative overflow-hidden">
+                {/* Hidden YouTube Music Audio Engine */}
+                {hasStartedAudio && activeAudioYouTubeId && (
+                  <iframe
+                    ref={audioIframeRef}
+                    key={`${activeTrack.id}-${activeAudioYouTubeId}`}
+                    src={`https://www.youtube.com/embed/${activeAudioYouTubeId}?enablejsapi=1&autoplay=1&controls=0&rel=0&modestbranding=1&playsinline=1`}
+                    title={activeTrack.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    className="w-1 h-1 opacity-0 pointer-events-none absolute -bottom-2 -right-2 overflow-hidden"
+                    tabIndex={-1}
+                    aria-hidden="true"
+                  />
+                )}
+
                 <div className="flex items-center gap-4">
                   <div className="relative w-16 h-16 sm:w-20 sm:h-20 border-2 border-black shrink-0 overflow-hidden group">
                     <img 
@@ -564,16 +640,11 @@ export default function MultimediaCenter({
                 <div className="mt-4">
                   <div 
                     className="w-full bg-neutral-300 dark:bg-neutral-800 h-2 cursor-pointer border border-black dark:border-white relative"
-                    onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect()
-                      const clickX = e.clientX - rect.left
-                      const percent = clickX / rect.width
-                      setAudioCurrentTime(Math.floor(percent * activeTrack.durationSec))
-                    }}
+                    onClick={handleSeekAudio}
                   >
                     <div 
-                      className="bg-[#F43F5E] h-full"
-                      style={{ width: `${(audioCurrentTime / activeTrack.durationSec) * 100}%` }}
+                      className="bg-[#F43F5E] h-full transition-all duration-150"
+                      style={{ width: `${Math.min(100, (audioCurrentTime / Math.max(1, trackDurationSec)) * 100)}%` }}
                     />
                   </div>
                   <div className="flex items-center justify-between text-[11px] font-mono font-bold mt-1 text-neutral-600 dark:text-neutral-400">
@@ -598,8 +669,7 @@ export default function MultimediaCenter({
                     <button
                       onClick={() => {
                         const prev = activeTrackIndex === 0 ? audioTracks.length - 1 : activeTrackIndex - 1
-                        setActiveTrackIndex(prev)
-                        setAudioCurrentTime(0)
+                        handleSelectAudioTrack(prev, isAudioPlaying)
                       }}
                       className="p-2 border-2 border-black dark:border-white bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm brutal-btn"
                       aria-label="Previous track"
@@ -608,7 +678,7 @@ export default function MultimediaCenter({
                     </button>
 
                     <button
-                      onClick={() => setIsAudioPlaying(!isAudioPlaying)}
+                      onClick={handleToggleAudioPlay}
                       className="px-5 py-2 border-2 border-black bg-[#A3E635] text-black font-black text-xs uppercase brutal-shadow-sm brutal-btn flex items-center gap-1.5"
                       aria-label={isAudioPlaying ? 'Pause audio' : 'Play audio'}
                     >
@@ -628,8 +698,7 @@ export default function MultimediaCenter({
                     <button
                       onClick={() => {
                         const next = activeTrackIndex === audioTracks.length - 1 ? 0 : activeTrackIndex + 1
-                        setActiveTrackIndex(next)
-                        setAudioCurrentTime(0)
+                        handleSelectAudioTrack(next, isAudioPlaying)
                       }}
                       className="p-2 border-2 border-black dark:border-white bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm brutal-btn"
                       aria-label="Next track"
@@ -657,11 +726,7 @@ export default function MultimediaCenter({
                   return (
                     <div
                       key={track.id}
-                      onClick={() => {
-                        setActiveTrackIndex(idx)
-                        setAudioCurrentTime(0)
-                        setIsAudioPlaying(true)
-                      }}
+                      onClick={() => handleSelectAudioTrack(idx, true)}
                       className={`p-2.5 border-2 border-black dark:border-neutral-700 flex items-center justify-between gap-3 cursor-pointer transition-all brutal-btn ${
                         isCurrent
                           ? 'bg-[#FDFBF7] dark:bg-[#0D1117] brutal-shadow-sm border-l-6'
@@ -672,13 +737,18 @@ export default function MultimediaCenter({
                       }}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-6 text-center font-mono font-black text-xs text-neutral-500">
+                        <div className="w-6 text-center font-mono font-black text-xs text-neutral-500 shrink-0">
                           {isCurrent && isAudioPlaying ? (
                             <Radio className="w-4 h-4 text-[#F43F5E] animate-pulse inline" />
                           ) : (
                             `0${idx + 1}`
                           )}
                         </div>
+                        <img
+                          src={track.cover}
+                          alt={track.title}
+                          className="w-9 h-9 object-cover border border-black dark:border-neutral-600 shrink-0"
+                        />
                         <div className="min-w-0">
                           <h5 className="font-black text-xs uppercase tracking-tight text-black dark:text-white truncate">
                             {track.title}
