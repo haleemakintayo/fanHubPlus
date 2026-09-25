@@ -13,7 +13,7 @@ import Modals from './components/Modals'
 import Toast from './components/Toast'
 import Dashboard from './components/Dashboard'
 import Admin from './components/Admin'
-import { interactionsApi, getAuthToken } from './services/api'
+import { interactionsApi, adminApi, getAuthToken } from './services/api'
 
 import {
   UNIVERSES,
@@ -78,6 +78,7 @@ export default function App() {
   // Search & Category Filtering State
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUniverse, setSelectedUniverse] = useState('all')
+  const [homeCharacters, setHomeCharacters] = useState(CHARACTERS_DATA)
 
   // Toast Notification State
   const [toasts, setToasts] = useState([])
@@ -165,6 +166,56 @@ export default function App() {
   // Modal State (for overlays: 'login' | 'register' | 'feedback' | 'submission' | 'about')
   const [activeModal, setActiveModal] = useState(null)
   const [activeLoreCharacter, setActiveLoreCharacter] = useState(null)
+
+  // Load approved character profiles so community-approved additions appear in the home archive.
+  useEffect(() => {
+    let isMounted = true
+    adminApi.getCharacters()
+      .then((profiles) => {
+        if (!isMounted || !Array.isArray(profiles) || profiles.length === 0) return
+        const mappedProfiles = profiles.map((profile) => {
+          const category = UNIVERSES.find((universe) => universe.slug === profile.category?.slug)
+          const fallbackCharacter = CHARACTERS_DATA.find((character) => character.universe === profile.category?.name)
+          const details = profile.details_json && typeof profile.details_json === 'object'
+            ? profile.details_json
+            : {}
+
+          return {
+            id: `character-${profile.id}`,
+            name: profile.name,
+            alias: profile.alias || profile.archetype || 'Community Profile',
+            universe: profile.category?.name || 'Community Vault',
+            accentColor: category?.accentColor || '#A3E635',
+            image: profile.image_url || fallbackCharacter?.image || '',
+            faction: profile.faction || 'Independent',
+            origin: profile.origin || 'Unknown Origin',
+            tagline: profile.tagline || profile.archetype || 'Community-submitted character profile',
+            stats: Array.isArray(profile.stats_json) && profile.stats_json.length > 0
+              ? profile.stats_json.map((stat) => ({
+                label: stat.label || 'Attribute',
+                value: stat.value,
+                textValue: stat.textValue || stat.value || 'N/A',
+              }))
+              : [{ label: 'Profile Status', textValue: 'Community submission' }],
+            details: {
+              ...details,
+              bio: profile.biography || details.bio || 'No biography supplied.',
+              weapon: details.weapon || 'Not supplied',
+              nemesis: details.nemesis || 'Not supplied',
+              firstAppearance: details.firstAppearance || 'Not supplied',
+            },
+          }
+        })
+        setHomeCharacters(mappedProfiles)
+      })
+      .catch(() => {
+        // Keep the curated static archive available when the API is unavailable.
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   // Listen to browser back/forward navigation
   useEffect(() => {
@@ -660,7 +711,7 @@ export default function App() {
 
             {/* 5. Character Profiles & Lore Archive */}
             <CharacterArchive
-              characters={CHARACTERS_DATA}
+              characters={homeCharacters}
               bookmarkedItems={bookmarkedItems}
               toggleBookmark={toggleBookmark}
               onOpenLoreModal={(character) => {
