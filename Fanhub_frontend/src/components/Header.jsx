@@ -123,18 +123,6 @@ export default function Header({
               {item.name}
             </a>
           ))}
-          <button
-            type="button"
-            onClick={handleOpenDashboardPage}
-            className={`px-2 xl:px-2.5 py-1 xl:py-1.5 font-black text-[10px] xl:text-sm uppercase tracking-tight border-2 transition-all flex items-center gap-1 ${
-              activePage === 'dashboard'
-                ? 'bg-[#A3E635] text-black border-black brutal-shadow-sm'
-                : 'text-neutral-800 dark:text-neutral-200 border-transparent hover:border-black dark:hover:border-neutral-300 hover:bg-neutral-200/60 dark:hover:bg-neutral-800'
-            }`}
-          >
-            <LayoutDashboard className="w-3.5 h-3.5" />
-            <span>Dashboard</span>
-          </button>
         </nav>
 
         {/* Right: Controls & Actions */}
@@ -178,20 +166,6 @@ export default function Header({
           {/* Auth Actions: Logged In vs Guest */}
           {isAuthenticated ? (
             <>
-              {user?.role === 'ADMIN' && (
-                <button
-                  onClick={handleOpenAdminPage}
-                  className={`hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn ${
-                    activePage === 'admin'
-                      ? 'bg-black text-[#FACC15]'
-                      : 'bg-[#F43F5E] text-white'
-                  }`}
-                  title="Open Admin Control Panel Page"
-                >
-                  <ShieldAlert className="w-3.5 h-3.5" />
-                  <span>Admin Panel</span>
-                </button>
-              )}
 
               <button
                 onClick={handleOpenDashboardPage}
@@ -273,35 +247,12 @@ export default function Header({
                 </a>
               )
             })}
-            <button
-              type="button"
-              onClick={handleOpenDashboardPage}
-              className="flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 font-black text-[10px] sm:text-xs uppercase tracking-tight bg-[#A3E635] text-black border-2 border-black brutal-shadow-sm"
-            >
-              <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
-              <span>Dashboard</span>
-            </button>
-            {user?.role === 'ADMIN' && (
-              <button
-                type="button"
-                onClick={handleOpenAdminPage}
-                className="flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 font-black text-[10px] sm:text-xs uppercase tracking-tight bg-[#F43F5E] text-white border-2 border-black brutal-shadow-sm"
-              >
-                <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                <span>Admin Panel</span>
-              </button>
-            )}
+
           </div>
 
           <div className="pt-2 border-t-2 border-black/20 dark:border-neutral-800 flex items-center justify-between gap-2">
             {isAuthenticated ? (
               <>
-                <button
-                  onClick={handleOpenDashboardPage}
-                  className="flex-1 py-1.5 sm:py-2 font-black text-[10px] sm:text-xs uppercase border-2 border-black bg-[#A3E635] text-black brutal-shadow-sm"
-                >
-                  Dashboard ({user?.username || 'Collector'})
-                </button>
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false)
