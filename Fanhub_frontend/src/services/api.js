@@ -272,6 +272,32 @@ export const fandomsApi = {
 };
 
 /**
+ * Stream & Discover Audiovisual Vault API Service
+ */
+export const streamDiscoverApi = {
+  getStreamDiscover: ({ category } = {}) => {
+    const params = new URLSearchParams();
+    if (category && category !== 'all') params.set('category', category);
+    const qs = params.toString();
+    return apiRequest(`/fandoms/stream-discover/${qs ? `?${qs}` : ''}`, {
+      method: 'GET',
+      skipAuth: true,
+    });
+  },
+
+  rateStreamItem: (slug, score) =>
+    apiRequest(`/fandoms/stream-discover/${encodeURIComponent(slug)}/rate/`, {
+      method: 'POST',
+      body: JSON.stringify({ score }),
+    }),
+
+  likeStreamTrack: (slug) =>
+    apiRequest(`/fandoms/stream-discover/${encodeURIComponent(slug)}/like/`, {
+      method: 'POST',
+    }),
+};
+
+/**
  * Normalize a backend Content object into the frontend Article shape
  */
 export function normalizeBackendArticle(item, fallbackAccent = '#FACC15') {

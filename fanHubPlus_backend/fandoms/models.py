@@ -169,3 +169,95 @@ class CharacterSubmission(models.Model):
 
     def __str__(self):
         return f"[{self.get_status_display()}] {self.name} by {self.user}"
+
+
+class StreamMedia(models.Model):
+    """
+    Dedicated model for the 'Stream & Discover' Audiovisual Vault:
+    stores 4K video trailers and lossless audio soundtrack streams.
+    """
+    class StreamType(models.TextChoices):
+        TRAILER = 'TRAILER', _('Video Trailer')
+        AUDIO = 'AUDIO', _('Audio Soundtrack')
+
+    title = models.CharField(max_length=255, db_index=True)
+    slug = models.SlugField(max_length=255, unique=True, db_index=True)
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='stream_media',
+        db_index=True
+    )
+    stream_type = models.CharField(
+        max_length=20,
+        choices=StreamType.choices,
+        default=StreamType.TRAILER,
+        db_index=True
+    )
+    universe_label = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text=_('Display universe/category label e.g. Anime / Gaming')
+    )
+    accent_color = models.CharField(max_length=20, default='#A3E635')
+    media_url = models.URLField(
+        max_length=1000,
+        help_text=_('YouTube link (e.g. https://youtu.be/x4ztgjvfU60) or audio stream URL')
+    )
+    thumbnail_url = models.URLField(max_length=1000, blank=True)
+    synopsis = models.TextField(blank=True)
+    artist = models.CharField(max_length=255, blank=True)
+    album = models.CharField(max_length=255, blank=True)
+    duration = models.CharField(max_length=20, default='02:45')
+    duration_seconds = models.PositiveIntegerField(default=165)
+    release_year = models.CharField(max_length=100, blank=True)
+    rating = models.FloatField(default=4.9)
+    ratings_count = models.PositiveIntegerField(default=100)
+    views_label = models.CharField(max_length=50, default='1.0M views')
+    view_count = models.PositiveIntegerField(default=0)
+    likes_label = models.CharField(max_length=50, default='10.0k')
+    likes_count = models.PositiveIntegerField(default=0)
+    display_order = models.PositiveIntegerField(default=0, db_index=True)
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('Stream & Discover Media')
+        verbose_name_plural = _('Stream & Discover Media')
+        ordering = ['display_order', '-created_at']
+
+    def __str__(self):
+        return f"[{self.get_stream_type_display()}] {self.title}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        if not self.universe_label and self.category_id:
+            self.universe_label = self.category.name
+        super().save(*args, **kwargs)
+
+    @property
+    def youtube_video_id(self) -> str:
+        """Extracts YouTube video ID from youtu.be/<id>, youtube.com/watch?v=<id>, or youtube.com/embed/<id>."""
+        url = (self.media_url or '').strip()
+        if not url:
+            return ''
+        if 'youtu.be/' in url:
+            after = url.split('youtu.be/', 1)[1]
+            return after.split('?')[0].split('&')[0].split('/')[0]
+        if 'v=' in url:
+            after = url.split('v=', 1)[1]
+            return after.split('&')[0].split('#')[0]
+        if '/embed/' in url:
+            after = url.split('/embed/', 1)[1]
+            return after.split('?')[0].split('&')[0].split('/')[0]
+        return ''
+
+    @property
+    def embed_url(self) -> str:
+        vid = self.youtube_video_id
+        if vid:
+            return f"https://www.youtube.com/embed/{vid}"
+        return self.media_url or ''
+

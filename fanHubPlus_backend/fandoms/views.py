@@ -9,13 +9,14 @@ from django.utils.text import slugify
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 
-from .models import Category, Content, CharacterProfile, CharacterSubmission
+from .models import Category, Content, CharacterProfile, CharacterSubmission, StreamMedia
 from .serializers import (
     CategorySerializer,
     ContentListSerializer,
     ContentDetailSerializer,
     CharacterProfileSerializer,
     CharacterSubmissionSerializer,
+    StreamMediaSerializer,
 )
 from .services import ContentFilter, ContentFilterService, SearchVectorEngine
 from interactions.views import IsAdminRole, IsAdminOrReadOnly
@@ -251,3 +252,128 @@ class AdminCharacterSubmissionViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['patch', 'post'], url_path='moderate')
     def moderate(self, request, *args, **kwargs):
         return self._moderate(request, self.get_object())
+
+
+@extend_schema(
+    tags=['Fandoms'],
+    summary='Retrieve Stream & Discover audiovisual vault payload (4K Trailers & Lossless Audio Tracks)'
+)
+class StreamDiscoverView(generics.GenericAPIView):
+    """
+    GET /api/fandoms/stream-discover/
+    Returns { "trailers": [...], "audioTracks": [...] } for the Stream & Discover MultimediaCenter.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = StreamMediaSerializer
+
+    def get(self, request, *args, **kwargs):
+        qs = StreamMedia.objects.filter(is_active=True).select_related('category').order_by('display_order', 'id')
+        category = request.query_params.get('category')
+        if category and category.lower() != 'all':
+            if str(category).isdigit():
+                qs = qs.filter(category_id=int(category))
+            else:
+                qs = qs.filter(category__slug=category)
+
+        trailers_qs = qs.filter(stream_type=StreamMedia.StreamType.TRAILER)
+        audio_qs = qs.filter(stream_type=StreamMedia.StreamType.AUDIO)
+
+        trailers_data = StreamMediaSerializer(trailers_qs, many=True, context={'request': request}).data
+        audio_data = StreamMediaSerializer(audio_qs, many=True, context={'request': request}).data
+
+        return Response({
+            'trailers': trailers_data,
+            'audioTracks': audio_data,
+        })
+
+
+@extend_schema(
+    tags=['Fandoms'],
+    summary='Manage Stream & Discover trailers and audio tracks (Admin CRUD + Public Read)'
+)
+class StreamMediaViewSet(DualLookupMixin, viewsets.ModelViewSet):
+    """
+    GET /api/fandoms/stream-media/
+    POST/PATCH/DELETE /api/fandoms/stream-media/<slug_or_id>/
+    """
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = StreamMediaSerializer
+    lookup_field = 'slug'
+    pagination_class = None
+
+    def get_queryset(self):
+        qs = StreamMedia.objects.all().select_related('category').order_by('display_order', 'id')
+        stream_type = self.request.query_params.get('stream_type') or self.request.query_params.get('type')
+        category = self.request.query_params.get('category')
+        if stream_type:
+            qs = qs.filter(stream_type__iexact=stream_type)
+        if category and category.lower() != 'all':
+            if str(category).isdigit():
+                qs = qs.filter(category_id=int(category))
+            else:
+                qs = qs.filter(category__slug=category)
+        return qs
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        StreamMedia.objects.filter(pk=instance.pk).update(view_count=F('view_count') + 1)
+        instance.refresh_from_db()
+        return Response(self.get_serializer(instance).data)
+
+
+@extend_schema(
+    tags=['Fandoms'],
+    summary='Submit a 1-5 star rating for a Stream & Discover trailer'
+)
+class StreamMediaRateView(generics.GenericAPIView):
+    """
+    POST /api/fandoms/stream-discover/<slug>/rate/
+    Body: { "score": 1..5 }
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = StreamMediaSerializer
+
+    def post(self, request, slug, *args, **kwargs):
+        item = generics.get_object_or_404(StreamMedia, slug=slug)
+        try:
+            score = int(request.data.get('score', 5))
+        except (TypeError, ValueError):
+            score = 5
+        score = max(1, min(5, score))
+
+        total_score = (item.rating * item.ratings_count) + score
+        item.ratings_count += 1
+        item.rating = round(total_score / item.ratings_count, 2)
+        item.save(update_fields=['rating', 'ratings_count', 'updated_at'])
+
+        return Response(StreamMediaSerializer(item, context={'request': request}).data)
+
+
+@extend_schema(
+    tags=['Fandoms'],
+    summary='Toggle or increment favorite likes on a Stream & Discover audio track'
+)
+class StreamMediaLikeView(generics.GenericAPIView):
+    """
+    POST /api/fandoms/stream-discover/<slug>/like/
+    Body: { "liked": true }
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = StreamMediaSerializer
+
+    def post(self, request, slug, *args, **kwargs):
+        item = generics.get_object_or_404(StreamMedia, slug=slug)
+        liked = request.data.get('liked', True)
+        if liked:
+            item.likes_count += 1
+        elif item.likes_count > 0:
+            item.likes_count -= 1
+
+        if item.likes_count >= 1000:
+            item.likes_label = f"{item.likes_count / 1000:.1f}k"
+        else:
+            item.likes_label = str(item.likes_count)
+        item.save(update_fields=['likes_count', 'likes_label', 'updated_at'])
+
+        return Response(StreamMediaSerializer(item, context={'request': request}).data)
+

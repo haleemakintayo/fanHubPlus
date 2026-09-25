@@ -1,7 +1,7 @@
 # fandoms/admin.py
 
 from django.contrib import admin
-from .models import Category, Content, CharacterProfile, CharacterSubmission
+from .models import Category, Content, CharacterProfile, CharacterSubmission, StreamMedia
 
 
 @admin.register(Category)
@@ -20,6 +20,15 @@ class ContentAdmin(admin.ModelAdmin):
     list_editable = ('popularity_score', 'is_published')
 
 
+@admin.register(StreamMedia)
+class StreamMediaAdmin(admin.ModelAdmin):
+    list_display = ('title', 'stream_type', 'category', 'duration', 'rating', 'view_count', 'display_order', 'is_active')
+    list_filter = ('stream_type', 'category', 'is_active')
+    search_fields = ('title', 'synopsis', 'artist', 'album', 'media_url')
+    prepopulated_fields = {'slug': ('title',)}
+    list_editable = ('display_order', 'is_active')
+
+
 @admin.register(CharacterProfile)
 class CharacterProfileAdmin(admin.ModelAdmin):
     list_display = ('name', 'alias', 'category', 'archetype', 'faction', 'created_at')
@@ -34,3 +43,4 @@ class CharacterSubmissionAdmin(admin.ModelAdmin):
     list_filter = ('status', 'category')
     search_fields = ('name', 'alias', 'biography', 'user__username')
     readonly_fields = ('user', 'created_at', 'updated_at')
+

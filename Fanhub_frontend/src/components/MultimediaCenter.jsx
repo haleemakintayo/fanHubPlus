@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { 
   Play, 
   Pause, 
@@ -15,7 +15,24 @@ import {
   Disc, 
   Check
 } from 'lucide-react'
+import { streamDiscoverApi } from '../services/api'
 
+function extractYouTubeId(trailer) {
+  if (!trailer) return ''
+  if (trailer.youtubeVideoId) return trailer.youtubeVideoId
+  const rawUrl = trailer.videoUrl || trailer.media_url || trailer.embedUrl || ''
+  if (!rawUrl) return ''
+  if (rawUrl.includes('youtu.be/')) {
+    return rawUrl.split('youtu.be/')[1]?.split(/[?&/]/)[0] || ''
+  }
+  if (rawUrl.includes('v=')) {
+    return rawUrl.split('v=')[1]?.split(/[&#]/)[0] || ''
+  }
+  if (rawUrl.includes('/embed/')) {
+    return rawUrl.split('/embed/')[1]?.split(/[?&/]/)[0] || ''
+  }
+  return ''
+}
 
 export default function MultimediaCenter({ 
   multimediaData, 
@@ -23,17 +40,97 @@ export default function MultimediaCenter({
   bookmarkedItems, 
   toggleBookmark 
 }) {
-  const { trailers, audioTracks } = multimediaData
+  const [trailers, setTrailers] = useState(multimediaData?.trailers || [])
+  const [audioTracks, setAudioTracks] = useState(multimediaData?.audioTracks || [])
 
   // Video Player State
   const [selectedTrailerIndex, setSelectedTrailerIndex] = useState(0)
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
-  const [videoProgress, setVideoProgress] = useState(35) // percent
+  const [hasStartedVideo, setHasStartedVideo] = useState(false)
+  const [videoProgress, setVideoProgress] = useState(0) // percent
   const [isVideoMuted, setIsVideoMuted] = useState(false)
   const [userRating, setUserRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
 
-  const activeTrailer = trailers[selectedTrailerIndex]
+  const iframeRef = useRef(null)
+  const videoContainerRef = useRef(null)
+
+  // Sync with props if multimediaData changes
+  useEffect(() => {
+    if (multimediaData?.trailers?.length) {
+      setTrailers(multimediaData.trailers)
+    }
+    if (multimediaData?.audioTracks?.length) {
+      setAudioTracks(multimediaData.audioTracks)
+    }
+  }, [multimediaData])
+
+  // Fetch live Stream & Discover data from Django backend API
+  useEffect(() => {
+    let isMounted = true
+    streamDiscoverApi
+      .getStreamDiscover()
+      .then((data) => {
+        if (!isMounted || !data) return
+        if (Array.isArray(data.trailers) && data.trailers.length > 0) {
+          setTrailers(data.trailers)
+        }
+        if (Array.isArray(data.audioTracks) && data.audioTracks.length > 0) {
+          setAudioTracks(data.audioTracks)
+        }
+      })
+      .catch(() => {
+        // Fallback to local seeded data silently if backend is offline
+      })
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const activeTrailer = trailers[selectedTrailerIndex] || trailers[0]
+  const activeYouTubeId = extractYouTubeId(activeTrailer)
+  const trailerDurationSec = activeTrailer?.durationSec || activeTrailer?.duration_seconds || 165
+
+  // Send command to YouTube IFrame API via postMessage
+  const sendYouTubeCommand = useCallback((func, args = []) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func, args }),
+        '*'
+      )
+    }
+  }, [])
+
+  // Toggle video play/pause while keeping custom UI controls in sync
+  const handleToggleVideoPlay = () => {
+    if (!hasStartedVideo) {
+      setHasStartedVideo(true)
+      setIsVideoPlaying(true)
+      return
+    }
+    const nextPlaying = !isVideoPlaying
+    setIsVideoPlaying(nextPlaying)
+    sendYouTubeCommand(nextPlaying ? 'playVideo' : 'pauseVideo')
+  }
+
+  // Toggle video mute/unmute while keeping custom UI controls in sync
+  const handleToggleVideoMute = () => {
+    const nextMuted = !isVideoMuted
+    setIsVideoMuted(nextMuted)
+    sendYouTubeCommand(nextMuted ? 'mute' : 'unMute')
+  }
+
+  // Seek video via custom scrubber progress bar
+  const handleSeekVideo = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const newProgress = Math.max(0, Math.min(100, Math.round((clickX / rect.width) * 100)))
+    setVideoProgress(newProgress)
+    const targetSeconds = Math.floor((newProgress / 100) * trailerDurationSec)
+    if (hasStartedVideo) {
+      sendYouTubeCommand('seekTo', [targetSeconds, true])
+    }
+  }
 
   // Audio Streamer State
   const [activeTrackIndex, setActiveTrackIndex] = useState(0)
@@ -41,27 +138,29 @@ export default function MultimediaCenter({
   const [audioCurrentTime, setAudioCurrentTime] = useState(42) // seconds
   const [likedTracks, setLikedTracks] = useState({ 'kpop-supernova': true })
 
-  const activeTrack = audioTracks[activeTrackIndex]
+  const activeTrack = audioTracks[activeTrackIndex] || audioTracks[0]
 
-  // Video progress timer simulation
+  // Video progress timer
   useEffect(() => {
     let interval
     if (isVideoPlaying) {
       interval = setInterval(() => {
-        setVideoProgress((prev) => (prev >= 100 ? 0 : prev + 1))
+        setVideoProgress((prev) => {
+          const step = 100 / Math.max(1, trailerDurationSec)
+          return prev + step >= 100 ? 0 : prev + step
+        })
       }, 1000)
     }
     return () => clearInterval(interval)
-  }, [isVideoPlaying])
+  }, [isVideoPlaying, trailerDurationSec])
 
   // Audio progress timer simulation
   useEffect(() => {
     let interval
-    if (isAudioPlaying) {
+    if (isAudioPlaying && activeTrack) {
       interval = setInterval(() => {
         setAudioCurrentTime((prev) => {
-          if (prev >= activeTrack.durationSec) {
-            // loop or advance
+          if (prev >= (activeTrack.durationSec || 180)) {
             return 0
           }
           return prev + 1
@@ -69,11 +168,24 @@ export default function MultimediaCenter({
       }, 1000)
     }
     return () => clearInterval(interval)
-  }, [isAudioPlaying, activeTrack.durationSec])
+  }, [isAudioPlaying, activeTrack])
 
-  // Handle rating click
+  // Handle rating click (persists to backend + updates UI)
   const handleRate = (stars) => {
     setUserRating(stars)
+    const slugOrId = activeTrailer?.slug || activeTrailer?.id
+    if (slugOrId) {
+      streamDiscoverApi
+        .rateStreamItem(slugOrId, stars)
+        .then((res) => {
+          if (res?.item) {
+            setTrailers((prev) =>
+              prev.map((item, idx) => (idx === selectedTrailerIndex ? { ...item, ...res.item } : item))
+            )
+          }
+        })
+        .catch(() => {})
+    }
     onShowToast({
       title: 'Rating Submitted!',
       message: `You rated "${activeTrailer.title}" ${stars} out of 5 stars.`,
@@ -81,10 +193,22 @@ export default function MultimediaCenter({
     })
   }
 
-  // Handle track like toggle
+  // Handle track like toggle (persists to backend + updates UI)
   const handleToggleLike = (trackId, trackTitle) => {
     const isLiked = !likedTracks[trackId]
     setLikedTracks((prev) => ({ ...prev, [trackId]: isLiked }))
+    if (isLiked && trackId) {
+      streamDiscoverApi
+        .likeStreamTrack(trackId)
+        .then((res) => {
+          if (res?.item) {
+            setAudioTracks((prev) =>
+              prev.map((t) => (t.id === trackId || t.slug === trackId ? { ...t, ...res.item } : t))
+            )
+          }
+        })
+        .catch(() => {})
+    }
     onShowToast({
       title: isLiked ? 'Track Favorited' : 'Removed from Favorites',
       message: `"${trackTitle}" ${isLiked ? 'added to your audio collection' : 'removed'}.`,
@@ -97,6 +221,8 @@ export default function MultimediaCenter({
     const rem = sec % 60
     return `${mins < 10 ? '0' : ''}${mins}:${rem < 10 ? '0' : ''}${rem}`
   }
+
+  if (!activeTrailer || !activeTrack) return null
 
   const isTrailerBookmarked = !!bookmarkedItems[activeTrailer.id]
 
@@ -158,23 +284,42 @@ export default function MultimediaCenter({
               </div>
             </div>
 
-            {/* Video Canvas Simulation */}
-            <div className="relative aspect-video w-full bg-black border-2 border-black overflow-hidden group">
-              <img 
-                src={activeTrailer.videoThumbnail} 
-                alt={activeTrailer.title}
-                className={`w-full h-full object-cover transition-opacity duration-300 ${
-                  isVideoPlaying ? 'opacity-80 scale-[1.02]' : 'opacity-90'
-                }`}
-              />
+            {/* Video Canvas with Embedded YouTube Stream & Custom UI Controls */}
+            <div 
+              ref={videoContainerRef}
+              className="relative aspect-video w-full bg-black border-2 border-black overflow-hidden group"
+            >
+              {hasStartedVideo && activeYouTubeId ? (
+                <iframe
+                  ref={iframeRef}
+                  key={`${activeTrailer.id}-${activeYouTubeId}`}
+                  src={`https://www.youtube.com/embed/${activeYouTubeId}?enablejsapi=1&autoplay=1&controls=0&rel=0&modestbranding=1&playsinline=1&mute=${isVideoMuted ? 1 : 0}`}
+                  title={activeTrailer.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full object-cover pointer-events-none"
+                />
+              ) : (
+                <img 
+                  src={activeTrailer.videoThumbnail} 
+                  alt={activeTrailer.title}
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${
+                    isVideoPlaying ? 'opacity-80 scale-[1.02]' : 'opacity-90'
+                  }`}
+                />
+              )}
 
               {/* Dark Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30 pointer-events-none" />
+              <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30 pointer-events-none transition-opacity duration-300 ${
+                isVideoPlaying ? 'opacity-60 group-hover:opacity-90' : 'opacity-100'
+              }`} />
 
               {/* Center Play/Pause Large Action Button */}
               <button
-                onClick={() => setIsVideoPlaying(!isVideoPlaying)}
-                className="absolute inset-0 m-auto w-16 h-16 sm:w-20 sm:h-20 bg-[#FACC15] text-black border-3 border-black rounded-none flex items-center justify-center brutal-shadow-md brutal-btn group-hover:scale-105 transition-transform z-20"
+                onClick={handleToggleVideoPlay}
+                className={`absolute inset-0 m-auto w-16 h-16 sm:w-20 sm:h-20 bg-[#FACC15] text-black border-3 border-black rounded-none flex items-center justify-center brutal-shadow-md brutal-btn group-hover:scale-105 transition-all z-20 ${
+                  isVideoPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
+                }`}
                 aria-label={isVideoPlaying ? 'Pause video' : 'Play video'}
               >
                 {isVideoPlaying ? (
@@ -197,45 +342,40 @@ export default function MultimediaCenter({
                 {/* Scrubber Progress Bar */}
                 <div 
                   className="w-full bg-neutral-700 h-2 cursor-pointer border border-white/30 relative"
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect()
-                    const clickX = e.clientX - rect.left
-                    const newProgress = Math.round((clickX / rect.width) * 100)
-                    setVideoProgress(newProgress)
-                  }}
+                  onClick={handleSeekVideo}
                   role="progressbar"
-                  aria-valuenow={videoProgress}
+                  aria-valuenow={Math.round(videoProgress)}
                   aria-valuemin="0"
                   aria-valuemax="100"
                 >
                   <div 
                     className="bg-[#A3E635] h-full transition-all duration-150"
-                    style={{ width: `${videoProgress}%` }}
+                    style={{ width: `${ Math.min(100, Math.round(videoProgress)) }%` }}
                   />
                   <div 
                     className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border border-black shadow"
-                    style={{ left: `calc(${videoProgress}% - 7px)` }}
+                    style={{ left: `calc(${Math.min(100, Math.round(videoProgress))}% - 7px)` }}
                   />
                 </div>
 
                 <div className="flex items-center justify-between text-white text-xs font-mono">
                   <div className="flex items-center gap-3">
                     <button 
-                      onClick={() => setIsVideoPlaying(!isVideoPlaying)}
+                      onClick={handleToggleVideoPlay}
                       className="text-[#FACC15] hover:text-white"
                       aria-label={isVideoPlaying ? 'Pause' : 'Play'}
                     >
                       {isVideoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                     </button>
                     <button
-                      onClick={() => setIsVideoMuted(!isVideoMuted)}
+                      onClick={handleToggleVideoMute}
                       className="hover:text-[#38BDF8]"
                       aria-label={isVideoMuted ? 'Unmute' : 'Mute'}
                     >
                       {isVideoMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
                     </button>
                     <span className="font-bold text-[11px]">
-                      {formatSeconds(Math.floor((videoProgress / 100) * 165))} / {activeTrailer.duration}
+                      {formatSeconds(Math.floor((videoProgress / 100) * trailerDurationSec))} / {activeTrailer.duration}
                     </span>
                   </div>
 
@@ -245,9 +385,16 @@ export default function MultimediaCenter({
                     </span>
                     <button 
                       onClick={() => {
+                        if (videoContainerRef.current) {
+                          if (document.fullscreenElement) {
+                            document.exitFullscreen?.().catch(() => {})
+                          } else {
+                            videoContainerRef.current.requestFullscreen?.().catch(() => {})
+                          }
+                        }
                         onShowToast({
                           title: 'Fullscreen Mode',
-                          message: 'Theater viewport simulation active.',
+                          message: 'Theater viewport active.',
                           type: 'info'
                         })
                       }}
@@ -281,10 +428,10 @@ export default function MultimediaCenter({
                   </span>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="font-black text-lg text-black dark:text-white">
-                      {(activeTrailer.rating + (userRating > 0 ? 0.05 : 0)).toFixed(1)}
+                      {Number(activeTrailer.rating || 4.9).toFixed(1)}
                     </span>
                     <span className="text-xs font-mono text-neutral-500">
-                      ★ ({activeTrailer.ratingsCount + (userRating > 0 ? 1 : 0)} votes)
+                      ★ ({activeTrailer.ratingsCount || activeTrailer.ratings_count || 100} votes)
                     </span>
                   </div>
                 </div>
@@ -332,6 +479,7 @@ export default function MultimediaCenter({
                       onClick={() => {
                         setSelectedTrailerIndex(idx)
                         setIsVideoPlaying(false)
+                        setHasStartedVideo(false)
                         setVideoProgress(0)
                         setUserRating(0)
                       }}

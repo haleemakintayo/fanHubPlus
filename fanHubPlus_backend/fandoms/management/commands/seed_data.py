@@ -3,7 +3,7 @@
 from datetime import date
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from fandoms.models import Category, Content, CharacterProfile
+from fandoms.models import Category, Content, CharacterProfile, StreamMedia
 from merchandise.models import MerchandiseItem
 from events.models import Event
 from chatbot.models import ChatbotFAQ
@@ -13,7 +13,7 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = 'Seeds initial Fan Hub Plus data: 8 universes, content, characters, merchandise, events, FAQs, and users.'
+    help = 'Seeds initial Fan Hub Plus data: 8 universes, content, stream & discover media, characters, merchandise, events, FAQs, and users.'
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("Seeding Fan Hub Plus database..."))
@@ -165,7 +165,7 @@ class Command(BaseCommand):
                 'slug': 'cyberpunk-edgerunners',
                 'category': cat_map['anime'],
                 'content_type': Content.ContentType.VIDEO,
-                'media_url': 'https://www.youtube.com/watch?v=JtqIas3bYhg',
+                'media_url': 'https://youtu.be/x4ztgjvfU60?si=qQfMO9HWMUkkHiYD',
                 'thumbnail_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
                 'synopsis': 'A street kid trying to survive in Night City — a tech and body modification-obsessed city of the future. Studio Trigger x CD PROJEKT RED high-octane spectacle.',
                 'body_text': 'Night City changes everyone who enters its chrome-plated borders. Explore David Martinez and Lucy\'s journey through the violent cyberware underworld.',
@@ -181,7 +181,7 @@ class Command(BaseCommand):
                 'slug': 'infinity-castle',
                 'category': cat_map['anime'],
                 'content_type': Content.ContentType.VIDEO,
-                'media_url': 'https://www.youtube.com/watch?v=VQGCKyvzIM4',
+                'media_url': 'https://youtu.be/x7uLutVRBfI?si=IOwYzPC81-fkXm6h',
                 'thumbnail_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1200&q=80',
                 'synopsis': 'The final confrontation draws near as the Demon Slayer Corps breaches the endless shifting corridors of the Infinity Castle.',
                 'body_text': 'Muzan Kibutsuji awaits within the extra-dimensional fortress. Tanjiro and the Hashira prepare for the ultimate fight.',
@@ -197,7 +197,7 @@ class Command(BaseCommand):
                 'slug': 'spider-multiverse',
                 'category': cat_map['movies-tv'],
                 'content_type': Content.ContentType.VIDEO,
-                'media_url': 'https://www.youtube.com/watch?v=shW9i6k8cB0',
+                'media_url': 'https://youtu.be/qclHAbmDOJI?si=m0xKcgqUcJQq9xG1',
                 'thumbnail_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=1200&q=80',
                 'synopsis': 'Miles Morales traverses the chromatic spectrum of anomalous dimensions to rewrite the canonical destiny of all Spider-heroes.',
                 'body_text': 'Trapped on Earth-42, Miles must confront an alternate reality where Peter Parker never existed, while Gwen Stacy leads a rogue Spider-band.',
@@ -264,6 +264,143 @@ class Command(BaseCommand):
                 defaults=item_data
             )
         self.stdout.write(self.style.SUCCESS(f"[OK] Seeded {len(content_items)} content items."))
+
+        # 3B. Stream & Discover Media (Trailers & Audio Tracks)
+        stream_media_items = [
+            {
+                'title': 'Cyberpunk: Edgerunners - Official Teaser',
+                'slug': 'cyberpunk-edgerunners',
+                'stream_type': StreamMedia.StreamType.TRAILER,
+                'category': cat_map['anime'],
+                'universe_label': 'Anime / Gaming',
+                'accent_color': '#A3E635',
+                'duration': '02:45',
+                'duration_seconds': 165,
+                'release_year': '2026 Remaster',
+                'artist': 'Studio Trigger & CDPR',
+                'media_url': 'https://youtu.be/x4ztgjvfU60?si=qQfMO9HWMUkkHiYD',
+                'thumbnail_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
+                'synopsis': 'A street kid trying to survive in Night City — a tech and body modification-obsessed city of the future. Studio Trigger x CD PROJEKT RED high-octane spectacle.',
+                'rating': 4.9,
+                'ratings_count': 1240,
+                'views_label': '4.2M views',
+                'view_count': 4200000,
+                'display_order': 1,
+                'is_active': True,
+            },
+            {
+                'title': 'Demon Slayer: Infinity Castle - Cinematic Teaser',
+                'slug': 'infinity-castle',
+                'stream_type': StreamMedia.StreamType.TRAILER,
+                'category': cat_map['anime'],
+                'universe_label': 'Anime',
+                'accent_color': '#F43F5E',
+                'duration': '03:12',
+                'duration_seconds': 192,
+                'release_year': '2026 Theatrical Run',
+                'artist': 'ufotable',
+                'media_url': 'https://youtu.be/x7uLutVRBfI?si=IOwYzPC81-fkXm6h',
+                'thumbnail_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1200&q=80',
+                'synopsis': 'The final confrontation draws near as the Demon Slayer Corps breaches the endless shifting corridors of the Infinity Castle.',
+                'rating': 5.0,
+                'ratings_count': 2890,
+                'views_label': '7.8M views',
+                'view_count': 7800000,
+                'display_order': 2,
+                'is_active': True,
+            },
+            {
+                'title': 'Spider-Man: Beyond The Spider-Verse Sneak Peek',
+                'slug': 'spider-multiverse',
+                'stream_type': StreamMedia.StreamType.TRAILER,
+                'category': cat_map['movies-tv'],
+                'universe_label': 'Movies & TV / Comics',
+                'accent_color': '#38BDF8',
+                'duration': '02:18',
+                'duration_seconds': 138,
+                'release_year': '2026 Columbia / Marvel',
+                'artist': 'Sony Pictures Animation',
+                'media_url': 'https://youtu.be/qclHAbmDOJI?si=m0xKcgqUcJQq9xG1',
+                'thumbnail_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=1200&q=80',
+                'synopsis': 'Miles Morales traverses the chromatic spectrum of anomalous dimensions to rewrite the canonical destiny of all Spider-heroes.',
+                'rating': 4.8,
+                'ratings_count': 1620,
+                'views_label': '5.1M views',
+                'view_count': 5100000,
+                'display_order': 3,
+                'is_active': True,
+            },
+            {
+                'title': 'Supernova (Anthem Mix)',
+                'slug': 'kpop-supernova',
+                'stream_type': StreamMedia.StreamType.AUDIO,
+                'category': cat_map['kpop'],
+                'universe_label': 'K-Pop',
+                'accent_color': '#F43F5E',
+                'duration': '03:12',
+                'duration_seconds': 192,
+                'release_year': '2026 Comeback',
+                'artist': 'Aespa • K-Pop Universe',
+                'album': 'Armageddon The 1st Album',
+                'media_url': 'https://soundcloud.com/stream/supernova',
+                'thumbnail_url': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80',
+                'synopsis': 'Hyperpop basslines collide with celestial harmonies in this official comeback title track.',
+                'likes_label': '14.8k',
+                'likes_count': 14800,
+                'rating': 4.7,
+                'display_order': 1,
+                'is_active': True,
+            },
+            {
+                'title': 'The Golden Order Suite',
+                'slug': 'elden-symphony',
+                'stream_type': StreamMedia.StreamType.AUDIO,
+                'category': cat_map['gaming'],
+                'universe_label': 'Gaming',
+                'accent_color': '#FACC15',
+                'duration': '04:45',
+                'duration_seconds': 285,
+                'release_year': '2026 OST',
+                'artist': 'FromSoftware Symphony Orchestra',
+                'album': 'Shadow of the Erdtree OST',
+                'media_url': 'https://soundcloud.com/stream/elden-symphony',
+                'thumbnail_url': 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&q=80',
+                'synopsis': 'Orchestral live recording featuring church bells, dark brass, and gothic choir arrangements.',
+                'likes_label': '22.3k',
+                'likes_count': 22300,
+                'rating': 4.95,
+                'display_order': 2,
+                'is_active': True,
+            },
+            {
+                'title': 'Horizon of Shiganshina (Opening Theme)',
+                'slug': 'anime-horizon',
+                'stream_type': StreamMedia.StreamType.AUDIO,
+                'category': cat_map['anime'],
+                'universe_label': 'Anime',
+                'accent_color': '#A3E635',
+                'duration': '01:30',
+                'duration_seconds': 90,
+                'release_year': '2026 Simulcast',
+                'artist': 'Linked Horizon Tribute',
+                'album': 'Anime Simulcast Vol. 4',
+                'media_url': 'https://soundcloud.com/stream/crimson-horizon',
+                'thumbnail_url': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=400&q=80',
+                'synopsis': 'High-energy orchestral rock opening theme from the Spring 2026 simulcast lineup.',
+                'likes_label': '19.1k',
+                'likes_count': 19100,
+                'rating': 4.85,
+                'display_order': 3,
+                'is_active': True,
+            },
+        ]
+
+        for sm_data in stream_media_items:
+            StreamMedia.objects.update_or_create(
+                slug=sm_data['slug'],
+                defaults=sm_data
+            )
+        self.stdout.write(self.style.SUCCESS(f"[OK] Seeded {len(stream_media_items)} Stream & Discover media items."))
 
         # 4. Character Profiles
         characters_data = [
