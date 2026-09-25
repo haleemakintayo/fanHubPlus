@@ -567,7 +567,6 @@ export default function MultimediaCenter({
 
             {/* Bottom Stream Note */}
             <div className="mt-4 pt-3 border-t-2 border-black/10 dark:border-neutral-800 flex items-center justify-between text-[11px] font-mono text-neutral-500">
-              <span>Licensed for TechWiz 7 Exhibition</span>
               <span>Bitrate: 320kbps MP3</span>
             </div>
 

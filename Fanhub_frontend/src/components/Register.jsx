@@ -198,7 +198,7 @@ export default function Register({ onShowToast, onClose, onAuthSuccess }) {
       </button>
 
       <p className="text-[11px] font-mono text-center text-neutral-500 mt-2">
-        Protected by Fan Hub Zero-Spam Policy • SRS TechWiz 7 Compliance
+        Protected by Fan Hub Zero-Spam Policy
       </p>
     </form>
   );

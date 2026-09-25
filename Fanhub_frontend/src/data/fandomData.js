@@ -1,4 +1,4 @@
-// Data repository for Fan Hub Plus - TechWiz 7 Fandom Portal
+// Data repository for Fan Hub Plus
 
 export const UNIVERSES = [
   {
@@ -161,7 +161,7 @@ export const MULTIMEDIA_DATA = {
     {
       id: 'kpop-supernova',
       title: 'Supernova (Anthem Mix)',
-      artist: 'Aespa / TechWiz Edition',
+      artist: 'Aespa',
       category: 'K-Pop',
       categoryColor: '#F43F5E',
       duration: '03:12',
@@ -445,7 +445,6 @@ export const SITEMAP_SECTIONS = [
       { name: 'Convention & Gathering Radar', href: '#events' },
       { name: 'Multimedia Streamer', href: '#multimedia' },
       { name: 'Bug Report & Feedback', action: 'feedback' },
-      { name: 'SRS TechWiz 7 Spec Doc', action: 'about' }
     ]
   },
   {
@@ -479,7 +478,7 @@ export const SITEMAP_SECTIONS = [
       { name: 'User Authentication', action: 'login' },
       { name: 'Collector Dashboard', action: 'dashboard' },
       { name: 'Admin Control Panel', action: 'admin' },
-      { name: 'SRS Moderation Queue', action: 'moderation' },
+      { name: 'Moderation Queue', action: 'moderation' },
       { name: 'Zero-Clutter Policy', action: 'policy' }
     ]
   }

@@ -14,7 +14,7 @@ export default function Footer({
   return (
     <footer id="sitemap" className="bg-white dark:bg-[#0D1117] border-t-3 border-black dark:border-neutral-100 transition-colors">
 
-      {/* Top Banner Notice for TechWiz 7 SRS Mandate */}
+      {/* Top Banner Notice */}
       <div className="bg-[#FACC15] text-black border-b-2 border-black py-2 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono font-black uppercase">
           <div className="flex items-center gap-2">
@@ -201,7 +201,7 @@ export default function Footer({
                   onClick={() => onOpenModal('admin')} 
                   className="hover:text-black dark:hover:text-white hover:underline text-left block py-0.5 text-[#F43F5E]"
                 >
-                  Admin Control Panel (SRS)
+                  Admin Control Panel
                 </button>
               </li>
               <li>

@@ -217,7 +217,7 @@ class Command(BaseCommand):
                 'thumbnail_url': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80',
                 'synopsis': 'Hyperpop basslines collide with celestial harmonies in this official comeback title track.',
                 'body_text': 'Armageddon The 1st Album title cut remastered for high-fidelity spatial audio systems.',
-                'artist_or_author': 'Aespa / TechWiz Edition',
+                'artist_or_author': 'Aespa',
                 'duration': '03:12',
                 'duration_seconds': 192,
                 'release_year': '2026 Comeback',

@@ -84,7 +84,7 @@ export default function MerchRadar({
             </p>
           </div>
 
-          {/* SRS Mandate Notice Pill */}
+          {/* Mandate Notice Pill */}
           <div className="bg-white dark:bg-[#161B22] p-2 sm:p-2.5 border-2 border-black dark:border-white brutal-shadow-sm max-w-xs sm:max-w-sm">
             <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-mono font-bold text-neutral-800 dark:text-neutral-200">
               <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FACC15] shrink-0" />

@@ -151,7 +151,7 @@ export default function UniverseMatrix({
                     </div>
 
                     {/* Universe Title */}
-                    <h3 className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight text-black dark:text-white mb-1.5 sm:mb-2 group-hover:text-black transition-colors">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight text-black dark:text-white mb-1.5 sm:mb-2">
                       {item.name}
                     </h3>
 
@@ -350,7 +350,7 @@ export default function UniverseMatrix({
               {/* Bottom Actions */}
               <div className="pt-4 border-t-2 border-black dark:border-neutral-700 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <span className="font-mono text-xs text-neutral-500">
-                  Moderated by Fan Hub Council • Verified for TechWiz 7
+                  Moderated by Fan Hub Council
                 </span>
                 <button
                   onClick={() => {

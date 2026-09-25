@@ -501,7 +501,7 @@ export default function Modals({
               disabled={isSubmittingFeedback}
               className="w-full py-3 bg-[#FACC15] text-black font-black text-xs uppercase tracking-tight border-2 border-black brutal-shadow brutal-btn disabled:opacity-50"
             >
-              {isSubmittingFeedback ? 'Logging Ticket...' : 'Submit Ticket to TechWiz 7 Engineers'}
+              {isSubmittingFeedback ? 'Logging Ticket...' : 'Submit Ticket'}
             </button>
           </form>
 
@@ -750,9 +750,6 @@ export default function Modals({
           
           <div className="flex items-center justify-between pb-3 border-b-2 border-black dark:border-neutral-700 mb-6">
             <div className="flex items-center gap-2">
-              <span className="bg-[#FACC15] text-black font-mono font-black text-xs px-2.5 py-1 border border-black">
-                TECHWIZ 7
-              </span>
               <h3 id="about-modal-title" className="text-xl font-black uppercase tracking-tight text-black dark:text-white">
                 ABOUT FAN HUB PLUS
               </h3>
@@ -783,9 +780,6 @@ export default function Modals({
               </div>
               <div className="flex items-center gap-2 text-black dark:text-white font-bold">
                 <Check className="w-4 h-4 text-[#A3E635]" /> Location-Aware Global Convention Radar
-              </div>
-              <div className="flex items-center gap-2 text-black dark:text-white font-bold">
-                <Check className="w-4 h-4 text-[#A3E635]" /> Full Compliance with TechWiz 7 SRS Spec 1.9
               </div>
             </div>
 

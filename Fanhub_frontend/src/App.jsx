@@ -745,7 +745,7 @@ export default function App() {
         onShowToast={addToast}
       />
 
-      {/* 9. Footer & SRS-Mandated Full Sitemap */}
+      {/* 9. Footer */}
       <Footer
         onSelectUniverse={(universeId) => {
           setSelectedUniverse(universeId)
