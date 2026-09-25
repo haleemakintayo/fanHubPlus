@@ -62,9 +62,9 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('fanhub_theme')
       if (savedTheme) return savedTheme === 'dark'
-      return false // Light mode by default
+      return true 
     }
-    return false
+    return true
   })
 
   // Font Scaling State: 'normal' vs 'large'
