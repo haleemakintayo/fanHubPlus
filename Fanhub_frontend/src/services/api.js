@@ -288,6 +288,22 @@ export const interactionsApi = {
       }),
     }),
 
+  submitCharacterProfile: ({ name, biography, categorySlug, categoryId, alias = '', archetype = '', origin = '', faction = '', imageUrl = '' }) =>
+    apiRequest('/fandoms/character-submissions/', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        alias,
+        archetype,
+        origin,
+        faction,
+        image_url: imageUrl,
+        biography,
+        ...(categoryId ? { category_id: categoryId } : {}),
+        ...(categorySlug ? { category_slug: categorySlug } : {}),
+      }),
+    }),
+
   submitFeedback: ({ email, name, feedbackType, subject, message }) =>
     apiRequest('/interactions/feedback/', {
       method: 'POST',
@@ -449,6 +465,17 @@ export const adminApi = {
         status,
         admin_feedback: adminFeedback,
       }),
+    }),
+
+  getCharacterModerationQueue: (status = 'ALL') =>
+    apiRequest(`/fandoms/character-submissions/manage/?status=${status}`, {
+      method: 'GET',
+    }),
+
+  moderateCharacterSubmission: (id, { status, adminFeedback = '', ...changes }) =>
+    apiRequest(`/fandoms/character-submissions/manage/${id}/moderate/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, admin_feedback: adminFeedback, ...changes }),
     }),
 
   deleteSubmission: (id) =>

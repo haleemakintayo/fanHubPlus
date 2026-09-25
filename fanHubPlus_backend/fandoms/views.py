@@ -1,20 +1,24 @@
 # fandoms/views.py
 
-from rest_framework import generics, viewsets, permissions, filters
+from rest_framework import generics, viewsets, permissions, filters, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db import transaction
 from django.db.models import F
+from django.utils.text import slugify
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 
-from .models import Category, Content, CharacterProfile
+from .models import Category, Content, CharacterProfile, CharacterSubmission
 from .serializers import (
     CategorySerializer,
     ContentListSerializer,
     ContentDetailSerializer,
     CharacterProfileSerializer,
+    CharacterSubmissionSerializer,
 )
 from .services import ContentFilter, ContentFilterService, SearchVectorEngine
-from interactions.views import IsAdminOrReadOnly
+from interactions.views import IsAdminRole, IsAdminOrReadOnly
 
 
 class DualLookupMixin:
@@ -151,6 +155,10 @@ class CharacterRosterViewSet(DualLookupMixin, viewsets.ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
+        is_admin = bool(
+            self.request.user and self.request.user.is_authenticated and
+            (getattr(self.request.user, 'role', '') == 'ADMIN' or self.request.user.is_staff or self.request.user.is_superuser)
+        )
         qs = CharacterProfile.objects.all().select_related('category')
         category = self.request.query_params.get('category')
         search_query = self.request.query_params.get('search') or self.request.query_params.get('q')
@@ -168,3 +176,78 @@ class CharacterRosterViewSet(DualLookupMixin, viewsets.ModelViewSet):
 
 
 CharacterRosterView = CharacterRosterViewSet
+
+
+class CharacterSubmissionView(generics.ListCreateAPIView):
+    """Authenticated members submit character profiles or proposed edits for review."""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CharacterSubmissionSerializer
+
+    def get_queryset(self):
+        return CharacterSubmission.objects.filter(user=self.request.user).select_related('category', 'existing_character')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user, status=CharacterSubmission.Status.PENDING)
+
+
+class AdminCharacterSubmissionViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdminRole]
+    serializer_class = CharacterSubmissionSerializer
+    queryset = CharacterSubmission.objects.all().select_related('user', 'category', 'existing_character')
+    pagination_class = None
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        status_param = self.request.query_params.get('status', 'ALL')
+        if status_param.upper() != 'ALL':
+            qs = qs.filter(status=status_param.upper())
+        return qs
+
+    @transaction.atomic
+    def _moderate(self, request, submission):
+        decision = request.data.get('status')
+        if decision not in CharacterSubmission.Status.values:
+            return Response({'status': 'Use PENDING, APPROVED, or REJECTED.'}, status=status.HTTP_400_BAD_REQUEST)
+        feedback = request.data.get('admin_feedback', '')
+        editable_fields = (
+            'name', 'alias', 'archetype', 'origin', 'faction', 'tagline',
+            'biography', 'image_url', 'stats_json', 'details_json',
+        )
+        for field in editable_fields:
+            if field in request.data:
+                setattr(submission, field, request.data[field])
+        if decision == CharacterSubmission.Status.APPROVED:
+            profile_data = {
+                field: getattr(submission, field)
+                for field in ('name', 'alias', 'archetype', 'origin', 'faction', 'tagline', 'biography', 'image_url', 'stats_json', 'details_json')
+            }
+            profile_data['category'] = submission.category
+            profile = submission.existing_character
+            if profile:
+                for field, value in profile_data.items():
+                    setattr(profile, field, value)
+                profile.save()
+            else:
+                base_slug = slugify(submission.name) or 'character'
+                slug = base_slug
+                counter = 1
+                while CharacterProfile.objects.filter(slug=slug).exists():
+                    slug = f'{base_slug}-{counter}'
+                    counter += 1
+                profile_data['slug'] = slug
+                profile = CharacterProfile.objects.create(**profile_data)
+            submission.existing_character = profile
+        submission.status = decision
+        submission.admin_feedback = feedback
+        submission.save()
+        response = CharacterSubmissionSerializer(submission).data
+        if decision == CharacterSubmission.Status.APPROVED:
+            response['published_character_id'] = submission.existing_character_id
+        return Response(response)
+
+    def partial_update(self, request, *args, **kwargs):
+        return self._moderate(request, self.get_object())
+
+    @action(detail=True, methods=['patch', 'post'], url_path='moderate')
+    def moderate(self, request, *args, **kwargs):
+        return self._moderate(request, self.get_object())

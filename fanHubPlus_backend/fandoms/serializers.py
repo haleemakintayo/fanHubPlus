@@ -3,7 +3,7 @@
 from rest_framework import serializers
 from django.utils.text import slugify
 from drf_spectacular.utils import extend_schema_field
-from .models import Category, Content, CharacterProfile
+from .models import Category, Content, CharacterProfile, CharacterSubmission
 
 
 def resolve_category_from_attrs(attrs):
@@ -188,4 +188,40 @@ class CharacterProfileSerializer(serializers.ModelSerializer):
                 unique_slug = f"{base_slug}-{counter}"
                 counter += 1
             attrs['slug'] = unique_slug
+        return attrs
+
+
+class CharacterSubmissionSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source='user.username', read_only=True)
+    category_details = CategorySerializer(source='category', read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), source='category', write_only=True, required=False
+    )
+    category_slug = serializers.CharField(write_only=True, required=False)
+    existing_character_id = serializers.PrimaryKeyRelatedField(
+        queryset=CharacterProfile.objects.all(), source='existing_character', write_only=True,
+        required=False, allow_null=True
+    )
+
+    class Meta:
+        model = CharacterSubmission
+        fields = [
+            'id', 'user_username', 'existing_character_id', 'category_id', 'category_slug',
+            'category_details', 'name', 'alias', 'archetype', 'origin', 'faction', 'tagline',
+            'biography', 'image_url', 'stats_json', 'details_json', 'status', 'admin_feedback',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'user_username', 'status', 'admin_feedback', 'created_at', 'updated_at']
+
+    def validate(self, attrs):
+        category_slug = attrs.pop('category_slug', None)
+        if not attrs.get('category') and category_slug:
+            attrs['category'] = (
+                Category.objects.filter(slug=category_slug).first()
+                or Category.objects.filter(name__iexact=category_slug).first()
+            )
+        if not attrs.get('category'):
+            attrs['category'] = Category.objects.first()
+        if not attrs.get('category'):
+            raise serializers.ValidationError({'category_id': 'A valid category is required.'})
         return attrs

@@ -57,7 +57,13 @@ export default function Modals({
 
   // Fan Submission State
   const [subTitle, setSubTitle] = useState('')
+  const [subType, setSubType] = useState('ARTICLE')
   const [subUniverse, setSubUniverse] = useState('anime')
+  const [subAlias, setSubAlias] = useState('')
+  const [subArchetype, setSubArchetype] = useState('')
+  const [subOrigin, setSubOrigin] = useState('')
+  const [subFaction, setSubFaction] = useState('')
+  const [subImageUrl, setSubImageUrl] = useState('')
   const [subContent, setSubContent] = useState('')
   const [isSubmittingLore, setIsSubmittingLore] = useState(false)
 
@@ -504,10 +510,24 @@ export default function Modals({
       const categoryName = UNIVERSE_SLUGS_TO_NAMES[subUniverse] || 'Anime'
 
       try {
-        await interactionsApi.createSubmission({
-          title: subTitle,
-          body: subContent,
-        })
+        if (subType === 'CHARACTER') {
+          await interactionsApi.submitCharacterProfile({
+            name: subTitle,
+            alias: subAlias,
+            archetype: subArchetype,
+            origin: subOrigin,
+            faction: subFaction,
+            imageUrl: subImageUrl,
+            biography: subContent,
+            categorySlug: subUniverse,
+          })
+        } else {
+          await interactionsApi.submitFanWork({
+            title: subTitle,
+            body: subContent,
+            categorySlug: subUniverse,
+          })
+        }
       } catch {
         // Fallback if guest or offline
       } finally {
@@ -526,7 +546,13 @@ export default function Modals({
         type: 'success'
       })
       setSubTitle('')
+      setSubAlias('')
+      setSubArchetype('')
+      setSubOrigin('')
+      setSubFaction('')
+      setSubImageUrl('')
       setSubContent('')
+      setSubType('ARTICLE')
       onClose()
     }
 
@@ -561,17 +587,97 @@ export default function Modals({
           <form onSubmit={handleSubSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
-                Title of Creation / Lore Theory
+                Submission Type
+              </label>
+              <select
+                value={subType}
+                onChange={(e) => setSubType(e.target.value)}
+                className="w-full border-2 border-black dark:border-white p-2 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
+              >
+                <option value="ARTICLE">Fan article or lore essay</option>
+                <option value="CHARACTER">Character profile proposal</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
+                {subType === 'CHARACTER' ? 'Character Name' : 'Title of Creation / Lore Theory'}
               </label>
               <input
                 type="text"
                 required
                 value={subTitle}
                 onChange={(e) => setSubTitle(e.target.value)}
-                placeholder="e.g. Analysis of the Void Century Ancient Weapons"
+                placeholder={subType === 'CHARACTER' ? 'e.g. Yuna Starfall' : 'e.g. Analysis of the Void Century Ancient Weapons'}
                 className="w-full border-2 border-black dark:border-white p-2.5 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
               />
             </div>
+
+            {subType === 'CHARACTER' && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
+                      Alias
+                    </label>
+                    <input
+                      type="text"
+                      value={subAlias}
+                      onChange={(e) => setSubAlias(e.target.value)}
+                      placeholder="e.g. The Starforged"
+                      className="w-full border-2 border-black dark:border-white p-2.5 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
+                      Archetype
+                    </label>
+                    <input
+                      type="text"
+                      value={subArchetype}
+                      onChange={(e) => setSubArchetype(e.target.value)}
+                      placeholder="e.g. Reluctant Hero"
+                      className="w-full border-2 border-black dark:border-white p-2.5 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
+                      Origin
+                    </label>
+                    <input
+                      type="text"
+                      value={subOrigin}
+                      onChange={(e) => setSubOrigin(e.target.value)}
+                      placeholder="e.g. The Glass District"
+                      className="w-full border-2 border-black dark:border-white p-2.5 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
+                      Faction
+                    </label>
+                    <input
+                      type="text"
+                      value={subFaction}
+                      onChange={(e) => setSubFaction(e.target.value)}
+                      placeholder="e.g. Dawn Cartographers"
+                      className="w-full border-2 border-black dark:border-white p-2.5 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
+                    Character Image URL
+                  </label>
+                  <input
+                    type="url"
+                    value={subImageUrl}
+                    onChange={(e) => setSubImageUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full border-2 border-black dark:border-white p-2.5 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
+                  />
+                </div>
+              </>
+            )}
 
             <div>
               <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
@@ -595,14 +701,14 @@ export default function Modals({
 
             <div>
               <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
-                Essay Body / Build Breakdown
+                {subType === 'CHARACTER' ? 'Biography / Canon References' : 'Essay Body / Build Breakdown'}
               </label>
               <textarea
                 required
                 rows={5}
                 value={subContent}
                 onChange={(e) => setSubContent(e.target.value)}
-                placeholder="Detail your canon references, chapter citations, or cosplay build steps..."
+                placeholder={subType === 'CHARACTER' ? 'Explain the character, source references, and licensing context...' : 'Detail your canon references, chapter citations, or cosplay build steps...'}
                 className="w-full border-2 border-black dark:border-white p-2.5 text-xs font-medium bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
               />
             </div>

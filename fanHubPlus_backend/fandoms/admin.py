@@ -1,7 +1,7 @@
 # fandoms/admin.py
 
 from django.contrib import admin
-from .models import Category, Content, CharacterProfile
+from .models import Category, Content, CharacterProfile, CharacterSubmission
 
 
 @admin.register(Category)
@@ -26,3 +26,11 @@ class CharacterProfileAdmin(admin.ModelAdmin):
     list_filter = ('category', 'archetype')
     search_fields = ('name', 'alias', 'origin', 'faction', 'biography')
     prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(CharacterSubmission)
+class CharacterSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'user', 'category', 'status', 'existing_character', 'created_at')
+    list_filter = ('status', 'category')
+    search_fields = ('name', 'alias', 'biography', 'user__username')
+    readonly_fields = ('user', 'created_at', 'updated_at')

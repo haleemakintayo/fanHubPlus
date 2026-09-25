@@ -1,6 +1,7 @@
 # fandoms/models.py
 
 from django.db import models
+from django.conf import settings
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
@@ -125,3 +126,46 @@ class CharacterProfile(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
+
+class CharacterSubmission(models.Model):
+    """User-proposed character profile changes awaiting administrator review."""
+    class Status(models.TextChoices):
+        PENDING = 'PENDING', _('Pending Review')
+        APPROVED = 'APPROVED', _('Approved & Published')
+        REJECTED = 'REJECTED', _('Rejected')
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='character_submissions',
+        db_index=True
+    )
+    existing_character = models.ForeignKey(
+        CharacterProfile,
+        on_delete=models.SET_NULL,
+        related_name='submissions',
+        null=True,
+        blank=True
+    )
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='character_submissions')
+    name = models.CharField(max_length=150)
+    alias = models.CharField(max_length=150, blank=True)
+    archetype = models.CharField(max_length=100, blank=True)
+    origin = models.CharField(max_length=200, blank=True)
+    faction = models.CharField(max_length=200, blank=True)
+    tagline = models.TextField(blank=True)
+    biography = models.TextField(blank=True)
+    image_url = models.URLField(max_length=1000, blank=True)
+    stats_json = models.JSONField(default=list, blank=True)
+    details_json = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
+    admin_feedback = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.get_status_display()}] {self.name} by {self.user}"

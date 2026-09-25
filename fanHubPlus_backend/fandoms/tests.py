@@ -3,7 +3,10 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
+from django.contrib.auth import get_user_model
 from .models import Category, Content, CharacterProfile
+
+User = get_user_model()
 
 
 class FandomsTests(TestCase):
@@ -85,3 +88,36 @@ class FandomsTests(TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]['name'], 'Ryuto Kazama')
         self.assertEqual(results[0]['stats_json'][0]['label'], 'Agility')
+
+    def test_member_character_submission_requires_admin_approval(self):
+        member = User.objects.create_user(email='fan@example.com', username='fan', password='SecurePassword123!')
+        admin = User.objects.create_superuser(email='admin@example.com', username='admin', password='SecurePassword123!')
+
+        self.client.force_authenticate(user=member)
+        response = self.client.post('/api/fandoms/character-submissions/', {
+            'name': 'New Hero',
+            'category_id': self.anime.id,
+            'biography': 'A community-submitted biography.',
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        submission_id = response.data['id']
+        self.assertEqual(response.data['status'], 'PENDING')
+        self.assertFalse(CharacterProfile.objects.filter(name='New Hero').exists())
+
+        self.client.force_authenticate(user=admin)
+        queue_response = self.client.get('/api/fandoms/character-submissions/manage/?status=PENDING')
+        self.assertEqual(queue_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(queue_response.data), 1)
+        self.assertEqual(queue_response.data[0]['name'], 'New Hero')
+
+        response = self.client.patch(
+            f'/api/fandoms/character-submissions/manage/{submission_id}/',
+            {'status': 'APPROVED'}, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(CharacterProfile.objects.filter(name='New Hero').exists())
+
+        self.client.force_authenticate(user=None)
+        response = self.client.get('/api/fandoms/characters/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)

@@ -207,6 +207,9 @@ export default function Admin({
   const [moderationQueue, setModerationQueue] = useState([]);
   const [modStatusFilter, setModStatusFilter] = useState('ALL');
   const [modFeedbackNotes, setModFeedbackNotes] = useState({});
+  const [selectedCharacterSubmission, setSelectedCharacterSubmission] = useState(null);
+  const [characterReviewDraft, setCharacterReviewDraft] = useState(null);
+  const [isSavingCharacterDraft, setIsSavingCharacterDraft] = useState(false);
 
   const [feedbackList, setFeedbackList] = useState([]);
   const [feedbackTypeFilter, setFeedbackTypeFilter] = useState('ALL'); // 'ALL' | 'BUG' | 'SUGGESTION' | 'INQUIRY'
@@ -223,6 +226,7 @@ export default function Admin({
         merchRes,
         faqsRes,
         modRes,
+        characterModRes,
         fbRes,
       ] = await Promise.allSettled([
         adminApi.getAnalytics(),
@@ -232,6 +236,7 @@ export default function Admin({
         adminApi.getMerchandise(),
         adminApi.getFaqs(),
         adminApi.getModerationQueue('ALL'),
+        adminApi.getCharacterModerationQueue('ALL'),
         adminApi.getFeedbackList('ALL', 'ALL'),
       ]);
 
@@ -266,8 +271,22 @@ export default function Admin({
         setFaqsList(faqsRes.value);
       }
 
-      if (modRes.status === 'fulfilled' && Array.isArray(modRes.value)) {
-        setModerationQueue(modRes.value);
+      const articleItems = modRes.status === 'fulfilled'
+        ? (Array.isArray(modRes.value) ? modRes.value : modRes.value?.results || [])
+        : [];
+      const characterItems = characterModRes.status === 'fulfilled'
+        ? (Array.isArray(characterModRes.value) ? characterModRes.value : characterModRes.value?.results || [])
+          .map((item) => ({
+            ...item,
+            id: `character-${item.id}`,
+            sourceId: item.id,
+            submissionType: 'CHARACTER',
+            title: item.name,
+            body: item.biography,
+          }))
+        : [];
+      if (modRes.status === 'fulfilled' || characterModRes.status === 'fulfilled') {
+        setModerationQueue([...articleItems, ...characterItems]);
       } else {
         setModerationQueue([
           {
@@ -718,10 +737,16 @@ export default function Admin({
       )
     );
     try {
-      await adminApi.moderateSubmission(sub.id, {
+      const moderationRequest = sub.submissionType === 'CHARACTER'
+        ? adminApi.moderateCharacterSubmission(sub.sourceId, {
+          status: decision,
+          adminFeedback: note,
+        })
+        : adminApi.moderateSubmission(sub.id, {
         status: decision,
         adminFeedback: note,
       });
+      await moderationRequest;
       loadAllAdminData();
     } catch {
       // optimistic state kept
@@ -734,6 +759,56 @@ export default function Admin({
           : `"${sub.title}" has been marked as rejected.`,
       type: decision === 'APPROVED' ? 'success' : 'warning',
     });
+  };
+
+  const openCharacterReview = (item) => {
+    setSelectedCharacterSubmission(item);
+    setCharacterReviewDraft({
+      name: item.name || '',
+      alias: item.alias || '',
+      archetype: item.archetype || '',
+      origin: item.origin || '',
+      faction: item.faction || '',
+      biography: item.biography || '',
+      image_url: item.image_url || '',
+    });
+  };
+
+  const handleSaveCharacterDraft = async () => {
+    if (!selectedCharacterSubmission || !characterReviewDraft) return;
+    setIsSavingCharacterDraft(true);
+    try {
+      const updated = await adminApi.moderateCharacterSubmission(selectedCharacterSubmission.sourceId, {
+        status: selectedCharacterSubmission.status,
+        adminFeedback: modFeedbackNotes[selectedCharacterSubmission.id] || selectedCharacterSubmission.admin_feedback || '',
+        ...characterReviewDraft,
+      });
+      const updatedItem = {
+        ...selectedCharacterSubmission,
+        ...updated,
+        id: `character-${updated.id}`,
+        sourceId: updated.id,
+        submissionType: 'CHARACTER',
+        title: updated.name,
+        body: updated.biography,
+      };
+      setSelectedCharacterSubmission(updatedItem);
+      setCharacterReviewDraft({
+        name: updated.name || '',
+        alias: updated.alias || '',
+        archetype: updated.archetype || '',
+        origin: updated.origin || '',
+        faction: updated.faction || '',
+        biography: updated.biography || '',
+        image_url: updated.image_url || '',
+      });
+      setModerationQueue((prev) => prev.map((item) => item.id === updatedItem.id ? updatedItem : item));
+      onShowToast?.({ title: 'Character Draft Updated', message: 'Changes saved. The submission remains pending review.', type: 'success' });
+    } catch {
+      onShowToast?.({ title: 'Update Failed', message: 'The character draft could not be saved.', type: 'error' });
+    } finally {
+      setIsSavingCharacterDraft(false);
+    }
   };
 
   const handleUpdateFeedbackStatus = async (ticket, nextStatus) => {
@@ -2324,7 +2399,10 @@ export default function Admin({
                 {filteredModerationItems.map((item) => (
                   <div
                     key={item.id}
-                    className="p-4 bg-white dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 brutal-shadow-sm space-y-2.5"
+                    className={`p-4 bg-white dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 brutal-shadow-sm space-y-2.5 ${
+                      item.submissionType === 'CHARACTER' ? 'cursor-pointer hover:bg-lime-50 dark:hover:bg-neutral-900' : ''
+                    }`}
+                    onClick={() => item.submissionType === 'CHARACTER' && openCharacterReview(item)}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
@@ -2353,16 +2431,34 @@ export default function Admin({
                       </div>
 
                       <div className="flex items-center gap-1.5 shrink-0">
+                        {item.submissionType === 'CHARACTER' && (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openCharacterReview(item);
+                            }}
+                            className="px-3 py-1.5 bg-white dark:bg-[#161B22] text-black dark:text-white font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn flex items-center gap-1"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Review Profile
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => handleModerateSubmission(item, 'APPROVED')}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleModerateSubmission(item, 'APPROVED');
+                          }}
                           className="px-3 py-1.5 bg-[#A3E635] text-black font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn flex items-center gap-1"
                         >
                           <Check className="w-3.5 h-3.5" /> Approve & Publish
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleModerateSubmission(item, 'REJECTED')}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleModerateSubmission(item, 'REJECTED');
+                          }}
                           className="px-3 py-1.5 bg-[#F43F5E] text-white font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn flex items-center gap-1"
                         >
                           <X className="w-3.5 h-3.5" /> Reject
@@ -2399,6 +2495,165 @@ export default function Admin({
               </div>
             )}
           </div>
+
+          {selectedCharacterSubmission && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="character-review-title"
+              onClick={() => setSelectedCharacterSubmission(null)}
+            >
+              <div
+                className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-5 sm:p-7 brutal-shadow-lg"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="flex items-start justify-between gap-4 border-b-2 border-black dark:border-neutral-700 pb-4 mb-5">
+                  <div>
+                    <span className="text-[10px] font-mono font-black uppercase bg-[#FACC15] text-black border border-black px-2 py-1">
+                      Character Profile Review
+                    </span>
+                    <h3 id="character-review-title" className="text-xl sm:text-3xl font-black uppercase text-black dark:text-white mt-2">
+                      {selectedCharacterSubmission.name}
+                    </h3>
+                    <p className="text-xs font-mono text-neutral-500 mt-1">
+                      Submitted by {selectedCharacterSubmission.user_username || 'Collector'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCharacterSubmission(null)}
+                    className="p-2 border-2 border-black dark:border-white bg-white dark:bg-[#0D1117] text-black dark:text-white"
+                    aria-label="Close character profile review"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                  <div className="md:col-span-4 space-y-3">
+                    <div className="aspect-[4/5] border-2 border-black dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 overflow-hidden flex items-center justify-center">
+                      {characterReviewDraft?.image_url ? (
+                        <img
+                          src={characterReviewDraft.image_url}
+                          alt={characterReviewDraft.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="p-5 text-center text-xs font-mono font-bold text-neutral-500 uppercase">
+                          No image supplied
+                        </span>
+                      )}
+                    </div>
+                    <div className="border-2 border-black dark:border-neutral-700 p-3 text-xs space-y-2 bg-neutral-50 dark:bg-[#0D1117]">
+                      <div><span className="font-mono font-black text-neutral-500 uppercase">Universe:</span> <span className="font-bold text-black dark:text-white">{selectedCharacterSubmission.category_details?.name || 'Uncategorized'}</span></div>
+                      <div><span className="font-mono font-black text-neutral-500 uppercase">Status:</span> <span className="font-bold text-black dark:text-white">{selectedCharacterSubmission.status}</span></div>
+                      <div><span className="font-mono font-black text-neutral-500 uppercase">Submitted:</span> <span className="font-bold text-black dark:text-white">{selectedCharacterSubmission.created_at ? new Date(selectedCharacterSubmission.created_at).toLocaleString() : 'Unknown'}</span></div>
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-8 space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      {[
+                        ['alias', 'Alias'],
+                        ['archetype', 'Archetype'],
+                        ['origin', 'Origin'],
+                        ['faction', 'Faction'],
+                      ].map(([label, value]) => (
+                        <div key={label} className="border border-black/30 dark:border-neutral-700 p-2.5 bg-neutral-50 dark:bg-[#0D1117]">
+                          <label className="font-mono font-black uppercase text-neutral-500 mb-1 block" htmlFor={`review-${label}`}>{value}</label>
+                          <input
+                            id={`review-${label}`}
+                            type="text"
+                            value={characterReviewDraft?.[label] || ''}
+                            onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, [label]: event.target.value }))}
+                            className="w-full border border-black dark:border-neutral-600 px-2 py-1 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div>
+                      <label className="font-mono text-xs font-black uppercase text-black dark:text-white mb-1 block" htmlFor="review-character-name">Character Name</label>
+                      <input
+                        id="review-character-name"
+                        type="text"
+                        value={characterReviewDraft?.name || ''}
+                        onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, name: event.target.value }))}
+                        className="w-full border-2 border-black dark:border-neutral-600 px-2.5 py-2 text-sm font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-mono text-xs font-black uppercase text-black dark:text-white mb-1 block" htmlFor="review-character-biography">Biography & Canon References</label>
+                      <textarea
+                        id="review-character-biography"
+                        rows={6}
+                        value={characterReviewDraft?.biography || ''}
+                        onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, biography: event.target.value }))}
+                        className="w-full whitespace-pre-line text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 border-2 border-black/20 p-3 bg-neutral-50 dark:bg-[#0D1117]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-mono text-xs font-black uppercase text-black dark:text-white mb-1 block" htmlFor="review-character-image">Character Image URL</label>
+                      <input
+                        id="review-character-image"
+                        type="url"
+                        value={characterReviewDraft?.image_url || ''}
+                        onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, image_url: event.target.value }))}
+                        className="w-full border-2 border-black dark:border-neutral-600 px-2.5 py-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+
+                    {Array.isArray(selectedCharacterSubmission.stats_json) && selectedCharacterSubmission.stats_json.length > 0 && (
+                      <div>
+                        <h4 className="font-mono text-xs font-black uppercase text-black dark:text-white mb-1">Submitted Stats</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedCharacterSubmission.stats_json.map((stat, index) => (
+                            <span key={`${stat.label || 'stat'}-${index}`} className="px-2 py-1 text-xs font-mono font-bold border border-black bg-[#A3E635] text-black">
+                              {stat.label || 'Stat'}: {stat.value ?? 'N/A'}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap justify-end gap-2 pt-2 border-t-2 border-black dark:border-neutral-700">
+                      <button
+                        type="button"
+                        onClick={handleSaveCharacterDraft}
+                        disabled={isSavingCharacterDraft}
+                        className="px-3 py-2 bg-[#FACC15] text-black font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn disabled:opacity-50"
+                      >
+                        {isSavingCharacterDraft ? 'Saving...' : 'Save Changes'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleModerateSubmission(selectedCharacterSubmission, 'REJECTED');
+                          setSelectedCharacterSubmission(null);
+                        }}
+                        className="px-3 py-2 bg-[#F43F5E] text-white font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn"
+                      >
+                        <X className="w-3.5 h-3.5 inline mr-1" /> Reject
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleModerateSubmission(selectedCharacterSubmission, 'APPROVED');
+                          setSelectedCharacterSubmission(null);
+                        }}
+                        className="px-3 py-2 bg-[#A3E635] text-black font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn"
+                      >
+                        <Check className="w-3.5 h-3.5 inline mr-1" /> Approve & Publish
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* PART B: INCOMING USER FEEDBACK & RESOLUTION TRACKER (BUGS, SUGGESTIONS, QUERIES) */}
           <div className="space-y-3 pt-4 border-t-2 border-black dark:border-neutral-700">
