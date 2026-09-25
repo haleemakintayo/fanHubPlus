@@ -50,6 +50,8 @@ export default function Modals({
 
   // Feedback State
   const [feedbackCategory, setFeedbackCategory] = useState('BUG')
+  const [feedbackEmail, setFeedbackEmail] = useState('')
+  const [feedbackName, setFeedbackName] = useState('')
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false)
 
@@ -368,7 +370,9 @@ export default function Modals({
       setIsSubmittingFeedback(true)
       try {
         await interactionsApi.submitFeedback({
-          feedback_type: feedbackCategory,
+          email: feedbackEmail,
+          name: feedbackName,
+          feedbackType: feedbackCategory,
           subject: `${feedbackCategory} Report from Hub Portal`,
           message: feedbackMessage,
         })
@@ -424,6 +428,33 @@ export default function Modals({
           <form onSubmit={handleFeedbackSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
+                Email
+              </label>
+              <input
+                required
+                type="email"
+                value={feedbackEmail}
+                onChange={(e) => setFeedbackEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full border-2 border-black dark:border-white p-2 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
+                Name <span className="font-normal text-neutral-500">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={feedbackName}
+                onChange={(e) => setFeedbackName(e.target.value)}
+                placeholder="Your name"
+                className="w-full border-2 border-black dark:border-white p-2 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
                 Category
               </label>
               <select
@@ -433,7 +464,7 @@ export default function Modals({
               >
                 <option value="BUG">🐛 Bug Report (Visual / Functional)</option>
                 <option value="SUGGESTION">💡 Feature Suggestion</option>
-                <option value="QUERY">❓ General Query / Lore Correction</option>
+                <option value="INQUIRY">❓ General Query / Lore Correction</option>
               </select>
             </div>
 

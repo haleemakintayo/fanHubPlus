@@ -916,6 +916,21 @@ export default function Admin({
                 {(ov.total_merch_views || 0).toLocaleString()} Merch
               </span>
             </div>
+
+            <div className="p-4 bg-white dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 brutal-shadow-sm">
+              <div className="flex items-center justify-between text-neutral-500 mb-1">
+                <span className="font-mono text-[10px] font-black uppercase">
+                  USER FEEDBACK
+                </span>
+                <MessageSquareWarning className="w-4 h-4 text-[#38BDF8]" />
+              </div>
+              <span className="font-mono text-2xl sm:text-3xl font-black text-black dark:text-white block">
+                {ov.open_feedback || 0}
+              </span>
+              <span className="font-mono text-[10px] font-bold text-neutral-500">
+                Open of {ov.total_feedback || 0} submitted tickets
+              </span>
+            </div>
           </div>
 
           {/* Most Popular Fandom Categories Metrics */}

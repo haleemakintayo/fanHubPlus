@@ -107,6 +107,9 @@ class InteractionsTests(TestCase):
             'message': 'The waveform visualizer clipped on 375px screens.'
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['feedback_type'], 'BUG')
+        self.assertEqual(response.data['status'], 'NEW')
+        self.assertEqual(response.data['email'], 'visitor@example.com')
         self.assertTrue(Feedback.objects.filter(subject__icontains='Soundtrack').exists())
 
     def test_bookmark_personal_notes_and_external_items(self):
@@ -154,9 +157,25 @@ class InteractionsTests(TestCase):
             subject='Add Manga Reading Mode',
             message='Right-to-left panel toggle would be awesome.'
         )
+        feedback_admin_url = '/api/interactions/admin/feedback/'
+        member_list_res = self.client.get(feedback_admin_url)
+        self.assertEqual(member_list_res.status_code, status.HTTP_403_FORBIDDEN)
+
         self.client.force_authenticate(user=self.admin)
+        list_res = self.client.get(feedback_admin_url)
+        self.assertEqual(list_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(list_res.data[0]['subject'], 'Add Manga Reading Mode')
+
+        review_res = self.client.patch(
+            f'{feedback_admin_url}{fb.id}/',
+            {'status': 'IN_REVIEW'},
+            format='json'
+        )
+        self.assertEqual(review_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(review_res.data['status'], 'IN_REVIEW')
+
         resolve_res = self.client.patch(
-            f'/api/interactions/admin/feedback/{fb.id}/',
+            f'{feedback_admin_url}{fb.id}/',
             {'status': 'RESOLVED'},
             format='json'
         )
