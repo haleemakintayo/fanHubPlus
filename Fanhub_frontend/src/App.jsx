@@ -200,9 +200,6 @@ export default function App() {
             details: {
               ...details,
               bio: profile.biography || details.bio || 'No biography supplied.',
-              weapon: details.weapon || 'Not supplied',
-              nemesis: details.nemesis || 'Not supplied',
-              firstAppearance: details.firstAppearance || 'Not supplied',
             },
           }
         })

@@ -171,20 +171,28 @@ export default function Modals({
                 </p>
               </div>
 
-              <div className="p-3 bg-neutral-100 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 space-y-2 text-xs font-mono">
-                <div className="flex justify-between border-b border-black/10 dark:border-neutral-800 pb-1.5">
-                  <span className="text-neutral-500 font-bold">PRIMARY WEAPON / RELIC:</span>
-                  <span className="font-black text-black dark:text-white">{activeLoreCharacter.details.weapon}</span>
+              {(activeLoreCharacter.details.weapon || activeLoreCharacter.details.nemesis || activeLoreCharacter.details.firstAppearance) && (
+                <div className="p-3 bg-neutral-100 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 space-y-2 text-xs font-mono">
+                  {activeLoreCharacter.details.weapon && (
+                    <div className="flex justify-between border-b border-black/10 dark:border-neutral-800 pb-1.5">
+                      <span className="text-neutral-500 font-bold">PRIMARY WEAPON / RELIC:</span>
+                      <span className="font-black text-black dark:text-white">{activeLoreCharacter.details.weapon}</span>
+                    </div>
+                  )}
+                  {activeLoreCharacter.details.nemesis && (
+                    <div className="flex justify-between border-b border-black/10 dark:border-neutral-800 pb-1.5">
+                      <span className="text-neutral-500 font-bold">PRIMARY ARCHNEMESIS:</span>
+                      <span className="font-black text-[#F43F5E]">{activeLoreCharacter.details.nemesis}</span>
+                    </div>
+                  )}
+                  {activeLoreCharacter.details.firstAppearance && (
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500 font-bold">FIRST CANON APPEARANCE:</span>
+                      <span className="font-black text-black dark:text-white">{activeLoreCharacter.details.firstAppearance}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-between border-b border-black/10 dark:border-neutral-800 pb-1.5">
-                  <span className="text-neutral-500 font-bold">PRIMARY ARCHNEMESIS:</span>
-                  <span className="font-black text-[#F43F5E]">{activeLoreCharacter.details.nemesis}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-500 font-bold">FIRST CANON APPEARANCE:</span>
-                  <span className="font-black text-black dark:text-white">{activeLoreCharacter.details.firstAppearance}</span>
-                </div>
-              </div>
+              )}
 
               <div className="pt-2">
                 <button
