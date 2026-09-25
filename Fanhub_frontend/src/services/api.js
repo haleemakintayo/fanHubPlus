@@ -225,6 +225,106 @@ export const chatbotApi = {
 };
 
 /**
+ * Public Fandoms Domain API Service (Categories, Articles, Multimedia, Character Rosters)
+ */
+export const fandomsApi = {
+  getCategories: () =>
+    apiRequest('/fandoms/categories/list/', {
+      method: 'GET',
+      skipAuth: true,
+    }),
+
+  getCategoryDetail: (slug) =>
+    apiRequest(`/fandoms/categories/${encodeURIComponent(slug)}/`, {
+      method: 'GET',
+      skipAuth: true,
+    }),
+
+  getContents: ({ category, type, search, sort } = {}) => {
+    const params = new URLSearchParams();
+    if (category && category !== 'all') params.set('category', category);
+    if (type) params.set('type', type);
+    if (search) params.set('search', search);
+    if (sort) params.set('sort', sort);
+    const qs = params.toString();
+    return apiRequest(`/fandoms/content/${qs ? `?${qs}` : ''}`, {
+      method: 'GET',
+      skipAuth: true,
+    });
+  },
+
+  getContentDetail: (slug) =>
+    apiRequest(`/fandoms/content/${encodeURIComponent(slug)}/detail/`, {
+      method: 'GET',
+      skipAuth: true,
+    }),
+
+  getCharacters: ({ category, search } = {}) => {
+    const params = new URLSearchParams();
+    if (category && category !== 'all') params.set('category', category);
+    if (search) params.set('search', search);
+    const qs = params.toString();
+    return apiRequest(`/fandoms/characters/${qs ? `?${qs}` : ''}`, {
+      method: 'GET',
+      skipAuth: true,
+    });
+  },
+};
+
+/**
+ * Normalize a backend Content object into the frontend Article shape
+ */
+export function normalizeBackendArticle(item, fallbackAccent = '#FACC15') {
+  if (!item) return null;
+  const rawBody = item.body_text || item.synopsis || '';
+  const paragraphs = rawBody
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  return {
+    id: `db-${item.id || item.slug}`,
+    backendId: item.id,
+    slug: item.slug,
+    topicLabel: item.title,
+    title: item.title,
+    subtitle: item.synopsis || (paragraphs[0] ? paragraphs[0].slice(0, 160) : 'Verified Community & Editorial Dispatch'),
+    universe: item.category_slug || 'community-vault',
+    universeName: item.category_name || 'Community Vault',
+    accentColor: fallbackAccent,
+    author: item.artist_or_author || 'Fan Hub Editorial',
+    authorRole: 'Verified Contributor',
+    publishedAt: item.created_at
+      ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+      : 'Sept 2026',
+    readTime: `${Math.max(3, Math.ceil((rawBody.split(/\s+/).length || 300) / 180))} MIN READ`,
+    releaseYear: String(item.release_year || 2026),
+    popularityScore: Number(item.popularity_score || 92.0),
+    viewCount: Number(item.view_count || 1250),
+    rating: Number(item.average_rating || 4.8),
+    ratingsCount: Number(item.rating_count || 24),
+    thumbnail:
+      item.thumbnail_url ||
+      'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1000&q=80',
+    heroImage:
+      item.thumbnail_url ||
+      'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1400&q=80',
+    tags: [item.category_name || 'Canon', item.content_type || 'ARTICLE', String(item.release_year || '2026')],
+    synopsis: item.synopsis || paragraphs[0] || 'Official archived dispatch from the Fan Hub Plus database.',
+    keyTakeaways: [
+      `Published in the ${item.category_name || 'Fan Hub'} archive (${item.release_year || 2026}).`,
+      `Authored and verified by ${item.artist_or_author || 'Fan Hub Editorial'}.`,
+    ],
+    sections: [
+      {
+        heading: '01. Full Archival Dispatch',
+        paragraphs: paragraphs.length > 0 ? paragraphs : ['Full article text archived in the Fan Hub Plus database.'],
+      },
+    ],
+  };
+}
+
+/**
  * Interactions Domain API Service (Bookmarks, Notes, Activity Stream, Submissions, Feedback)
  */
 export const interactionsApi = {

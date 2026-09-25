@@ -4,6 +4,7 @@ import { ArrowUp } from 'lucide-react'
 
 export default function Footer({ 
   onSelectUniverse, 
+  onOpenUniversePage,
   onOpenAuth, 
   onOpenModal 
 }) {
@@ -115,9 +116,13 @@ export default function Footer({
                 <li key={u.id}>
                   <button
                     onClick={() => {
-                      onSelectUniverse(u.id)
-                      const target = document.querySelector('#explore')
-                      if (target) target.scrollIntoView({ behavior: 'smooth' })
+                      if (onOpenUniversePage) {
+                        onOpenUniversePage(u.id)
+                      } else if (onSelectUniverse) {
+                        onSelectUniverse(u.id)
+                        const target = document.querySelector('#explore')
+                        if (target) target.scrollIntoView({ behavior: 'smooth' })
+                      }
                     }}
                     className="hover:text-black dark:hover:text-white hover:underline text-left flex items-center gap-1.5 py-0.5"
                   >

@@ -13,18 +13,23 @@ import Modals from './components/Modals'
 import Toast from './components/Toast'
 import Dashboard from './components/Dashboard'
 import Admin from './components/Admin'
+import UniversePage from './components/UniversePage'
+import ArticlePage from './components/ArticlePage'
 import { interactionsApi, adminApi, getAuthToken } from './services/api'
 
 import {
   UNIVERSES,
+  ARTICLES_DATA,
   MULTIMEDIA_DATA,
   CHARACTERS_DATA,
   MERCH_DROPS,
   CONVENTIONS_DATA,
-  FANDOM_BOT_QA
+  FANDOM_BOT_QA,
+  getArticleBySlugOrTopic
 } from './data/fandomData'
 
 const TYPE_TO_BACKEND_ENUM = {
+  Article: 'ARTICLE',
   'Featured Article': 'ARTICLE',
   'Character Lore': 'CHARACTER',
   'Character Profile': 'CHARACTER',
@@ -39,22 +44,39 @@ const TYPE_TO_BACKEND_ENUM = {
   MERCHANDISE: 'MERCHANDISE',
 }
 
-function getInitialPageFromUrl() {
-  if (typeof window === 'undefined') return 'home'
-  const path = window.location.pathname.toLowerCase()
+function parseRouteFromLocation() {
+  if (typeof window === 'undefined') return { page: 'home', slug: null }
+  const path = window.location.pathname
+  const lowerPath = path.toLowerCase()
   const hash = window.location.hash.toLowerCase()
-  if (path.startsWith('/dashboard') || hash === '#dashboard' || hash === '#/dashboard') {
-    return 'dashboard'
+
+  if (lowerPath.startsWith('/universe/')) {
+    const slug = decodeURIComponent(path.slice('/universe/'.length).replace(/\/+$/, ''))
+    return { page: 'universe', slug: slug || 'anime' }
   }
-  if (path.startsWith('/admin') || hash === '#admin' || hash === '#/admin') {
-    return 'admin'
+  if (lowerPath.startsWith('/article/')) {
+    const slug = decodeURIComponent(path.slice('/article/'.length).replace(/\/+$/, ''))
+    return { page: 'article', slug: slug || ARTICLES_DATA[0]?.slug }
   }
-  return 'home'
+  if (lowerPath.startsWith('/dashboard') || hash === '#dashboard' || hash === '#/dashboard') {
+    return { page: 'dashboard', slug: null }
+  }
+  if (lowerPath.startsWith('/admin') || hash === '#admin' || hash === '#/admin') {
+    return { page: 'admin', slug: null }
+  }
+  return { page: 'home', slug: null }
 }
 
 export default function App() {
-  // Dedicated Page Routing State ('home' | 'dashboard' | 'admin')
-  const [activePage, setActivePage] = useState(getInitialPageFromUrl)
+  // Dedicated Page Routing State ('home' | 'universe' | 'article' | 'dashboard' | 'admin')
+  const initialRoute = useMemo(() => parseRouteFromLocation(), [])
+  const [activePage, setActivePage] = useState(initialRoute.page)
+  const [activeUniverseSlug, setActiveUniverseSlug] = useState(
+    initialRoute.page === 'universe' ? initialRoute.slug : 'anime'
+  )
+  const [activeArticleSlug, setActiveArticleSlug] = useState(
+    initialRoute.page === 'article' ? initialRoute.slug : ARTICLES_DATA[0]?.slug
+  )
   const [adminInitialSection, setAdminInitialSection] = useState('analytics')
 
   // Theme Switching State - Default to crisp Pop-Brutalist Light Mode
@@ -214,16 +236,70 @@ export default function App() {
     }
   }, [])
 
+  // User Ratings State (persisted in localStorage)
+  const [userRatings, setUserRatings] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('fanhub_user_ratings')
+        if (saved) return JSON.parse(saved)
+      } catch {
+        // ignore
+      }
+    }
+    return {}
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('fanhub_user_ratings', JSON.stringify(userRatings))
+    } catch {
+      // ignore
+    }
+  }, [userRatings])
+
   // Listen to browser back/forward navigation
   useEffect(() => {
     const handlePopState = () => {
-      setActivePage(getInitialPageFromUrl())
+      const route = parseRouteFromLocation()
+      setActivePage(route.page)
+      if (route.page === 'universe' && route.slug) {
+        setActiveUniverseSlug(route.slug)
+      } else if (route.page === 'article' && route.slug) {
+        setActiveArticleSlug(route.slug)
+      }
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  // Navigate between dedicated pages ('home' | 'dashboard' | 'admin')
+  // Navigate to a dedicated Category / Universe Hub Page (/universe/:slug)
+  const openUniversePage = useCallback((slug) => {
+    const cleanSlug = String(slug || 'anime').toLowerCase().trim()
+    setActiveModal(null)
+    setActiveLoreCharacter(null)
+    setActiveUniverseSlug(cleanSlug)
+    setActivePage('universe')
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', `/universe/${encodeURIComponent(cleanSlug)}`)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [])
+
+  // Navigate to a dedicated Article Reader Page (/article/:slug)
+  const openArticlePage = useCallback((slugOrTopic) => {
+    const resolved = getArticleBySlugOrTopic(slugOrTopic)
+    const targetSlug = resolved?.slug || String(slugOrTopic || '').toLowerCase().trim()
+    setActiveModal(null)
+    setActiveLoreCharacter(null)
+    setActiveArticleSlug(targetSlug)
+    setActivePage('article')
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', `/article/${encodeURIComponent(targetSlug)}`)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [])
+
+  // Navigate between dedicated pages ('home' | 'universe' | 'article' | 'dashboard' | 'admin')
   const navigateToPage = useCallback((page, sectionHref = null) => {
     setActiveModal(null)
     setActiveLoreCharacter(null)
@@ -479,6 +555,32 @@ export default function App() {
     })
   }, [recordActivity])
 
+  // Array form of bookmarks for UniversePage & ArticlePage
+  const bookmarksArray = useMemo(() => {
+    return Object.entries(bookmarkedItems).map(([id, data]) => ({
+      id,
+      ...data,
+    }))
+  }, [bookmarkedItems])
+
+  // Rate an Article or Media Item (1-5 stars)
+  const handleRateItem = useCallback((itemId, score) => {
+    setUserRatings(prev => ({
+      ...prev,
+      [itemId]: score,
+    }))
+    recordActivity({
+      action_type: 'RATE_CONTENT',
+      target_title: `Rated content #${itemId} (${score}/5 ★)`,
+      detail: `${score} Stars`,
+    })
+    addToast({
+      title: `Rated ${score}/5 Stars ★`,
+      message: 'Your canon rating has been recorded in the telemetry matrix.',
+      type: 'success',
+    })
+  }, [recordActivity])
+
   // Calculate live matching results count
   const totalResultsCount = useMemo(() => {
     let count = 0
@@ -487,6 +589,13 @@ export default function App() {
     UNIVERSES.forEach(u => {
       const matchesUniverse = selectedUniverse === 'all' || u.id === selectedUniverse
       if (matchesUniverse && (q === '' || u.name.toLowerCase().includes(q) || u.tags.some(t => t.toLowerCase().includes(q)))) {
+        count++
+      }
+    })
+
+    ARTICLES_DATA.forEach(a => {
+      const matchesUniverse = selectedUniverse === 'all' || a.universe === selectedUniverse
+      if (matchesUniverse && (q === '' || a.title.toLowerCase().includes(q) || a.subtitle.toLowerCase().includes(q))) {
         count++
       }
     })
@@ -523,9 +632,51 @@ export default function App() {
         onOpenAuth={handleOpenRouteOrModal}
       />
 
-      {/* Main Content Area: Switches between Dedicated Pages ('dashboard', 'admin', and 'home') */}
+      {/* Main Content Area: Switches between Dedicated Pages ('universe', 'article', 'dashboard', 'admin', and 'home') */}
       <main className="flex-1">
-        {activePage === 'dashboard' ? (
+        {activePage === 'universe' ? (
+          <UniversePage
+            universeSlug={activeUniverseSlug}
+            onNavigateHome={() => navigateToPage('home', '#top')}
+            onSelectUniverse={(slug) => openUniversePage(slug)}
+            onOpenArticle={(slug) => openArticlePage(slug)}
+            bookmarks={bookmarksArray}
+            onToggleBookmark={(item) =>
+              toggleBookmark(item.id, item.title, item.type || 'Featured Article', {
+                category_name: item.universe,
+              })
+            }
+            userRatings={userRatings}
+            onRateItem={handleRateItem}
+            onOpenModal={handleOpenRouteOrModal}
+          />
+        ) : activePage === 'article' ? (
+          <ArticlePage
+            articleSlug={activeArticleSlug}
+            onNavigateHome={() => navigateToPage('home', '#top')}
+            onSelectUniverse={(slug) => openUniversePage(slug)}
+            onOpenArticle={(slug) => openArticlePage(slug)}
+            bookmarks={bookmarksArray}
+            onToggleBookmark={(item) =>
+              toggleBookmark(item.id, item.title, item.type || 'Featured Article', {
+                category_name: item.universe,
+              })
+            }
+            onUpdateBookmarkNote={(id, noteText) => {
+              updateBookmarkNote(id, noteText)
+              addToast({
+                title: 'Collector Note Saved',
+                message: 'Your personal annotation has been synced to your Dashboard.',
+                type: 'success',
+              })
+            }}
+            userRatings={userRatings}
+            onRateItem={handleRateItem}
+            onShowToast={(msg, type = 'info') =>
+              addToast({ title: 'Article Dispatch', message: msg, type })
+            }
+          />
+        ) : activePage === 'dashboard' ? (
           <section className="py-8 sm:py-12 px-3 sm:px-6 lg:px-8 bg-[#FDFBF7] dark:bg-[#0D1117] border-b-2 border-black dark:border-neutral-100">
             <div className="max-w-7xl mx-auto">
               {/* Dedicated Page Top Navigation & Quick Actions */}
@@ -591,10 +742,10 @@ export default function App() {
                   setSelectedUniverse(universeId)
                   recordActivity({
                     action_type: 'FILTER_UNIVERSE',
-                    target_title: `Focused ${universeId.toUpperCase()} universe from Dashboard`,
+                    target_title: `Opened ${universeId.toUpperCase()} universe from Dashboard`,
                     category_name: universeId,
                   })
-                  navigateToPage('home', '#explore')
+                  openUniversePage(universeId)
                 }}
                 onApplyDisplayPreferences={applyDisplayPreferences}
                 onOpenAdmin={() => navigateToPage('admin')}
@@ -667,6 +818,8 @@ export default function App() {
                   })
                 }
               }}
+              onOpenUniversePage={openUniversePage}
+              onOpenArticle={openArticlePage}
               totalResultsCount={totalResultsCount}
             />
 
@@ -684,17 +837,14 @@ export default function App() {
                   })
                 }
               }}
+              onOpenUniversePage={openUniversePage}
+              onOpenArticle={openArticlePage}
               searchQuery={searchQuery}
               bookmarkedItems={bookmarkedItems}
               toggleBookmark={toggleBookmark}
               onRecordActivity={recordActivity}
               onOpenTopic={(topicTitle) => {
-                setSearchQuery(topicTitle)
-                addToast({
-                  title: 'Canon Thread Filtered',
-                  message: `Now searching for discussions regarding "${topicTitle}".`,
-                  type: 'info'
-                })
+                openArticlePage(topicTitle)
               }}
             />
 
@@ -748,10 +898,9 @@ export default function App() {
       {/* 9. Footer */}
       <Footer
         onSelectUniverse={(universeId) => {
-          setSelectedUniverse(universeId)
-          setSearchQuery('')
-          navigateToPage('home', '#explore')
+          openUniversePage(universeId)
         }}
+        onOpenUniversePage={openUniversePage}
         onOpenAuth={handleOpenRouteOrModal}
         onOpenModal={handleOpenRouteOrModal}
       />
@@ -775,10 +924,10 @@ export default function App() {
           setSelectedUniverse(universeId)
           recordActivity({
             action_type: 'FILTER_UNIVERSE',
-            target_title: `Focused ${universeId.toUpperCase()} universe from Dashboard`,
+            target_title: `Opened ${universeId.toUpperCase()} universe from Dashboard`,
             category_name: universeId,
           })
-          navigateToPage('home', '#explore')
+          openUniversePage(universeId)
         }}
         onApplyDisplayPreferences={applyDisplayPreferences}
         onRecordActivity={recordActivity}

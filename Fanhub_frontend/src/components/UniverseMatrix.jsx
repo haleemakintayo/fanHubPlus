@@ -13,8 +13,11 @@ import {
   X,
   ExternalLink,
   Flame,
-  Bookmark
+  Bookmark,
+  Eye,
+  FileText
 } from 'lucide-react'
+import { getArticleBySlugOrTopic } from '../data/fandomData'
 
 
 // Icon mapping dictionary
@@ -33,6 +36,8 @@ export default function UniverseMatrix({
   universes, 
   selectedUniverse, 
   onSelectUniverse, 
+  onOpenUniversePage,
+  onOpenArticle,
   searchQuery,
   onOpenTopic,
   bookmarkedItems = {},
@@ -40,6 +45,33 @@ export default function UniverseMatrix({
   onRecordActivity
 }) {
   const [activeModalUniverse, setActiveModalUniverse] = useState(null)
+
+  const handleNavigateUniverse = (item) => {
+    onRecordActivity?.({
+      action_type: 'VIEW_ARTICLE',
+      target_title: `Entered ${item.name} Universe Hub`,
+      category_name: item.name,
+    })
+    if (onOpenUniversePage) {
+      onOpenUniversePage(item.slug || item.id)
+    } else {
+      setActiveModalUniverse(item)
+    }
+  }
+
+  const handleNavigateTopicArticle = (topic, universeItem) => {
+    const resolved = getArticleBySlugOrTopic(topic)
+    onRecordActivity?.({
+      action_type: 'VIEW_ARTICLE',
+      target_title: resolved?.title || topic,
+      category_name: universeItem?.name || 'Fandom',
+    })
+    if (onOpenArticle && resolved) {
+      onOpenArticle(resolved.slug)
+    } else if (onOpenTopic) {
+      onOpenTopic(topic)
+    }
+  }
 
   // Filter based on selected category & search query
   const filteredUniverses = universes.filter((item) => {
@@ -66,14 +98,14 @@ export default function UniverseMatrix({
                 MULTIVERSE MATRIX
               </span>
               <span className="font-mono text-[10px] sm:text-xs font-bold uppercase text-neutral-600 dark:text-neutral-400">
-                8 CORE SECTORS
+                8 CORE SECTORS • CLICK ANY SECTOR OR ARTICLE TO OPEN PAGE
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-black uppercase tracking-tight text-black dark:text-white">
               UNIVERSE DIRECTORY
             </h2>
             <p className="text-neutral-700 dark:text-neutral-300 font-medium text-xs sm:text-sm md:text-base mt-1 max-w-2xl">
-              Curated by dedicated guild masters. Instant access to simulcast schedules, verified lore bibles, and fan discussions.
+              Curated by dedicated guild masters. Click any category card to enter its dedicated Universe Hub Page, or select an article topic below to read the full dossier.
             </p>
           </div>
 
@@ -121,7 +153,7 @@ export default function UniverseMatrix({
               return (
                 <div
                   key={item.id}
-                  className={`group bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-4 sm:p-5 flex flex-col justify-between transition-all brutal-btn relative ${
+                  className={`group bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-4 sm:p-5 flex flex-col justify-between transition-all relative ${
                     isSelected ? 'ring-4 ring-[#FACC15]' : ''
                   }`}
                   style={{
@@ -138,57 +170,86 @@ export default function UniverseMatrix({
                   <div>
                     <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                       <div
-                        className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-black flex items-center justify-center brutal-shadow-sm group-hover:rotate-3 transition-transform"
+                        onClick={() => handleNavigateUniverse(item)}
+                        className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-black flex items-center justify-center brutal-shadow-sm group-hover:rotate-3 transition-transform cursor-pointer"
                         style={{ backgroundColor: item.accentColor }}
                       >
                         <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
                       </div>
 
-                      {/* Entry Count Badge */}
-                      <span className="px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs font-mono font-black uppercase tracking-tight border-2 border-black bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white brutal-shadow-sm">
-                        {item.entryCount}
-                      </span>
+                      {/* Entry Count Badge + Quick Preview */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-2 py-0.5 text-[10px] font-mono font-black uppercase tracking-tight border-2 border-black bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white brutal-shadow-sm">
+                          {item.entryCount}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveModalUniverse(item)}
+                          className="p-1 border-2 border-black dark:border-neutral-400 bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white hover:bg-[#FACC15] hover:text-black transition-colors"
+                          title={`Quick Summary of ${item.name}`}
+                          aria-label={`Quick Summary of ${item.name}`}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Universe Title */}
-                    <h3 className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight text-black dark:text-white mb-1.5 sm:mb-2">
-                      {item.name}
+                    {/* Universe Title (Clickable) */}
+                    <h3
+                      onClick={() => handleNavigateUniverse(item)}
+                      className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight text-black dark:text-white mb-1.5 sm:mb-2 cursor-pointer hover:underline flex items-center justify-between"
+                    >
+                      <span>{item.name}</span>
                     </h3>
 
                     {/* Description */}
-                    <p className="text-neutral-700 dark:text-neutral-300 text-xs sm:text-sm font-medium leading-snug mb-3 sm:mb-4">
+                    <p className="text-neutral-700 dark:text-neutral-300 text-xs sm:text-sm font-medium leading-snug mb-3">
                       {item.description}
                     </p>
+
+                    {/* Featured Articles List inside Card */}
+                    {item.popularTopics && item.popularTopics.length > 0 && (
+                      <div className="mb-3 p-2.5 bg-[#FDFBF7] dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 space-y-1.5">
+                        <span className="font-mono text-[9px] font-black uppercase text-neutral-500 block">
+                          FEATURED ARTICLES (CLICK TO READ)
+                        </span>
+                        {item.popularTopics.map((topic, tIdx) => (
+                          <button
+                            key={tIdx}
+                            type="button"
+                            onClick={() => handleNavigateTopicArticle(topic, item)}
+                            className="w-full text-left text-[11px] font-bold text-black dark:text-neutral-200 hover:underline flex items-center gap-1.5 py-0.5 group/topic"
+                          >
+                            <FileText className="w-3 h-3 shrink-0 text-[#F43F5E]" />
+                            <span className="truncate flex-1">{topic}</span>
+                            <ArrowUpRight className="w-3 h-3 shrink-0 opacity-60 group-hover/topic:opacity-100" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Tags & Action Button */}
                   <div className="pt-2 sm:pt-3 border-t-2 border-black/10 dark:border-neutral-800">
-                    <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-3 sm:mb-4">
+                    <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-3">
                       {item.tags.slice(0, 3).map((tag, tIdx) => (
                         <span
                           key={tIdx}
-                          className="text-[9px] sm:text-[10px] font-mono font-bold uppercase px-1.5 sm:px-2 py-0.5 border border-black dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 hover:rotate-1 transition-transform"
+                          className="text-[9px] sm:text-[10px] font-mono font-bold uppercase px-1.5 sm:px-2 py-0.5 border border-black dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200"
                         >
                           #{tag}
                         </span>
                       ))}
                     </div>
 
-                    {/* Explore CTA */}
+                    {/* Enter Universe Page CTA */}
                     <button
-                      onClick={() => {
-                        setActiveModalUniverse(item)
-                        onRecordActivity?.({
-                          action_type: 'VIEW_ARTICLE',
-                          target_title: `Explored ${item.name} Universe Directory`,
-                          category_name: item.name,
-                        })
-                      }}
-                      className="w-full py-1.5 sm:py-2 px-2 sm:px-3 font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn flex items-center justify-between gap-1 transition-colors"
+                      onClick={() => handleNavigateUniverse(item)}
+                      className="w-full py-2 px-3 font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn flex items-center justify-between gap-1 transition-colors"
                       style={{ backgroundColor: item.accentColor }}
-                      aria-label={`Explore ${item.name} Universe details`}
+                      aria-label={`Enter ${item.name} Universe Hub Page`}
                     >
-                      <span className="text-black">Explore</span>
+                      <span className="text-black">Enter {item.name} Hub</span>
                       <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </button>
                   </div>
@@ -207,8 +268,12 @@ export default function UniverseMatrix({
           role="dialog"
           aria-modal="true"
           aria-labelledby="universe-modal-title"
+          onClick={() => setActiveModalUniverse(null)}
         >
-          <div className="relative w-full max-w-2xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto">
+          <div
+            className="relative w-full max-w-2xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-4 pb-4 border-b-2 border-black dark:border-neutral-700 mb-6">
@@ -276,11 +341,12 @@ export default function UniverseMatrix({
               {/* Trending Topics / Featured Articles inside Universe */}
               <div>
                 <h4 className="font-mono text-xs font-black uppercase tracking-wider text-black dark:text-white mb-2">
-                  FEATURED ARTICLES & CANON DISCUSSIONS
+                  FEATURED ARTICLES & CANON DISCUSSIONS (CLICK TO READ)
                 </h4>
                 <div className="space-y-2">
                   {activeModalUniverse.popularTopics.map((topic, idx) => {
-                    const articleId = `article-${activeModalUniverse.id}-${idx}`
+                    const resolved = getArticleBySlugOrTopic(topic)
+                    const articleId = resolved?.id || `article-${activeModalUniverse.id}-${idx}`
                     const isArticleBookmarked = !!bookmarkedItems[articleId]
                     return (
                       <div
@@ -290,17 +356,12 @@ export default function UniverseMatrix({
                         <div
                           className="flex items-center gap-2 flex-1 cursor-pointer"
                           onClick={() => {
-                            onRecordActivity?.({
-                              action_type: 'VIEW_ARTICLE',
-                              target_title: topic,
-                              category_name: activeModalUniverse.name,
-                            })
-                            onOpenTopic(topic)
                             setActiveModalUniverse(null)
+                            handleNavigateTopicArticle(topic, activeModalUniverse)
                           }}
                         >
                           <Flame className="w-4 h-4 text-[#F43F5E] shrink-0" />
-                          <span className="font-bold text-sm text-black dark:text-white">
+                          <span className="font-bold text-sm text-black dark:text-white group-hover:underline">
                             {topic}
                           </span>
                         </div>
@@ -310,7 +371,7 @@ export default function UniverseMatrix({
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                toggleBookmark(articleId, topic, 'Featured Article', {
+                                toggleBookmark(articleId, resolved?.title || topic, 'Article', {
                                   category_name: activeModalUniverse.name,
                                 })
                               }}
@@ -328,17 +389,12 @@ export default function UniverseMatrix({
                           <button
                             type="button"
                             onClick={() => {
-                              onRecordActivity?.({
-                                action_type: 'VIEW_ARTICLE',
-                                target_title: topic,
-                                category_name: activeModalUniverse.name,
-                              })
-                              onOpenTopic(topic)
                               setActiveModalUniverse(null)
+                              handleNavigateTopicArticle(topic, activeModalUniverse)
                             }}
-                            className="font-mono text-xs font-bold text-neutral-500 hover:text-black dark:hover:text-white uppercase flex items-center gap-1"
+                            className="px-2.5 py-1 bg-[#FACC15] text-black font-mono text-xs font-black uppercase border border-black flex items-center gap-1"
                           >
-                            View <ExternalLink className="w-3.5 h-3.5" />
+                            Read <ExternalLink className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
@@ -349,17 +405,26 @@ export default function UniverseMatrix({
 
               {/* Bottom Actions */}
               <div className="pt-4 border-t-2 border-black dark:border-neutral-700 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <span className="font-mono text-xs text-neutral-500">
-                  Moderated by Fan Hub Council
-                </span>
                 <button
                   onClick={() => {
                     onSelectUniverse(activeModalUniverse.id)
                     setActiveModalUniverse(null)
                   }}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-black text-white dark:bg-white dark:text-black font-black text-xs uppercase tracking-tight border-2 border-black dark:border-white brutal-shadow brutal-btn"
+                  className="w-full sm:w-auto px-4 py-2 bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white font-black text-xs uppercase tracking-tight border-2 border-black dark:border-white"
                 >
-                  Set as Active Filter
+                  Filter Homepage by {activeModalUniverse.name}
+                </button>
+                <button
+                  onClick={() => {
+                    const target = activeModalUniverse
+                    setActiveModalUniverse(null)
+                    handleNavigateUniverse(target)
+                  }}
+                  className="w-full sm:w-auto px-5 py-2.5 text-black font-black text-xs uppercase tracking-tight border-2 border-black brutal-shadow brutal-btn flex items-center justify-center gap-1.5"
+                  style={{ backgroundColor: activeModalUniverse.accentColor }}
+                >
+                  <span>Open Full {activeModalUniverse.name} Hub Page</span>
+                  <ArrowUpRight className="w-4 h-4" />
                 </button>
               </div>
 
@@ -371,3 +436,4 @@ export default function UniverseMatrix({
     </section>
   )
 }
+

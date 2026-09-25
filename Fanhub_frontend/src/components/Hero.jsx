@@ -5,8 +5,11 @@ import {
   Cpu, 
   Layers, 
   CheckCircle,
-  ArrowRight
+  ArrowRight,
+  FileText,
+  ArrowUpRight
 } from 'lucide-react'
+import { ARTICLES_DATA, UNIVERSES } from '../data/fandomData'
 
 
 export default function Hero({ 
@@ -14,6 +17,8 @@ export default function Hero({
   setSearchQuery, 
   selectedUniverse, 
   setSelectedUniverse,
+  onOpenUniversePage,
+  onOpenArticle,
   totalResultsCount
 }) {
   const filterPills = [
@@ -34,6 +39,34 @@ export default function Hero({
     { label: 'Admin-Moderated', icon: CheckCircle, highlight: 'bg-[#FACC15]' },
     { label: 'AI-Assisted', icon: Cpu, highlight: 'bg-[#C084FC]' },
   ]
+
+  const matchingArticles = searchQuery.trim()
+    ? ARTICLES_DATA.filter((a) => {
+        const q = searchQuery.toLowerCase()
+        return (
+          a.title.toLowerCase().includes(q) ||
+          a.subtitle.toLowerCase().includes(q) ||
+          a.universeName.toLowerCase().includes(q) ||
+          a.tags.some((t) => t.toLowerCase().includes(q))
+        )
+      }).slice(0, 5)
+    : []
+
+  const matchingUniverses = searchQuery.trim()
+    ? UNIVERSES.filter((u) => {
+        const q = searchQuery.toLowerCase()
+        return (
+          u.name.toLowerCase().includes(q) ||
+          u.description.toLowerCase().includes(q) ||
+          u.tags.some((t) => t.toLowerCase().includes(q))
+        )
+      }).slice(0, 3)
+    : []
+
+  const activeUniverseObj =
+    selectedUniverse !== 'all'
+      ? UNIVERSES.find((u) => u.id === selectedUniverse)
+      : null
 
   return (
     <section id="top" className="relative pt-6 sm:pt-12 pb-8 sm:pb-16 px-3 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 overflow-hidden bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
@@ -68,7 +101,7 @@ export default function Hero({
         </p>
 
         {/* Interactive Search Bar Box */}
-        <div className="max-w-3xl mx-auto mb-6 sm:mb-8 px-2 sm:px-0">
+        <div className="max-w-3xl mx-auto mb-6 sm:mb-8 px-2 sm:px-0 relative">
           <div className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-2 sm:p-2.5 brutal-shadow-lg flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3">
             <div className="flex items-center gap-2 sm:gap-3 w-full px-1.5 sm:px-2">
               <Search className="w-4 h-4 sm:w-6 sm:h-6 text-neutral-800 dark:text-neutral-200 shrink-0" />
@@ -76,7 +109,7 @@ export default function Hero({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search universes, characters, trailers..."
+                placeholder="Search universes, articles, characters, trailers..."
                 className="w-full bg-transparent font-bold text-xs sm:text-sm md:text-base text-black dark:text-white placeholder:text-neutral-500 focus:outline-none"
                 aria-label="Universal fandom search input"
               />
@@ -104,10 +137,71 @@ export default function Hero({
               </a>
             </div>
           </div>
+
+          {/* Live Direct Page Results Panel when typing */}
+          {searchQuery.trim() && (matchingUniverses.length > 0 || matchingArticles.length > 0) && (
+            <div className="mt-2 bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-3 sm:p-4 brutal-shadow text-left space-y-3">
+              {matchingUniverses.length > 0 && (
+                <div>
+                  <span className="font-mono text-[10px] font-black uppercase text-neutral-500 block mb-1.5">
+                    MATCHING UNIVERSE HUB PAGES
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {matchingUniverses.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => onOpenUniversePage && onOpenUniversePage(u.slug)}
+                        className="px-3 py-1.5 text-xs font-black uppercase border-2 border-black text-black brutal-shadow-sm flex items-center gap-1.5"
+                        style={{ backgroundColor: u.accentColor }}
+                      >
+                        <span>Open {u.name} Hub</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {matchingArticles.length > 0 && (
+                <div>
+                  <span className="font-mono text-[10px] font-black uppercase text-neutral-500 block mb-1.5">
+                    MATCHING ARTICLES & LORE GUIDES (CLICK TO READ)
+                  </span>
+                  <div className="space-y-1.5">
+                    {matchingArticles.map((art) => (
+                      <button
+                        key={art.id}
+                        type="button"
+                        onClick={() => onOpenArticle && onOpenArticle(art.slug)}
+                        className="w-full p-2 bg-[#FDFBF7] dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 hover:border-[#FACC15] flex items-center justify-between gap-2 text-left"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="w-4 h-4 text-[#F43F5E] shrink-0" />
+                          <span
+                            className="px-1.5 py-0.5 text-[9px] font-mono font-black uppercase border border-black text-black shrink-0"
+                            style={{ backgroundColor: art.accentColor }}
+                          >
+                            {art.universeName}
+                          </span>
+                          <span className="font-bold text-xs sm:text-sm text-black dark:text-white truncate">
+                            {art.title}
+                          </span>
+                        </div>
+                        <span className="font-mono text-[10px] font-black uppercase text-neutral-500 shrink-0">
+                          {art.readTime} →
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Instant Filter Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 max-w-4xl mx-auto mb-8 sm:mb-12 px-2 sm:px-0">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 max-w-4xl mx-auto mb-6 sm:mb-8 px-2 sm:px-0">
           {filterPills.map((pill) => {
             const isSelected = selectedUniverse === pill.id
             return (
@@ -127,6 +221,27 @@ export default function Hero({
             )
           })}
         </div>
+
+        {/* Direct CTA Banner when a specific Universe Filter Pill is selected */}
+        {activeUniverseObj && (
+          <div className="max-w-xl mx-auto mb-8 px-2">
+            <div className="bg-white dark:bg-[#161B22] border-2 border-black dark:border-white p-3 brutal-shadow-sm flex flex-col sm:flex-row items-center justify-between gap-2">
+              <span className="font-mono text-xs font-bold text-black dark:text-white">
+                Filtering homepage by <strong>{activeUniverseObj.name}</strong> ({activeUniverseObj.entryCount})
+              </span>
+              <button
+                type="button"
+                onClick={() => onOpenUniversePage && onOpenUniversePage(activeUniverseObj.slug)}
+                className="px-3.5 py-1.5 text-black font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn flex items-center gap-1.5 shrink-0"
+                style={{ backgroundColor: activeUniverseObj.accentColor }}
+              >
+                <span>Enter Full {activeUniverseObj.name} Page</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
 
         {/* Trust Badges */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 max-w-4xl mx-auto pt-4 sm:pt-6 border-t-2 border-black/10 dark:border-neutral-800 px-2 sm:px-0">
