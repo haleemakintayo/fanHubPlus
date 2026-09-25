@@ -26,3 +26,5 @@ dist-ssr
 *.pyo
 *.pyd
 __pycache__/**
+.env
+db.sqlite3

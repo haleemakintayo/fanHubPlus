@@ -25,7 +25,7 @@ export function useAuth() {
     };
   }, []);
 
-  const isAuthenticated = Boolean(session?.tokens?.access || session?.user);
+  const isAuthenticated = Boolean(session?.tokens?.access);
   const user = session?.user || null;
   const tokens = session?.tokens || null;
   const profile = user?.profile || dashboard?.profile || null;
