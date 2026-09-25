@@ -12,7 +12,8 @@ import {
   Compass, 
   X,
   ExternalLink,
-  Flame
+  Flame,
+  Bookmark
 } from 'lucide-react'
 
 
@@ -33,7 +34,10 @@ export default function UniverseMatrix({
   selectedUniverse, 
   onSelectUniverse, 
   searchQuery,
-  onOpenTopic 
+  onOpenTopic,
+  bookmarkedItems = {},
+  toggleBookmark,
+  onRecordActivity
 }) {
   const [activeModalUniverse, setActiveModalUniverse] = useState(null)
 
@@ -172,7 +176,14 @@ export default function UniverseMatrix({
 
                     {/* Explore CTA */}
                     <button
-                      onClick={() => setActiveModalUniverse(item)}
+                      onClick={() => {
+                        setActiveModalUniverse(item)
+                        onRecordActivity?.({
+                          action_type: 'VIEW_ARTICLE',
+                          target_title: `Explored ${item.name} Universe Directory`,
+                          category_name: item.name,
+                        })
+                      }}
                       className="w-full py-1.5 sm:py-2 px-2 sm:px-3 font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn flex items-center justify-between gap-1 transition-colors"
                       style={{ backgroundColor: item.accentColor }}
                       aria-label={`Explore ${item.name} Universe details`}
@@ -262,32 +273,77 @@ export default function UniverseMatrix({
                 </div>
               </div>
 
-              {/* Trending Topics inside Universe */}
+              {/* Trending Topics / Featured Articles inside Universe */}
               <div>
                 <h4 className="font-mono text-xs font-black uppercase tracking-wider text-black dark:text-white mb-2">
-                  ACTIVE CANON DISCUSSIONS
+                  FEATURED ARTICLES & CANON DISCUSSIONS
                 </h4>
                 <div className="space-y-2">
-                  {activeModalUniverse.popularTopics.map((topic, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 border-2 border-black dark:border-neutral-700 bg-white dark:bg-[#0D1117] flex items-center justify-between gap-2 group hover:border-[#FACC15] transition-colors cursor-pointer"
-                      onClick={() => {
-                        onOpenTopic(topic)
-                        setActiveModalUniverse(null)
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Flame className="w-4 h-4 text-[#F43F5E]" />
-                        <span className="font-bold text-sm text-black dark:text-white">
-                          {topic}
-                        </span>
+                  {activeModalUniverse.popularTopics.map((topic, idx) => {
+                    const articleId = `article-${activeModalUniverse.id}-${idx}`
+                    const isArticleBookmarked = !!bookmarkedItems[articleId]
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 border-2 border-black dark:border-neutral-700 bg-white dark:bg-[#0D1117] flex items-center justify-between gap-2 group hover:border-[#FACC15] transition-colors"
+                      >
+                        <div
+                          className="flex items-center gap-2 flex-1 cursor-pointer"
+                          onClick={() => {
+                            onRecordActivity?.({
+                              action_type: 'VIEW_ARTICLE',
+                              target_title: topic,
+                              category_name: activeModalUniverse.name,
+                            })
+                            onOpenTopic(topic)
+                            setActiveModalUniverse(null)
+                          }}
+                        >
+                          <Flame className="w-4 h-4 text-[#F43F5E] shrink-0" />
+                          <span className="font-bold text-sm text-black dark:text-white">
+                            {topic}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {toggleBookmark && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                toggleBookmark(articleId, topic, 'Featured Article', {
+                                  category_name: activeModalUniverse.name,
+                                })
+                              }}
+                              className={`p-1.5 border-2 border-black dark:border-white brutal-shadow-sm brutal-btn ${
+                                isArticleBookmarked
+                                  ? 'bg-[#F43F5E] text-white'
+                                  : 'bg-white dark:bg-[#161B22] text-black dark:text-white'
+                              }`}
+                              title={isArticleBookmarked ? 'Bookmarked Article' : 'Bookmark Article'}
+                              aria-label={`Bookmark article ${topic}`}
+                            >
+                              <Bookmark className={`w-3.5 h-3.5 ${isArticleBookmarked ? 'fill-current' : ''}`} />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onRecordActivity?.({
+                                action_type: 'VIEW_ARTICLE',
+                                target_title: topic,
+                                category_name: activeModalUniverse.name,
+                              })
+                              onOpenTopic(topic)
+                              setActiveModalUniverse(null)
+                            }}
+                            className="font-mono text-xs font-bold text-neutral-500 hover:text-black dark:hover:text-white uppercase flex items-center gap-1"
+                          >
+                            View <ExternalLink className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                      <span className="font-mono text-xs font-bold text-neutral-500 group-hover:text-black dark:group-hover:text-white uppercase flex items-center gap-1">
-                        View Thread <ExternalLink className="w-3.5 h-3.5" />
-                      </span>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
 

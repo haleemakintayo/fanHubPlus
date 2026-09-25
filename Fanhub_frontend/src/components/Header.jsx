@@ -15,17 +15,21 @@ import {
   UserPlus,
   LogOut,
   User,
-  ShieldAlert
+  ShieldAlert,
+  LayoutDashboard,
+  ArrowLeft
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
-
+import fanhubLogo from '../assets/fanhublogo.svg'
 
 export default function Header({ 
   darkMode, 
   toggleDarkMode, 
   fontScale, 
   toggleFontScale, 
-  onOpenAuth 
+  onOpenAuth,
+  activePage = 'home',
+  onNavigatePage
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { isAuthenticated, user, logout } = useAuth()
@@ -42,9 +46,31 @@ export default function Header({
   const handleNavClick = (e, href) => {
     e.preventDefault()
     setMobileMenuOpen(false)
+    if (onNavigatePage) {
+      onNavigatePage('home', href)
+      return
+    }
     const target = document.querySelector(href)
     if (target) {
       target.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
+  const handleOpenDashboardPage = () => {
+    setMobileMenuOpen(false)
+    if (onNavigatePage) {
+      onNavigatePage('dashboard')
+    } else {
+      onOpenAuth?.('dashboard')
+    }
+  }
+
+  const handleOpenAdminPage = () => {
+    setMobileMenuOpen(false)
+    if (onNavigatePage) {
+      onNavigatePage('admin')
+    } else {
+      onOpenAuth?.('admin')
     }
   }
 
@@ -53,18 +79,33 @@ export default function Header({
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Left: Brand Logo */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <a
-            href="#top"
-            className="flex items-center gap-1.5 sm:gap-2 group"
+            href="/"
+            onClick={(e) => {
+              e.preventDefault()
+              setMobileMenuOpen(false)
+              onNavigatePage?.('home', '#top')
+            }}
+            className="flex items-center group focus:outline-none"
             aria-label="Fan Hub Plus Home"
           >
-            <div className="bg-[#FACC15] text-black font-black text-sm sm:text-xl md:text-2xl px-2 sm:px-3.5 py-1 sm:py-1.5 border-2 border-black brutal-shadow group-hover:rotate-1 transition-transform tracking-tight uppercase flex items-center gap-1 sm:gap-1.5">
-              <span className="hidden sm:inline">FAN HUB</span>
-              <span className="sm:hidden">FH</span>
-              <span className="bg-black text-[#FACC15] px-1 sm:px-1.5 py-0.2 rounded-none text-sm sm:text-lg leading-none">+</span>
-            </div>
+            <img
+              src={fanhubLogo}
+              alt="FAN HUB+"
+              className="h-10 sm:h-12 md:h-14 w-auto object-contain select-none group-hover:scale-[1.03] group-hover:-rotate-1 transition-transform dark:drop-shadow-[2px_2px_0px_#06B6D4]"
+            />
           </a>
+
+          {activePage !== 'home' && (
+            <button
+              onClick={() => onNavigatePage?.('home', '#top')}
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-black text-[#FACC15] dark:bg-white dark:text-black font-mono font-black text-[10px] sm:text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Portal Home</span>
+            </button>
+          )}
         </div>
 
         {/* Center: Desktop Navigation Links */}
@@ -82,6 +123,18 @@ export default function Header({
               {item.name}
             </a>
           ))}
+          <button
+            type="button"
+            onClick={handleOpenDashboardPage}
+            className={`px-2 xl:px-2.5 py-1 xl:py-1.5 font-black text-[10px] xl:text-sm uppercase tracking-tight border-2 transition-all flex items-center gap-1 ${
+              activePage === 'dashboard'
+                ? 'bg-[#A3E635] text-black border-black brutal-shadow-sm'
+                : 'text-neutral-800 dark:text-neutral-200 border-transparent hover:border-black dark:hover:border-neutral-300 hover:bg-neutral-200/60 dark:hover:bg-neutral-800'
+            }`}
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            <span>Dashboard</span>
+          </button>
         </nav>
 
         {/* Right: Controls & Actions */}
@@ -127,28 +180,39 @@ export default function Header({
             <>
               {user?.role === 'ADMIN' && (
                 <button
-                  onClick={() => onOpenAuth('admin')}
-                  className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#F43F5E] text-white font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn"
-                  title="Open Admin Moderation Queue"
+                  onClick={handleOpenAdminPage}
+                  className={`hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn ${
+                    activePage === 'admin'
+                      ? 'bg-black text-[#FACC15]'
+                      : 'bg-[#F43F5E] text-white'
+                  }`}
+                  title="Open Admin Control Panel Page"
                 >
                   <ShieldAlert className="w-3.5 h-3.5" />
-                  <span>Admin</span>
+                  <span>Admin Panel</span>
                 </button>
               )}
 
               <button
-                onClick={() => onOpenAuth('dashboard')}
-                className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-[#A3E635] text-black font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn hover:bg-[#86efac]"
-                title="Open Collector Vault & Dashboard"
+                onClick={handleOpenDashboardPage}
+                className={`inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 font-black text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black brutal-shadow-sm brutal-btn ${
+                  activePage === 'dashboard'
+                    ? 'bg-[#FACC15] text-black ring-2 ring-black'
+                    : 'bg-[#A3E635] text-black hover:bg-[#86efac]'
+                }`}
+                title="Open Personalized User Dashboard Page"
               >
                 <User className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span className="max-w-[90px] sm:max-w-[130px] truncate">
-                  {user?.username || 'Collector'}
+                  {user?.username || 'Dashboard'}
                 </span>
               </button>
 
               <button
-                onClick={logout}
+                onClick={() => {
+                  logout()
+                  onNavigatePage?.('home', '#top')
+                }}
                 className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 font-bold text-[10px] sm:text-xs uppercase tracking-tight text-neutral-800 dark:text-neutral-200 hover:text-black dark:hover:text-white border-2 border-black dark:border-neutral-200 bg-white dark:bg-[#161B22] brutal-shadow-sm brutal-btn"
                 title="Log Out"
                 aria-label="Log out of account"
@@ -209,24 +273,40 @@ export default function Header({
                 </a>
               )
             })}
+            <button
+              type="button"
+              onClick={handleOpenDashboardPage}
+              className="flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 font-black text-[10px] sm:text-xs uppercase tracking-tight bg-[#A3E635] text-black border-2 border-black brutal-shadow-sm"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
+              <span>Dashboard</span>
+            </button>
+            {user?.role === 'ADMIN' && (
+              <button
+                type="button"
+                onClick={handleOpenAdminPage}
+                className="flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 font-black text-[10px] sm:text-xs uppercase tracking-tight bg-[#F43F5E] text-white border-2 border-black brutal-shadow-sm"
+              >
+                <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                <span>Admin Panel</span>
+              </button>
+            )}
           </div>
 
           <div className="pt-2 border-t-2 border-black/20 dark:border-neutral-800 flex items-center justify-between gap-2">
             {isAuthenticated ? (
               <>
                 <button
-                  onClick={() => {
-                    setMobileMenuOpen(false)
-                    onOpenAuth('dashboard')
-                  }}
+                  onClick={handleOpenDashboardPage}
                   className="flex-1 py-1.5 sm:py-2 font-black text-[10px] sm:text-xs uppercase border-2 border-black bg-[#A3E635] text-black brutal-shadow-sm"
                 >
-                  Vault ({user?.username || 'Collector'})
+                  Dashboard ({user?.username || 'Collector'})
                 </button>
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false)
                     logout()
+                    onNavigatePage?.('home', '#top')
                   }}
                   className="flex-1 py-1.5 sm:py-2 font-bold text-[10px] sm:text-xs uppercase border-2 border-black dark:border-neutral-200 bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm"
                 >

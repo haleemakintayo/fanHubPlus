@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Mail, Lock, AlertCircle, KeyRound, CheckCircle2 } from 'lucide-react';
 
-export default function Login({ onShowToast, onClose }) {
+export default function Login({ onShowToast, onClose, onAuthSuccess }) {
   const {
     login,
     requestPasswordReset,
@@ -31,10 +31,14 @@ export default function Login({ onShowToast, onClose }) {
       const username = data?.user?.username || 'Collector';
       onShowToast?.({
         title: 'Authenticated Successfully',
-        message: `Welcome back, ${username}! Your bookmarks and dashboard synced.`,
+        message: `Welcome back, ${username}! Opening your personalized collector dashboard.`,
         type: 'success',
       });
-      onClose?.();
+      if (onAuthSuccess) {
+        onAuthSuccess(data);
+      } else {
+        onClose?.();
+      }
     } catch (err) {
       onShowToast?.({
         title: 'Authentication Failed',

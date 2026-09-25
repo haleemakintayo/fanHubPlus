@@ -15,7 +15,8 @@ from .serializers import (
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
 )
-from .services import DashboardAggregatorService, PasswordResetService
+from .services import DashboardAggregatorService, AdminAnalyticsService, PasswordResetService
+from interactions.views import IsAdminRole
 
 User = get_user_model()
 
@@ -137,13 +138,49 @@ class ProfileUpdateView(APIView):
     )
     def patch(self, request, *args, **kwargs):
         profile = request.user.profile
-        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        payload = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+        if 'favorite_categories' in payload and 'favorite_categories_input' not in payload:
+            payload['favorite_categories_input'] = payload['favorite_categories']
+        serializer = ProfileSerializer(profile, data=payload, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        try:
+            from interactions.models import UserActivity
+            UserActivity.objects.create(
+                user=request.user,
+                action_type=UserActivity.ActionType.PROFILE,
+                target_type='PROFILE',
+                target_id=str(request.user.id),
+                target_title='Collector Profile & Preferences',
+                category_name='Personalization',
+                detail='Updated display preferences and favorite fandoms'
+            )
+        except Exception:
+            pass
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 ProfileView = ProfileUpdateView
+
+
+class AdminAnalyticsAPIView(APIView):
+    """
+    GET /api/accounts/admin/analytics/
+    Returns platform-wide usage analytics, popular fandom category metrics,
+    chatbot interaction volume, and content/merchandise view & popularity scores.
+    """
+    permission_classes = [IsAdminRole]
+
+    @extend_schema(
+        tags=['Admin Control Panel'],
+        summary='Retrieve platform analytics and usage monitoring metrics',
+        responses={
+            200: OpenApiResponse(description='Aggregated platform analytics for Administrator Dashboard.')
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        analytics = AdminAnalyticsService.get_platform_analytics()
+        return Response(analytics, status=status.HTTP_200_OK)
 
 
 class PasswordResetRequestView(APIView):

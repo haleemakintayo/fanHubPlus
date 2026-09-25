@@ -1,26 +1,31 @@
 # merchandise/views.py
 
-from rest_framework import generics, permissions, status
+from rest_framework import generics, viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from .models import MerchandiseItem
 from .serializers import MerchandiseItemSerializer
 from .services import ViewCounterService, DropRadarScheduler
+from interactions.views import IsAdminOrReadOnly
+from fandoms.views import DualLookupMixin
 
 
 @extend_schema(
     tags=['Merchandise'],
-    summary='List merchandise items filterable by universe category, tag, or drop state'
+    summary='List or create merchandise items filterable by universe category, tag, or drop state'
 )
-class MerchandiseGalleryAPIView(generics.ListAPIView):
+class MerchandiseGalleryAPIView(generics.ListCreateAPIView):
     """
     GET /api/merchandise/
+    POST /api/merchandise/ (Admin only)
     Returns merchandise items filterable by category, tag badge, or upcoming state.
     """
     serializer_class = MerchandiseItemSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
     def get_queryset(self):
         qs = MerchandiseItem.objects.all().select_related('category')
@@ -51,17 +56,24 @@ MerchGalleryView = MerchandiseGalleryAPIView
 
 @extend_schema(
     tags=['Merchandise'],
-    summary='Retrieve item details and increment view count'
+    summary='Retrieve, update, or delete item details and increment view count'
 )
-class MerchandiseDetailAPIView(generics.RetrieveAPIView):
+class MerchandiseDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET /api/merchandise/<slug>/
+    PATCH/DELETE /api/merchandise/<slug>/ (Admin only)
     Retrieves item details and atomically tracks view count.
     """
     queryset = MerchandiseItem.objects.all().select_related('category')
     serializer_class = MerchandiseItemSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'slug'
+
+    def get_object(self):
+        lookup = self.kwargs.get('slug')
+        if str(lookup).isdigit():
+            return get_object_or_404(self.get_queryset(), pk=int(lookup))
+        return get_object_or_404(self.get_queryset(), slug=lookup)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -73,6 +85,15 @@ class MerchandiseDetailAPIView(generics.RetrieveAPIView):
 
 
 MerchDetailView = MerchandiseDetailAPIView
+
+
+@extend_schema(tags=['Merchandise Admin'], summary='Manage merchandise items and drop radar')
+class AdminMerchandiseViewSet(DualLookupMixin, viewsets.ModelViewSet):
+    queryset = MerchandiseItem.objects.all().select_related('category').order_by('-view_count', '-created_at')
+    serializer_class = MerchandiseItemSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    lookup_field = 'slug'
+    pagination_class = None
 
 
 @extend_schema(

@@ -1,72 +1,63 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   X,
   Bookmark,
   Check,
-  Upload,
-  Trash2
+  Upload
 } from 'lucide-react'
 import Login from './Login'
 import Register from './Register'
 import Dashboard from './Dashboard'
+import Admin from './Admin'
+import { interactionsApi } from '../services/api'
 
+const UNIVERSE_SLUGS_TO_NAMES = {
+  anime: 'Anime',
+  gaming: 'Gaming',
+  'movies-tv': 'Movies',
+  'tv-shows': 'TV Shows',
+  kpop: 'K-Pop',
+  comics: 'Comics',
+  manga: 'Manga',
+  cosplay: 'Cosplay',
+}
 
 export default function Modals({
   activeModal,
   activeLoreCharacter,
   onClose,
+  onSetActiveModal,
   onShowToast,
   bookmarkedItems,
-  toggleBookmark
+  toggleBookmark,
+  onUpdateBookmarkNote,
+  recentActivities,
+  onClearActivities,
+  onSelectUniverse,
+  onApplyDisplayPreferences,
+  onRecordActivity,
 }) {
   // Auth Form State
   const [authMode, setAuthMode] = useState(activeModal === 'register' ? 'register' : 'login')
+  const [lastActiveModal, setLastActiveModal] = useState(activeModal)
 
-  useEffect(() => {
+  if (activeModal !== lastActiveModal) {
+    setLastActiveModal(activeModal)
     if (activeModal === 'login' || activeModal === 'register') {
       setAuthMode(activeModal)
     }
-  }, [activeModal])
+  }
 
   // Feedback State
-  const [feedbackCategory, setFeedbackCategory] = useState('bug')
+  const [feedbackCategory, setFeedbackCategory] = useState('BUG')
   const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false)
 
   // Fan Submission State
   const [subTitle, setSubTitle] = useState('')
   const [subUniverse, setSubUniverse] = useState('anime')
   const [subContent, setSubContent] = useState('')
-
-  // Mock Admin Moderation Queue
-  const [moderationItems, setModerationItems] = useState([
-    {
-      id: 'mod-1',
-      title: 'Neon Genesis Evangelion: The Instrumentality Timeline Paradox',
-      author: 'Shinji_K007',
-      universe: 'Anime',
-      type: 'Lore Essay',
-      status: 'Pending Admin Review',
-      submittedAt: 'Today, 10:14 AM'
-    },
-    {
-      id: 'mod-2',
-      title: 'Elden Ring: Shadow of the Erdtree Miquella Motive Analysis',
-      author: 'TarnishedSage',
-      universe: 'Gaming',
-      type: 'Theory Bible',
-      status: 'Pending Admin Review',
-      submittedAt: 'Yesterday, 04:30 PM'
-    },
-    {
-      id: 'mod-3',
-      title: 'Spider-Man 2099 Monowire Prop 3D Build Log',
-      author: 'CyberCrafter_99',
-      universe: 'Cosplay',
-      type: 'Crafting Guide',
-      status: 'Approved & Published',
-      submittedAt: '2 days ago'
-    }
-  ])
+  const [isSubmittingLore, setIsSubmittingLore] = useState(false)
 
   if (!activeModal && !activeLoreCharacter) return null
 
@@ -105,7 +96,10 @@ export default function Modals({
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => toggleBookmark(activeLoreCharacter.id, activeLoreCharacter.name, 'Character Lore')}
+                onClick={() => toggleBookmark(activeLoreCharacter.id, activeLoreCharacter.name, 'Character Lore', {
+                  category_name: activeLoreCharacter.universe,
+                  thumbnail_url: activeLoreCharacter.image,
+                })}
                 className={`p-2 border-2 border-black dark:border-white brutal-shadow-sm brutal-btn ${
                   isBookmarked ? 'bg-[#F43F5E] text-white' : 'bg-white dark:bg-[#0D1117] text-black dark:text-white'
                 }`}
@@ -187,7 +181,10 @@ export default function Modals({
               <div className="pt-2">
                 <button
                   onClick={() => {
-                    toggleBookmark(activeLoreCharacter.id, activeLoreCharacter.name, 'Character Lore')
+                    toggleBookmark(activeLoreCharacter.id, activeLoreCharacter.name, 'Character Lore', {
+                      category_name: activeLoreCharacter.universe,
+                      thumbnail_url: activeLoreCharacter.image,
+                    })
                   }}
                   className={`w-full py-2.5 px-4 font-black text-xs uppercase tracking-tight border-2 border-black dark:border-white brutal-shadow-sm brutal-btn flex items-center justify-center gap-2 ${
                     isBookmarked ? 'bg-[#F43F5E] text-white' : 'bg-[#A3E635] text-black'
@@ -210,6 +207,20 @@ export default function Modals({
   // ================= 2. AUTH MODAL (LOGIN / REGISTER) =================
   if (activeModal === 'login' || activeModal === 'register') {
     const isRegister = authMode === 'register'
+
+    const handleAuthSuccess = (data) => {
+      const username = data?.user?.username || 'Collector'
+      onRecordActivity?.({
+        action_type: 'PROFILE_UPDATE',
+        target_title: `Signed in as ${username}`,
+        category_name: 'Hub Identity',
+      })
+      if (onSetActiveModal) {
+        onSetActiveModal('dashboard')
+      } else {
+        onClose()
+      }
+    }
 
     return (
       <div
@@ -267,7 +278,19 @@ export default function Modals({
 
           {/* Form */}
           <div>
-            {isRegister ? <Register onShowToast={onShowToast} onClose={onClose} /> : <Login onShowToast={onShowToast} onClose={onClose} />}
+            {isRegister ? (
+              <Register
+                onShowToast={onShowToast}
+                onClose={onClose}
+                onAuthSuccess={handleAuthSuccess}
+              />
+            ) : (
+              <Login
+                onShowToast={onShowToast}
+                onClose={onClose}
+                onAuthSuccess={handleAuthSuccess}
+              />
+            )}
           </div>
 
         </div>
@@ -277,24 +300,6 @@ export default function Modals({
 
   // ================= 3. ADMIN CONTROL PANEL & MODERATION QUEUE =================
   if (activeModal === 'admin' || activeModal === 'moderation') {
-    const handleApprove = (id, title) => {
-      setModerationItems(prev => prev.map(item => item.id === id ? { ...item, status: 'Approved & Published' } : item))
-      onShowToast({
-        title: 'Submission Approved',
-        message: `"${title}" has been verified and published to Community Vault.`,
-        type: 'success'
-      })
-    }
-
-    const handleReject = (id, title) => {
-      setModerationItems(prev => prev.filter(item => item.id !== id))
-      onShowToast({
-        title: 'Submission Declined',
-        message: `"${title}" removed from queue per SRS criteria.`,
-        type: 'warning'
-      })
-    }
-
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in"
@@ -303,19 +308,21 @@ export default function Modals({
         aria-labelledby="admin-modal-title"
         onClick={onClose}
       >
-        <div className="relative w-full max-w-3xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-          
+        <div
+          className="relative w-full max-w-5xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-5 sm:p-8 brutal-shadow-lg max-h-[92vh] overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center justify-between pb-3 border-b-2 border-black dark:border-neutral-700 mb-6">
             <div className="flex items-center gap-2">
               <span className="bg-[#F43F5E] text-white font-mono font-black text-xs px-2.5 py-1 border-2 border-black brutal-shadow-sm">
-                ADMIN ACCESS
+                ADMIN COMMAND CENTER
               </span>
               <div>
                 <h3 id="admin-modal-title" className="text-xl sm:text-2xl font-black uppercase tracking-tight text-black dark:text-white">
-                  SRS MODERATION QUEUE & AUDIT
+                  ADMINISTRATOR CONTROL PANEL
                 </h3>
                 <span className="font-mono text-xs font-bold text-neutral-500 uppercase">
-                  TechWiz 7 Admin Gatekeeper Pipeline
+                  Analytics • 8-Universe Content Manager • FandomBot KB • Moderation & QA
                 </span>
               </div>
             </div>
@@ -328,63 +335,20 @@ export default function Modals({
             </button>
           </div>
 
-          <p className="text-xs text-neutral-700 dark:text-neutral-300 font-medium mb-6">
-            In compliance with SRS TechWiz 7 Section 1.5, all user-generated canon lore, fan essays, and cosplay build guides must pass administrator vetting prior to indexing in the Community Vault.
-          </p>
+          <Admin
+            embedded={true}
+            initialSection={activeModal === 'moderation' ? 'moderation' : 'analytics'}
+            onShowToast={onShowToast}
+            onClose={onClose}
+          />
 
-          <div className="space-y-3">
-            {moderationItems.map((item) => (
-              <div 
-                key={item.id} 
-                className="p-4 border-2 border-black dark:border-neutral-700 bg-neutral-50 dark:bg-[#0D1117] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 brutal-shadow-sm"
-              >
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-mono font-black uppercase px-2 py-0.5 border border-black bg-[#FACC15] text-black">
-                      {item.universe}
-                    </span>
-                    <span className="text-[10px] font-mono font-bold text-neutral-500">
-                      {item.type} • by {item.author}
-                    </span>
-                  </div>
-                  <h4 className="font-black text-sm uppercase text-black dark:text-white">
-                    {item.title}
-                  </h4>
-                  <div className="flex items-center gap-2 mt-1 text-[11px] font-mono">
-                    <span className={item.status.includes('Approved') ? 'text-emerald-500 font-black' : 'text-amber-500 font-bold'}>
-                      ● {item.status}
-                    </span>
-                    <span className="text-neutral-400">• {item.submittedAt}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                  {item.status.includes('Pending') ? (
-                    <>
-                      <button
-                        onClick={() => handleApprove(item.id, item.title)}
-                        className="flex-1 sm:flex-initial px-3 py-1.5 bg-[#A3E635] text-black font-black text-xs uppercase border border-black brutal-shadow-sm brutal-btn flex items-center justify-center gap-1"
-                      >
-                        <Check className="w-3.5 h-3.5" /> Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(item.id, item.title)}
-                        className="flex-1 sm:flex-initial px-3 py-1.5 bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 font-bold text-xs uppercase border border-black brutal-shadow-sm brutal-btn flex items-center justify-center gap-1"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Decline
-                      </button>
-                    </>
-                  ) : (
-                    <span className="px-3 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-xs font-bold border border-emerald-500">
-                      Indexed in Vault
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 pt-4 border-t-2 border-black dark:border-neutral-700 flex justify-end">
+          <div className="mt-6 pt-4 border-t-2 border-black dark:border-neutral-700 flex items-center justify-between gap-2">
+            <button
+              onClick={() => onSetActiveModal?.('dashboard')}
+              className="px-3 py-2 bg-[#A3E635] text-black font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn"
+            >
+              Switch to Collector Dashboard
+            </button>
             <button
               onClick={onClose}
               className="px-4 py-2 bg-black text-white dark:bg-white dark:text-black font-black text-xs uppercase border-2 border-black brutal-btn"
@@ -392,7 +356,6 @@ export default function Modals({
               Exit Admin View
             </button>
           </div>
-
         </div>
       </div>
     )
@@ -400,13 +363,33 @@ export default function Modals({
 
   // ================= 4. FEEDBACK / BUG REPORT MODAL =================
   if (activeModal === 'feedback') {
-    const handleFeedbackSubmit = (e) => {
+    const handleFeedbackSubmit = async (e) => {
       e.preventDefault()
+      setIsSubmittingFeedback(true)
+      try {
+        await interactionsApi.submitFeedback({
+          feedback_type: feedbackCategory,
+          subject: `${feedbackCategory} Report from Hub Portal`,
+          message: feedbackMessage,
+        })
+      } catch {
+        // Fallback if guest or offline
+      } finally {
+        setIsSubmittingFeedback(false)
+      }
+
+      onRecordActivity?.({
+        action_type: 'FEEDBACK',
+        target_title: `Submitted ${feedbackCategory} ticket`,
+        category_name: 'Support & QA',
+      })
+
       onShowToast({
         title: 'Feedback Recorded!',
-        message: 'Thank you for helping us polish Fan Hub Plus for TechWiz 7.',
+        message: 'Your ticket has been logged to the Admin Feedback Queue.',
         type: 'success'
       })
+      setFeedbackMessage('')
       onClose()
     }
 
@@ -448,10 +431,9 @@ export default function Modals({
                 onChange={(e) => setFeedbackCategory(e.target.value)}
                 className="w-full border-2 border-black dark:border-white p-2 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
               >
-                <option value="bug">🐛 Bug Report (Visual / Functional)</option>
-                <option value="lore">📖 Lore / Canon Correction</option>
-                <option value="feature">💡 Feature Suggestion</option>
-                <option value="accessibility">♿ Accessibility Improvement</option>
+                <option value="BUG">🐛 Bug Report (Visual / Functional)</option>
+                <option value="SUGGESTION">💡 Feature Suggestion</option>
+                <option value="QUERY">❓ General Query / Lore Correction</option>
               </select>
             </div>
 
@@ -471,9 +453,10 @@ export default function Modals({
 
             <button
               type="submit"
-              className="w-full py-3 bg-[#FACC15] text-black font-black text-xs uppercase tracking-tight border-2 border-black brutal-shadow brutal-btn"
+              disabled={isSubmittingFeedback}
+              className="w-full py-3 bg-[#FACC15] text-black font-black text-xs uppercase tracking-tight border-2 border-black brutal-shadow brutal-btn disabled:opacity-50"
             >
-              Submit Ticket to TechWiz 7 Engineers
+              {isSubmittingFeedback ? 'Logging Ticket...' : 'Submit Ticket to TechWiz 7 Engineers'}
             </button>
           </form>
 
@@ -484,13 +467,35 @@ export default function Modals({
 
   // ================= 5. FAN SUBMISSION MODAL =================
   if (activeModal === 'submission') {
-    const handleSubSubmit = (e) => {
+    const handleSubSubmit = async (e) => {
       e.preventDefault()
+      setIsSubmittingLore(true)
+      const categoryName = UNIVERSE_SLUGS_TO_NAMES[subUniverse] || 'Anime'
+
+      try {
+        await interactionsApi.createSubmission({
+          title: subTitle,
+          body: subContent,
+        })
+      } catch {
+        // Fallback if guest or offline
+      } finally {
+        setIsSubmittingLore(false)
+      }
+
+      onRecordActivity?.({
+        action_type: 'SUBMISSION',
+        target_title: subTitle,
+        category_name: categoryName,
+      })
+
       onShowToast({
         title: 'Submission Received!',
-        message: 'Your entry has been forwarded to the Admin Moderation Queue for verification.',
+        message: `"${subTitle}" has been forwarded to the Admin Moderation Queue for verification.`,
         type: 'success'
       })
+      setSubTitle('')
+      setSubContent('')
       onClose()
     }
 
@@ -539,7 +544,7 @@ export default function Modals({
 
             <div>
               <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
-                Target Universe
+                Target Universe (8 Core Fandoms)
               </label>
               <select
                 value={subUniverse}
@@ -548,7 +553,8 @@ export default function Modals({
               >
                 <option value="anime">🍙 Anime</option>
                 <option value="gaming">🎮 Gaming</option>
-                <option value="movies-tv">🎬 Movies & TV</option>
+                <option value="movies-tv">🎬 Movies</option>
+                <option value="tv-shows">📺 TV Shows</option>
                 <option value="kpop">🎤 K-Pop</option>
                 <option value="comics">💥 Comics</option>
                 <option value="manga">📖 Manga</option>
@@ -572,10 +578,11 @@ export default function Modals({
 
             <button
               type="submit"
-              className="w-full py-3 bg-[#A3E635] text-black font-black text-xs uppercase tracking-tight border-2 border-black brutal-shadow brutal-btn flex items-center justify-center gap-1.5"
+              disabled={isSubmittingLore}
+              className="w-full py-3 bg-[#A3E635] text-black font-black text-xs uppercase tracking-tight border-2 border-black brutal-shadow brutal-btn flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
               <Upload className="w-4 h-4" />
-              <span>Submit to Admin Verification Queue</span>
+              <span>{isSubmittingLore ? 'Submitting...' : 'Submit to Admin Verification Queue'}</span>
             </button>
           </form>
 
@@ -638,7 +645,7 @@ export default function Modals({
             </div>
 
             <p>
-              Developed as a Single Page Application (SPA) leveraging React 19, Tailwind CSS, Lucide React, and client-side reactive state management.
+              Developed as a Single Page Application (SPA) leveraging React 19, Tailwind CSS, Lucide React, and Django REST Framework.
             </p>
           </div>
 
@@ -666,7 +673,10 @@ export default function Modals({
         aria-labelledby="dash-modal-title"
         onClick={onClose}
       >
-        <div className="relative w-full max-w-2xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="relative w-full max-w-4xl bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-5 sm:p-8 brutal-shadow-lg max-h-[92vh] overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
           
           <div className="flex items-center justify-between pb-3 border-b-2 border-black dark:border-neutral-700 mb-6">
             <div className="flex items-center gap-2">
@@ -674,7 +684,7 @@ export default function Modals({
                 COLLECTOR VAULT
               </span>
               <h3 id="dash-modal-title" className="text-xl font-black uppercase tracking-tight text-black dark:text-white">
-                USER TELEMETRY & BOOKMARKS
+                PERSONALIZED USER DASHBOARD
               </h3>
             </div>
             <button
@@ -690,6 +700,12 @@ export default function Modals({
             embedded={true}
             bookmarkedItems={bookmarkedItems}
             toggleBookmark={toggleBookmark}
+            onUpdateBookmarkNote={onUpdateBookmarkNote}
+            recentActivities={recentActivities}
+            onClearActivities={onClearActivities}
+            onSelectUniverse={onSelectUniverse}
+            onApplyDisplayPreferences={onApplyDisplayPreferences}
+            onOpenAdmin={() => onSetActiveModal?.('admin')}
             onShowToast={onShowToast}
             onClose={onClose}
           />
@@ -707,7 +723,6 @@ export default function Modals({
       </div>
     )
   }
-
 
   return null
 }

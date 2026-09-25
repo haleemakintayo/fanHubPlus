@@ -24,6 +24,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         source='favorite_categories',
         required=False
     )
+    favorite_categories_input = serializers.ListField(
+        child=serializers.CharField(),
+        write_only=True,
+        required=False,
+        help_text='Accepts category slugs, names, or IDs'
+    )
 
     class Meta:
         model = Profile
@@ -33,11 +39,31 @@ class ProfileSerializer(serializers.ModelSerializer):
             'bio',
             'theme_preference',
             'font_size_preference',
+            'dashboard_preferences',
             'favorite_categories',
             'favorite_category_ids',
+            'favorite_categories_input',
             'updated_at',
         ]
         read_only_fields = ['id', 'updated_at']
+
+    def update(self, instance, validated_data):
+        fav_input = validated_data.pop('favorite_categories_input', None)
+        instance = super().update(instance, validated_data)
+        if fav_input is not None:
+            matched_cats = []
+            for cat_identifier in fav_input:
+                cat = None
+                if str(cat_identifier).isdigit():
+                    cat = Category.objects.filter(pk=int(cat_identifier)).first()
+                if not cat:
+                    cat = Category.objects.filter(slug=str(cat_identifier)).first()
+                if not cat:
+                    cat = Category.objects.filter(name__iexact=str(cat_identifier)).first()
+                if cat and cat not in matched_cats:
+                    matched_cats.append(cat)
+            instance.favorite_categories.set(matched_cats)
+        return instance
 
 
 class UserSerializer(serializers.ModelSerializer):

@@ -4,13 +4,17 @@ import {
   Eye, 
   Calendar, 
   Info, 
-  Check
+  Check,
+  Bookmark
 } from 'lucide-react'
 
 
 export default function MerchRadar({ 
   merchDrops, 
-  onShowToast 
+  onShowToast,
+  bookmarkedItems = {},
+  toggleBookmark,
+  onRecordActivity
 }) {
   const [alertItems, setAlertItems] = useState({})
   const [viewCounters, setViewCounters] = useState(() => {
@@ -26,6 +30,11 @@ export default function MerchRadar({
     setAlertItems(prev => ({ ...prev, [item.id]: isSet }))
     
     if (isSet) {
+      onRecordActivity?.({
+        action_type: 'VIEW_MERCH',
+        target_title: `Drop Alert: ${item.title}`,
+        category_name: item.universe,
+      })
       onShowToast({
         title: 'Drop Alert Scheduled!',
         message: `Priority alert set for "${item.title}". You'll receive a ping 1 hour before launch.`,
@@ -40,11 +49,16 @@ export default function MerchRadar({
     }
   }
 
-  const handleIncrementView = (itemId) => {
+  const handleIncrementView = (item) => {
     setViewCounters(prev => ({
       ...prev,
-      [itemId]: (prev[itemId] || 0) + 1
+      [item.id]: (prev[item.id] || 0) + 1
     }))
+    onRecordActivity?.({
+      action_type: 'VIEW_MERCH',
+      target_title: item.title,
+      category_name: item.universe,
+    })
   }
 
   return (
@@ -83,13 +97,14 @@ export default function MerchRadar({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {merchDrops.map((item) => {
             const isAlertSet = !!alertItems[item.id]
+            const isBookmarked = !!bookmarkedItems[item.id]
             const currentViews = viewCounters[item.id] || item.viewCountNum
 
             return (
               <div
                 key={item.id}
                 className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-4 sm:p-5 flex flex-col justify-between brutal-shadow-md hover:-translate-y-1 transition-transform relative group"
-                onClick={() => handleIncrementView(item.id)}
+                onClick={() => handleIncrementView(item)}
               >
                 {/* Accent Top Strip */}
                 <div
@@ -98,17 +113,40 @@ export default function MerchRadar({
                 />
 
                 <div>
-                  {/* Top Status Tag & Universe */}
+                  {/* Top Status Tag, Universe & Bookmark */}
                   <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                     <span className={`font-mono text-[10px] sm:text-[11px] font-black uppercase px-2 sm:px-2.5 py-0.5 sm:py-1 border-2 border-black ${item.statusTagColor} brutal-shadow-sm`}>
                       {item.statusTag}
                     </span>
-                    <span
-                      className="font-mono text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 border border-black text-black"
-                      style={{ backgroundColor: item.universeColor }}
-                    >
-                      {item.universe}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="font-mono text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 border border-black text-black"
+                        style={{ backgroundColor: item.universeColor }}
+                      >
+                        {item.universe}
+                      </span>
+                      {toggleBookmark && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleBookmark(item.id, item.title, 'Merchandise Item', {
+                              category_name: item.universe,
+                              thumbnail_url: item.image,
+                            })
+                          }}
+                          className={`p-1 border-2 border-black dark:border-white brutal-shadow-sm brutal-btn ${
+                            isBookmarked
+                              ? 'bg-[#F43F5E] text-white'
+                              : 'bg-white dark:bg-[#0D1117] text-black dark:text-white'
+                          }`}
+                          aria-label={isBookmarked ? `Remove ${item.title} from bookmarks` : `Bookmark ${item.title}`}
+                          title={isBookmarked ? 'Saved in Vault' : 'Save Merchandise to Vault'}
+                        >
+                          <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-current' : ''}`} />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Product Image Frame */}
@@ -156,14 +194,14 @@ export default function MerchRadar({
                   </div>
                 </div>
 
-                {/* Bottom Action: Set Drop Alert */}
-                <div className="pt-2">
+                {/* Bottom Action: Set Drop Alert & Save to Vault */}
+                <div className="pt-2 flex gap-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
                       handleSetAlert(item)
                     }}
-                    className={`w-full py-2.5 px-3 font-black text-xs uppercase tracking-tight border-2 border-black dark:border-white brutal-shadow-sm brutal-btn flex items-center justify-center gap-2 ${
+                    className={`flex-1 py-2.5 px-3 font-black text-xs uppercase tracking-tight border-2 border-black dark:border-white brutal-shadow-sm brutal-btn flex items-center justify-center gap-2 ${
                       isAlertSet
                         ? 'bg-[#A3E635] text-black'
                         : 'bg-white dark:bg-[#161B22] text-black dark:text-white hover:bg-[#FACC15] hover:text-black'

@@ -1,9 +1,9 @@
 # chatbot/views.py
 
-from rest_framework import generics, permissions, status
+from rest_framework import generics, viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Avg, Count
+from django.db.models import Avg
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from .models import ChatbotFAQ, ChatbotQuery
@@ -13,7 +13,7 @@ from .serializers import (
     ChatbotMessageInputSerializer,
 )
 from .services import PromptOrchestrator
-from interactions.views import IsAdminRole
+from interactions.views import IsAdminRole, IsAdminOrReadOnly
 
 
 class ChatbotMessageAPIView(APIView):
@@ -46,28 +46,66 @@ class ChatbotMessageAPIView(APIView):
             session_id=session_id,
             user=user
         )
+
+        if user:
+            try:
+                from interactions.models import UserActivity
+                UserActivity.objects.create(
+                    user=user,
+                    action_type=UserActivity.ActionType.CHATBOT,
+                    target_type='FAQ',
+                    target_id=session_id,
+                    target_title=user_message[:120],
+                    category_name=result.get('universe', 'Multiverse'),
+                    detail=f"FandomBot response ({result.get('badge', 'AI Engine')})"
+                )
+            except Exception:
+                pass
+
         return Response(result, status=status.HTTP_200_OK)
 
 
 ChatbotQueryView = ChatbotMessageAPIView
 
 
-@extend_schema(tags=['Chatbot'], summary='List active Chatbot FAQ knowledge base entries')
-class FAQKnowledgeBaseView(generics.ListAPIView):
+@extend_schema(tags=['Chatbot'], summary='List or create Chatbot FAQ knowledge base entries')
+class FAQKnowledgeBaseView(generics.ListCreateAPIView):
     """
     GET /api/chatbot/faqs/
-    Public endpoint providing access to curated FAQ knowledge base.
+    POST /api/chatbot/faqs/ (Admin only)
+    Public endpoint providing access to curated FAQ knowledge base; Admin can create new entries.
     """
-    queryset = ChatbotFAQ.objects.filter(is_active=True).select_related('category')
     serializer_class = ChatbotFAQSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        is_admin = bool(
+            self.request.user and
+            self.request.user.is_authenticated and
+            (getattr(self.request.user, 'role', '') == 'ADMIN' or self.request.user.is_staff or self.request.user.is_superuser)
+        )
+        include_all = self.request.query_params.get('include_inactive', '').lower() in ['true', '1']
+        if is_admin and include_all:
+            qs = ChatbotFAQ.objects.all().select_related('category')
+        else:
+            qs = ChatbotFAQ.objects.filter(is_active=True).select_related('category')
         category_slug = self.request.query_params.get('category')
         if category_slug:
             qs = qs.filter(category__slug=category_slug)
-        return qs
+        return qs.order_by('-created_at')
+
+
+@extend_schema(tags=['Chatbot Admin'], summary='Manage and update AI Chatbot FAQ Knowledge Base entries')
+class AdminChatbotFAQViewSet(viewsets.ModelViewSet):
+    """
+    /api/chatbot/faqs/manage/
+    Full Admin CRUD for AI Chatbot Knowledge Base & FAQ entries.
+    """
+    queryset = ChatbotFAQ.objects.all().select_related('category').order_by('-created_at')
+    serializer_class = ChatbotFAQSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
 
 class AdminChatbotTuneView(APIView):

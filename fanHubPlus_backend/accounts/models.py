@@ -136,6 +136,11 @@ class Profile(models.Model):
         default=FontSizePreference.NORMAL,
         help_text=_('Font scaling setting for visual comfort.')
     )
+    dashboard_preferences = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=_('User dashboard customization settings (layout density, visible widgets, default filters).')
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

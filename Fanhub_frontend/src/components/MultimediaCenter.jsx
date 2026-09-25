@@ -83,14 +83,12 @@ export default function MultimediaCenter({
 
   // Handle track like toggle
   const handleToggleLike = (trackId, trackTitle) => {
-    setLikedTracks((prev) => {
-      const isLiked = !prev[trackId]
-      onShowToast({
-        title: isLiked ? 'Track Favorited' : 'Removed from Favorites',
-        message: `"${trackTitle}" ${isLiked ? 'added to your audio collection' : 'removed'}.`,
-        type: isLiked ? 'pink' : 'info'
-      })
-      return { ...prev, [trackId]: isLiked }
+    const isLiked = !likedTracks[trackId]
+    setLikedTracks((prev) => ({ ...prev, [trackId]: isLiked }))
+    onShowToast({
+      title: isLiked ? 'Track Favorited' : 'Removed from Favorites',
+      message: `"${trackTitle}" ${isLiked ? 'added to your audio collection' : 'removed'}.`,
+      type: isLiked ? 'pink' : 'info'
     })
   }
 

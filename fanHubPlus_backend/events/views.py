@@ -1,6 +1,6 @@
 # events/views.py
 
-from rest_framework import generics, permissions, status
+from rest_framework import generics, viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import HttpResponse
@@ -10,6 +10,8 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiRespon
 from .models import Event
 from .serializers import EventSerializer
 from .services import GeoDistanceCalculator, CalendarFeedGenerator
+from interactions.views import IsAdminOrReadOnly
+from fandoms.views import DualLookupMixin
 
 
 class EventRadarMapView(APIView):
@@ -65,13 +67,15 @@ class EventRadarMapView(APIView):
     tags=['Events'],
     summary='Chronological list of conventions and gatherings'
 )
-class EventCalendarListView(generics.ListAPIView):
+class EventCalendarListView(generics.ListCreateAPIView):
     """
     GET /api/events/calendar/
+    POST /api/events/calendar/ (Admin only)
     Delivers chronologically ordered events filterable by target city or month.
     """
     serializer_class = EventSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = None
 
     def get_queryset(self):
         qs = Event.objects.all().select_related('category')
@@ -98,20 +102,30 @@ class EventCalendarListView(generics.ListAPIView):
 EventCalendarView = EventCalendarListView
 
 
-@extend_schema(tags=['Events'], summary='Retrieve event details by slug or ID')
-class EventDetailView(generics.RetrieveAPIView):
+@extend_schema(tags=['Events'], summary='Retrieve, update, or delete event by slug or ID')
+class EventDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     GET /api/events/<slug_or_id>/
+    PATCH/DELETE /api/events/<slug_or_id>/ (Admin only)
     """
     queryset = Event.objects.all().select_related('category')
     serializer_class = EventSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminOrReadOnly]
 
     def get_object(self):
         lookup = self.kwargs.get('slug')
         if str(lookup).isdigit():
             return get_object_or_404(self.get_queryset(), pk=int(lookup))
         return get_object_or_404(self.get_queryset(), slug=lookup)
+
+
+@extend_schema(tags=['Events Admin'], summary='Manage event highlights and conventions')
+class AdminEventViewSet(DualLookupMixin, viewsets.ModelViewSet):
+    queryset = Event.objects.all().select_related('category').order_by('start_date')
+    serializer_class = EventSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    lookup_field = 'slug'
+    pagination_class = None
 
 
 class EventICSExportView(APIView):

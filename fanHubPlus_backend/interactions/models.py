@@ -8,8 +8,16 @@ from django.utils.translation import gettext_lazy as _
 
 class Bookmark(models.Model):
     """
-    Maps User to Content with an optional personal note.
+    Maps User to Content or any platform item (articles, character profiles, videos, merchandise)
+    with an optional personal note.
     """
+    class ItemType(models.TextChoices):
+        ARTICLE = 'ARTICLE', _('Article')
+        CHARACTER = 'CHARACTER', _('Character Profile')
+        VIDEO = 'VIDEO', _('Video / Trailer')
+        AUDIO = 'AUDIO', _('Audio Track')
+        MERCHANDISE = 'MERCHANDISE', _('Merchandise Item')
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -20,10 +28,29 @@ class Bookmark(models.Model):
         'fandoms.Content',
         on_delete=models.CASCADE,
         related_name='bookmarks',
+        null=True,
+        blank=True,
         db_index=True
     )
+    external_id = models.CharField(
+        max_length=150,
+        blank=True,
+        default='',
+        db_index=True,
+        help_text=_('Optional client or slug identifier for characters, merchandise, or articles')
+    )
+    item_title = models.CharField(max_length=255, blank=True, default='')
+    item_type = models.CharField(
+        max_length=30,
+        choices=ItemType.choices,
+        default=ItemType.ARTICLE,
+        db_index=True
+    )
+    category_name = models.CharField(max_length=100, blank=True, default='')
+    thumbnail_url = models.URLField(max_length=1000, blank=True, null=True)
     note = models.CharField(max_length=500, blank=True, help_text=_('Personal memo or folder tag'))
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = _('Bookmark')
@@ -32,7 +59,8 @@ class Bookmark(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user} bookmarked {self.content}"
+        target = self.content.title if self.content else (self.item_title or self.external_id)
+        return f"{self.user} bookmarked {target}"
 
 
 class ContentRating(models.Model):
@@ -157,3 +185,46 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"[{self.get_feedback_type_display()}] {self.subject} ({self.email})"
+
+
+class UserActivity(models.Model):
+    """
+    Tracks and displays the user's recent interactions and browsing activity on the platform.
+    """
+    class ActionType(models.TextChoices):
+        VIEW = 'VIEW', _('Viewed Item')
+        BOOKMARK = 'BOOKMARK', _('Bookmarked Item')
+        NOTE = 'NOTE', _('Updated Bookmark Note')
+        RATING = 'RATING', _('Rated Content')
+        SUBMISSION = 'SUBMISSION', _('Submitted Fan Work')
+        CHATBOT = 'CHATBOT', _('Queried FandomBot AI')
+        FILTER = 'FILTER', _('Explored Fandom Category')
+        PROFILE = 'PROFILE', _('Updated Profile Preferences')
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='activities',
+        db_index=True
+    )
+    action_type = models.CharField(
+        max_length=30,
+        choices=ActionType.choices,
+        default=ActionType.VIEW,
+        db_index=True
+    )
+    target_type = models.CharField(max_length=50, blank=True, default='Content')
+    target_id = models.CharField(max_length=150, blank=True, default='')
+    target_title = models.CharField(max_length=255)
+    category_name = models.CharField(max_length=100, blank=True, default='')
+    detail = models.CharField(max_length=500, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = _('User Activity')
+        verbose_name_plural = _('User Activities')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user} - {self.action_type}: {self.target_title}"
+

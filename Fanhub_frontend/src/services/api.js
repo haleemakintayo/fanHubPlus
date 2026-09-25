@@ -17,6 +17,13 @@ export function getStoredAuth() {
 }
 
 /**
+ * Retrieve the active JWT access token if logged in
+ */
+export function getAuthToken() {
+  return getStoredAuth()?.tokens?.access || null;
+}
+
+/**
  * Save auth session to localStorage and notify subscribers
  */
 export function setStoredAuth(authData) {
@@ -134,9 +141,6 @@ export async function apiRequest(endpoint, options = {}, retry = true) {
  * Accounts Domain API Service
  */
 export const accountsApi = {
-  /**
-   * POST /api/accounts/register/
-   */
   register: (payload) =>
     apiRequest('/accounts/register/', {
       method: 'POST',
@@ -150,9 +154,6 @@ export const accountsApi = {
       }),
     }),
 
-  /**
-   * POST /api/accounts/login/
-   */
   login: ({ email, password }) =>
     apiRequest('/accounts/login/', {
       method: 'POST',
@@ -160,9 +161,6 @@ export const accountsApi = {
       body: JSON.stringify({ email, password }),
     }),
 
-  /**
-   * POST /api/accounts/token/refresh/
-   */
   refreshToken: (refresh) =>
     apiRequest('/accounts/token/refresh/', {
       method: 'POST',
@@ -170,34 +168,27 @@ export const accountsApi = {
       body: JSON.stringify({ refresh }),
     }),
 
-  /**
-   * GET /api/accounts/dashboard/
-   */
   getDashboard: () =>
     apiRequest('/accounts/dashboard/', {
       method: 'GET',
     }),
 
-  /**
-   * GET /api/accounts/profile/
-   */
   getProfile: () =>
     apiRequest('/accounts/profile/', {
       method: 'GET',
     }),
 
-  /**
-   * PATCH /api/accounts/profile/
-   */
   updateProfile: (profileData) =>
     apiRequest('/accounts/profile/', {
       method: 'PATCH',
       body: JSON.stringify(profileData),
     }),
 
-  /**
-   * POST /api/accounts/password-reset/
-   */
+  getAdminAnalytics: () =>
+    apiRequest('/accounts/admin/analytics/', {
+      method: 'GET',
+    }),
+
   requestPasswordReset: (email) =>
     apiRequest('/accounts/password-reset/', {
       method: 'POST',
@@ -205,9 +196,6 @@ export const accountsApi = {
       body: JSON.stringify({ email }),
     }),
 
-  /**
-   * POST /api/accounts/password-reset/confirm/
-   */
   confirmPasswordReset: ({ uid, token, newPassword }) =>
     apiRequest('/accounts/password-reset/confirm/', {
       method: 'POST',
@@ -217,5 +205,255 @@ export const accountsApi = {
         token,
         new_password: newPassword,
       }),
+    }),
+};
+
+/**
+ * Interactions Domain API Service (Bookmarks, Notes, Activity Stream, Submissions, Feedback)
+ */
+export const interactionsApi = {
+  getBookmarks: () =>
+    apiRequest('/interactions/bookmarks/', {
+      method: 'GET',
+    }),
+
+  toggleBookmark: (payload) =>
+    apiRequest('/interactions/bookmarks/toggle/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  updateBookmarkNote: (payload) =>
+    apiRequest('/interactions/bookmarks/note/', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+
+  deleteBookmark: (id) =>
+    apiRequest(`/interactions/bookmarks/${id}/`, {
+      method: 'DELETE',
+    }),
+
+  getActivities: () =>
+    apiRequest('/interactions/activity/', {
+      method: 'GET',
+    }),
+
+  logActivity: (payload) =>
+    apiRequest('/interactions/activity/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  clearActivities: () =>
+    apiRequest('/interactions/activity/', {
+      method: 'DELETE',
+    }),
+
+  submitRating: ({ contentId, score }) =>
+    apiRequest('/interactions/ratings/', {
+      method: 'POST',
+      body: JSON.stringify({ content_id: contentId, score }),
+    }),
+
+  getSubmissions: () =>
+    apiRequest('/interactions/submissions/', {
+      method: 'GET',
+    }),
+
+  submitFanWork: ({ title, body, categorySlug, categoryId }) =>
+    apiRequest('/interactions/submissions/', {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        body,
+        ...(categoryId ? { category_id: categoryId } : {}),
+        ...(categorySlug ? { category_slug: categorySlug } : {}),
+      }),
+    }),
+
+  submitFeedback: ({ email, name, feedbackType, subject, message }) =>
+    apiRequest('/interactions/feedback/', {
+      method: 'POST',
+      body: JSON.stringify({
+        email,
+        name: name || 'Collector',
+        feedback_type: (feedbackType || 'BUG').toUpperCase(),
+        subject: subject || 'Platform Feedback',
+        message,
+      }),
+    }),
+};
+
+/**
+ * Admin Control Panel API Service (Analytics, Content CRUD across 8 Categories, Moderation, Feedback, Chatbot KB)
+ */
+export const adminApi = {
+  getAnalytics: () =>
+    apiRequest('/accounts/admin/analytics/', {
+      method: 'GET',
+    }),
+
+  // Categories
+  getCategories: () =>
+    apiRequest('/fandoms/categories/list/', {
+      method: 'GET',
+    }),
+
+  // Content & Multimedia (Articles, Video Trailers, Audio Tracks)
+  getContentList: (params = '') =>
+    apiRequest(`/fandoms/content/?include_unpublished=true${params ? `&${params}` : ''}`, {
+      method: 'GET',
+    }),
+
+  createContent: (payload) =>
+    apiRequest('/fandoms/content/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  updateContent: (idOrSlug, payload) =>
+    apiRequest(`/fandoms/content/${idOrSlug}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+
+  deleteContent: (idOrSlug) =>
+    apiRequest(`/fandoms/content/${idOrSlug}/`, {
+      method: 'DELETE',
+    }),
+
+  // Character Profiles
+  getCharacters: () =>
+    apiRequest('/fandoms/characters/', {
+      method: 'GET',
+    }),
+
+  createCharacter: (payload) =>
+    apiRequest('/fandoms/characters/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  updateCharacter: (idOrSlug, payload) =>
+    apiRequest(`/fandoms/characters/${idOrSlug}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+
+  deleteCharacter: (idOrSlug) =>
+    apiRequest(`/fandoms/characters/${idOrSlug}/`, {
+      method: 'DELETE',
+    }),
+
+  // Event Highlights
+  getEvents: () =>
+    apiRequest('/events/manage/', {
+      method: 'GET',
+    }),
+
+  createEvent: (payload) =>
+    apiRequest('/events/manage/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  updateEvent: (idOrSlug, payload) =>
+    apiRequest(`/events/manage/${idOrSlug}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+
+  deleteEvent: (idOrSlug) =>
+    apiRequest(`/events/manage/${idOrSlug}/`, {
+      method: 'DELETE',
+    }),
+
+  // Merchandise Items
+  getMerchandise: () =>
+    apiRequest('/merchandise/manage/', {
+      method: 'GET',
+    }),
+
+  createMerchandise: (payload) =>
+    apiRequest('/merchandise/manage/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  updateMerchandise: (idOrSlug, payload) =>
+    apiRequest(`/merchandise/manage/${idOrSlug}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+
+  deleteMerchandise: (idOrSlug) =>
+    apiRequest(`/merchandise/manage/${idOrSlug}/`, {
+      method: 'DELETE',
+    }),
+
+  // AI Chatbot Knowledge Base & FAQs
+  getFaqs: () =>
+    apiRequest('/chatbot/faqs/manage/', {
+      method: 'GET',
+    }),
+
+  createFaq: (payload) =>
+    apiRequest('/chatbot/faqs/manage/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  updateFaq: (id, payload) =>
+    apiRequest(`/chatbot/faqs/manage/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+
+  deleteFaq: (id) =>
+    apiRequest(`/chatbot/faqs/manage/${id}/`, {
+      method: 'DELETE',
+    }),
+
+  getChatbotAudit: () =>
+    apiRequest('/chatbot/audit/', {
+      method: 'GET',
+    }),
+
+  // Moderation Queue (Fan Submissions)
+  getModerationQueue: (status = 'ALL') =>
+    apiRequest(`/interactions/moderation/?status=${status}`, {
+      method: 'GET',
+    }),
+
+  moderateSubmission: (id, { status, adminFeedback = '' }) =>
+    apiRequest(`/interactions/moderation/${id}/moderate/`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status,
+        admin_feedback: adminFeedback,
+      }),
+    }),
+
+  deleteSubmission: (id) =>
+    apiRequest(`/interactions/moderation/${id}/`, {
+      method: 'DELETE',
+    }),
+
+  // User Feedback & Bug Resolution
+  getFeedbackList: (type = 'ALL', status = 'ALL') =>
+    apiRequest(`/interactions/admin/feedback/?type=${type}&status=${status}`, {
+      method: 'GET',
+    }),
+
+  updateFeedbackStatus: (id, status) =>
+    apiRequest(`/interactions/admin/feedback/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
+  deleteFeedback: (id) =>
+    apiRequest(`/interactions/admin/feedback/${id}/`, {
+      method: 'DELETE',
     }),
 };

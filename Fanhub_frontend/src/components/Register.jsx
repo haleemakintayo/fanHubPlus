@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { User, Mail, Lock, AlertCircle } from 'lucide-react';
 
-export default function Register({ onShowToast, onClose }) {
+export default function Register({ onShowToast, onClose, onAuthSuccess }) {
   const { register, isLoading, error, clearError } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -39,10 +39,14 @@ export default function Register({ onShowToast, onClose }) {
       const registeredUser = data?.user?.username || username;
       onShowToast?.({
         title: 'Welcome to Fan Hub Plus!',
-        message: `Account created for ${registeredUser}. Universe telemetry active.`,
+        message: `Account created for ${registeredUser}. Opening your personalized dashboard.`,
         type: 'success',
       });
-      onClose?.();
+      if (onAuthSuccess) {
+        onAuthSuccess(data);
+      } else {
+        onClose?.();
+      }
     } catch (err) {
       onShowToast?.({
         title: 'Registration Failed',
@@ -158,10 +162,10 @@ export default function Register({ onShowToast, onClose }) {
 
       <div>
         <label className="block text-[11px] font-mono font-black uppercase text-neutral-500 mb-1">
-          Primary Sector Affiliations
+          Primary Sector Affiliations (8 Universes)
         </label>
         <div className="flex flex-wrap gap-1.5">
-          {['anime', 'gaming', 'movies-tv', 'kpop', 'comics', 'cosplay'].map((u) => {
+          {['anime', 'gaming', 'movies-tv', 'tv-shows', 'kpop', 'comics', 'manga', 'cosplay'].map((u) => {
             const isFav = favoriteUniverses.includes(u);
             return (
               <button

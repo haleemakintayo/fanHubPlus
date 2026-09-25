@@ -581,4 +581,191 @@ class Command(BaseCommand):
                 defaults=f_data
             )
         self.stdout.write(self.style.SUCCESS(f"[OK] Seeded {len(faq_data)} chatbot FAQs."))
+
+        # 8. Seed initial Bookmarks with Personal Notes, User Activities, Fan Submissions, Feedback & Chatbot Queries
+        from interactions.models import Bookmark, ContentRating, FanSubmission, Feedback, UserActivity
+        from chatbot.models import ChatbotQuery
+
+        member_profile.bio = 'Collector of 1/4 scale mecha statues, Night City lore archivist, and Shonen simulcast tracker.'
+        member_profile.avatar = 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80'
+        member_profile.save()
+
+        edgerunners_content = Content.objects.filter(slug='cyberpunk-edgerunners').first()
+        multiverse_article = Content.objects.filter(slug='multiverse-paradox-essay').first()
+        if edgerunners_content:
+            Bookmark.objects.update_or_create(
+                user=member_user,
+                content=edgerunners_content,
+                defaults={
+                    'external_id': 'cyberpunk-edgerunners',
+                    'item_title': edgerunners_content.title,
+                    'item_type': Bookmark.ItemType.VIDEO,
+                    'category_name': 'Anime',
+                    'thumbnail_url': edgerunners_content.thumbnail_url,
+                    'note': 'Rewatch frame-by-frame for Sandevistan color grading breakdown at 01:42.',
+                }
+            )
+            ContentRating.objects.update_or_create(
+                user=member_user,
+                content=edgerunners_content,
+                defaults={'score': 5}
+            )
+        if multiverse_article:
+            Bookmark.objects.update_or_create(
+                user=member_user,
+                content=multiverse_article,
+                defaults={
+                    'external_id': 'multiverse-paradox-essay',
+                    'item_title': multiverse_article.title,
+                    'item_type': Bookmark.ItemType.ARTICLE,
+                    'category_name': 'Community Vault',
+                    'thumbnail_url': multiverse_article.thumbnail_url,
+                    'note': 'Reference Section 3 for my upcoming Secret Wars timeline diagram.',
+                }
+            )
+
+        # Bookmark for Character Profile & Merchandise Item
+        if not Bookmark.objects.filter(user=member_user, external_id='ryuto-kazama').exists():
+            Bookmark.objects.create(
+                user=member_user,
+                content=None,
+                external_id='ryuto-kazama',
+                item_title='Ryuto Kazama',
+                item_type=Bookmark.ItemType.CHARACTER,
+                category_name='Anime',
+                thumbnail_url='https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80',
+                note='Cosplay build reference: need 5mm high-density EVA foam for the dual thunder spears.'
+            )
+        if not Bookmark.objects.filter(user=member_user, external_id='merch-eva').exists():
+            Bookmark.objects.create(
+                user=member_user,
+                content=None,
+                external_id='merch-eva',
+                item_title='EVA-01 Berserk Mode 1/4 Scale Statue',
+                item_type=Bookmark.ItemType.MERCHANDISE,
+                category_name='Anime',
+                thumbnail_url='https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=600&q=80',
+                note='Pre-order opens Oct 15 at 12:00 PM EST — set alarm 30 mins early!'
+            )
+
+        # Fan Submissions for Moderation Queue
+        submissions_seed = [
+            {
+                'title': 'Neon Genesis Evangelion: The Instrumentality Timeline Paradox',
+                'category': cat_map['anime'],
+                'body': 'An exhaustive comparison between the original End of Evangelion theatrical release and the Rebuild 3.0+1.0 Thrice Upon a Time meta-narrative loop.',
+                'status': FanSubmission.Status.PENDING,
+            },
+            {
+                'title': 'Elden Ring: Shadow of the Erdtree Miquella Motive Analysis',
+                'category': cat_map['gaming'],
+                'body': 'Tracing Miquella the Kind’s footsteps across the Land of Shadow, examining item descriptions from the Haligtree to Enir-Ilim.',
+                'status': FanSubmission.Status.PENDING,
+            },
+            {
+                'title': 'Spider-Man 2099 Monowire Prop 3D Build Log',
+                'category': cat_map['cosplay'],
+                'body': 'Step-by-step guide to printing translucent red PETG arm talons with embedded addressable COB LED strips.',
+                'status': FanSubmission.Status.APPROVED,
+                'admin_feedback': 'Excellent crafting detail and clear wiring schematic. Published to Vault!',
+            },
+        ]
+        for s_data in submissions_seed:
+            FanSubmission.objects.update_or_create(
+                title=s_data['title'],
+                defaults={'user': member_user, **s_data}
+            )
+
+        # User Feedback Tickets (Bugs, Suggestions, Inquiries)
+        feedback_seed = [
+            {
+                'email': 'fan@fanhub.com',
+                'name': 'cyber_otaku',
+                'feedback_type': Feedback.FeedbackType.BUG,
+                'subject': '4K Trailer Player Fullscreen Shortcut on Safari',
+                'message': 'Pressing F while focused on the volume slider does not trigger fullscreen mode on macOS Safari 18.',
+                'status': Feedback.Status.IN_REVIEW,
+            },
+            {
+                'email': 'cosplay.queen@fanhub.com',
+                'name': 'LyraBuilder',
+                'feedback_type': Feedback.FeedbackType.SUGGESTION,
+                'subject': 'Add STL 3D Print File Attachment Support to Cosplay Guides',
+                'message': 'Would love to attach downloadable .stl pattern links directly inside verified cosplay build articles!',
+                'status': Feedback.Status.NEW,
+            },
+            {
+                'email': 'seoul.beats@fanhub.com',
+                'name': 'KWave_Stan',
+                'feedback_type': Feedback.FeedbackType.INQUIRY,
+                'subject': 'K-Wave Mega Fest Los Angeles Badge Pickup Hours',
+                'message': 'Are VIP lightstick sync wristbands distributed at the Crypto.com Arena box office on Day 0?',
+                'status': Feedback.Status.RESOLVED,
+            },
+        ]
+        for fb_data in feedback_seed:
+            Feedback.objects.update_or_create(
+                subject=fb_data['subject'],
+                defaults={'user': member_user, **fb_data}
+            )
+
+        # User Activity Stream Seed
+        if UserActivity.objects.filter(user=member_user).count() == 0:
+            sample_activities = [
+                {
+                    'action_type': UserActivity.ActionType.VIEW,
+                    'target_type': 'CHARACTER',
+                    'target_id': 'ryuto-kazama',
+                    'target_title': 'Ryuto Kazama (Titan Slayer)',
+                    'category_name': 'Anime',
+                    'detail': 'Inspected Character Lore Dossier & Battle Telemetry',
+                },
+                {
+                    'action_type': UserActivity.ActionType.BOOKMARK,
+                    'target_type': 'MERCHANDISE',
+                    'target_id': 'merch-eva',
+                    'target_title': 'EVA-01 Berserk Mode 1/4 Scale Statue',
+                    'category_name': 'Anime',
+                    'detail': 'Saved to Vault with personal pre-order reminder note',
+                },
+                {
+                    'action_type': UserActivity.ActionType.RATING,
+                    'target_type': 'VIDEO',
+                    'target_id': 'cyberpunk-edgerunners',
+                    'target_title': 'Cyberpunk: Edgerunners - Official Teaser',
+                    'category_name': 'Anime',
+                    'detail': 'Rated 5/5 stars in Audiovisual Vault',
+                },
+                {
+                    'action_type': UserActivity.ActionType.FILTER,
+                    'target_type': 'CATEGORY',
+                    'target_id': 'gaming',
+                    'target_title': 'Gaming Universe Directory',
+                    'category_name': 'Gaming',
+                    'detail': 'Explored Elden Ring: Nightreign & Patch 14.2 lore threads',
+                },
+            ]
+            for act_data in sample_activities:
+                UserActivity.objects.create(user=member_user, **act_data)
+
+        # Chatbot Query Audit Seed
+        if ChatbotQuery.objects.count() == 0:
+            first_faq = ChatbotFAQ.objects.first()
+            ChatbotQuery.objects.create(
+                user=member_user,
+                session_id='seed-sess-01',
+                message='Recommend me an anime like Attack on Titan',
+                response=first_faq.answer if first_faq else 'Check out 86, Vinland Saga, and Claymore!',
+                matched_faq=first_faq,
+                latency_ms=11.4,
+            )
+            ChatbotQuery.objects.create(
+                user=member_user,
+                session_id='seed-sess-02',
+                message='What is the chronological order for Rebuild of Evangelion?',
+                response='Start with Evangelion: 1.0 You Are (Not) Alone, followed by 2.0, 3.0, and 3.0+1.0 Thrice Upon a Time.',
+                matched_faq=None,
+                latency_ms=28.7,
+            )
+
         self.stdout.write(self.style.SUCCESS("All Fan Hub Plus fixtures successfully seeded!"))

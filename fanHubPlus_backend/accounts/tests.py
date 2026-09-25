@@ -102,3 +102,52 @@ class AccountsTests(TestCase):
         self.assertTrue(success)
         user.refresh_from_db()
         self.assertTrue(user.check_password('NewPassword123!'))
+
+    def test_dashboard_preferences_and_greeting(self):
+        user = User.objects.create_user(
+            email='customfan@fanhub.com',
+            username='customfan',
+            password='SecurePassword123!'
+        )
+        self.client.force_authenticate(user=user)
+        patch_res = self.client.patch('/api/accounts/profile/', {
+            'favorite_categories_input': ['anime', 'gaming'],
+            'dashboard_preferences': {
+                'layout_density': 'compact',
+                'show_greeting_banner': True,
+                'show_activity_stream': True,
+                'show_favorite_fandoms': True,
+                'show_bookmarks_vault': True,
+                'show_recommendations': False,
+                'default_bookmark_filter': 'CHARACTER'
+            }
+        }, format='json')
+        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(patch_res.data['favorite_categories']), 2)
+        self.assertEqual(patch_res.data['dashboard_preferences']['layout_density'], 'compact')
+
+        dash_res = self.client.get('/api/accounts/dashboard/')
+        self.assertEqual(dash_res.status_code, status.HTTP_200_OK)
+        self.assertIn('greeting', dash_res.data)
+        self.assertIn('customfan', dash_res.data['greeting']['headline'])
+        self.assertIn('recent_activity', dash_res.data)
+        self.assertEqual(
+            dash_res.data['profile']['dashboard_preferences']['default_bookmark_filter'],
+            'CHARACTER'
+        )
+
+    def test_admin_analytics_endpoint(self):
+        admin_user = User.objects.create_superuser(
+            email='chiefadmin@fanhub.com',
+            username='chiefadmin',
+            password='AdminPassword123!'
+        )
+        self.client.force_authenticate(user=admin_user)
+        res = self.client.get('/api/accounts/admin/analytics/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('overview', res.data)
+        self.assertIn('popular_categories', res.data)
+        self.assertIn('chatbot_metrics', res.data)
+        self.assertIn('content_metrics', res.data)
+        self.assertIn('merchandise_metrics', res.data)
+

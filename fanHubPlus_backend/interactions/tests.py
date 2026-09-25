@@ -108,3 +108,59 @@ class InteractionsTests(TestCase):
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(Feedback.objects.filter(subject__icontains='Soundtrack').exists())
+
+    def test_bookmark_personal_notes_and_external_items(self):
+        self.client.force_authenticate(user=self.user)
+        toggle_url = '/api/interactions/bookmarks/toggle/'
+        res = self.client.post(toggle_url, {
+            'external_id': 'char-gojo-satoru',
+            'item_title': 'Satoru Gojo',
+            'item_type': 'CHARACTER',
+            'category_name': 'Anime',
+            'note': 'Initial note on Limitless technique.'
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(res.data['bookmarked'])
+
+        note_url = '/api/interactions/bookmarks/note/'
+        note_res = self.client.patch(note_url, {
+            'external_id': 'char-gojo-satoru',
+            'note': 'Updated personal note: Hollow Purple chant sequence verified.'
+        }, format='json')
+        self.assertEqual(note_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            note_res.data['note'],
+            'Updated personal note: Hollow Purple chant sequence verified.'
+        )
+
+    def test_user_activity_stream_and_admin_feedback_resolution(self):
+        self.client.force_authenticate(user=self.user)
+        act_res = self.client.post('/api/interactions/activity/', {
+            'action_type': 'VIEW_CHARACTER',
+            'target_title': 'Satoru Gojo',
+            'category_name': 'Anime'
+        }, format='json')
+        self.assertEqual(act_res.status_code, status.HTTP_201_CREATED)
+
+        list_res = self.client.get('/api/interactions/activity/')
+        self.assertEqual(list_res.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(list_res.data), 1)
+
+        # Create feedback and resolve as admin
+        fb = Feedback.objects.create(
+            name='Tester',
+            email='tester@fanhub.com',
+            feedback_type=Feedback.FeedbackType.SUGGESTION,
+            subject='Add Manga Reading Mode',
+            message='Right-to-left panel toggle would be awesome.'
+        )
+        self.client.force_authenticate(user=self.admin)
+        resolve_res = self.client.patch(
+            f'/api/interactions/admin/feedback/{fb.id}/',
+            {'status': 'RESOLVED'},
+            format='json'
+        )
+        self.assertEqual(resolve_res.status_code, status.HTTP_200_OK)
+        fb.refresh_from_db()
+        self.assertEqual(fb.status, 'RESOLVED')
+
