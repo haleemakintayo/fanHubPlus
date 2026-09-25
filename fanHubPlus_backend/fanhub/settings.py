@@ -11,17 +11,22 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+import sys
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
+load_dotenv(BASE_DIR.parent / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-fe)#tzrs080fp@-xf0)ap4b1e7xskj$wnm60g_cxayap341r65'
-
+SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -184,6 +189,14 @@ SIMPLE_JWT = {
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+GEMINI_FANHUB_APIKEY = os.getenv('GEMINI_FANHUB_APIKEY', '')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.8-flash')
+GEMINI_TIMEOUT_SECONDS = float(os.getenv('GEMINI_TIMEOUT_SECONDS', '12'))
+CHATBOT_ENABLE_GEMINI = os.getenv(
+    'CHATBOT_ENABLE_GEMINI',
+    'true' if 'test' not in sys.argv else 'false'
+).lower() == 'true'
 
 # Media Files
 MEDIA_URL = '/media/'

@@ -2,6 +2,12 @@
 
 import time
 import re
+import json
+
+from google import genai
+
+from django.conf import settings
+
 from .models import ChatbotFAQ, ChatbotQuery
 from fandoms.models import Content, Category
 
@@ -57,6 +63,22 @@ class PromptOrchestrator:
         "How do I submit fan art or reviews?",
     ]
 
+    SYSTEM_PROMPT = (
+        "You are FandomBot, the Fan Hub Plus conversational assistant. "
+        "Answer questions about the platform and its fandom content using the supplied context. "
+        "Recommend content or categories when the user's preferences support it, and say when "
+        "a recommendation is an informed suggestion rather than a catalog fact. "
+        "When a new user needs help, guide them through the platform one step at a time: ask "
+        "what fandoms they like, explain the relevant directory or feature, then offer the next "
+        "step. Keep answers concise, friendly, and practical. Do not invent Fan Hub Plus features "
+        "or claim access to private data."
+    )
+
+    @staticmethod
+    def _clean_response_markdown(response_text):
+        """Remove bold Markdown markers because the chat UI renders plain text."""
+        return re.sub(r'\*\*', '', response_text or '').strip()
+
     @classmethod
     def generate_response(cls, user_message, session_id=None, user=None):
         start_time = time.time()
@@ -64,17 +86,18 @@ class PromptOrchestrator:
         # Step 1: Check deterministic FAQ context
         matched_faq = ContextMatcher.find_match(user_message)
         if matched_faq:
+            response_text = cls._clean_response_markdown(matched_faq.answer)
             latency = round((time.time() - start_time) * 1000, 2)
             ChatAuditLogger.log_query(
                 user=user,
                 session_id=session_id or 'anon',
                 message=user_message,
-                response=matched_faq.answer,
+                response=response_text,
                 matched_faq=matched_faq,
                 latency_ms=latency
             )
             return {
-                'response': matched_faq.answer,
+                'response': response_text,
                 'matched_faq': matched_faq.id,
                 'badge': matched_faq.badge,
                 'universe': matched_faq.universe_name or (matched_faq.category.name if matched_faq.category else 'General'),
@@ -82,8 +105,14 @@ class PromptOrchestrator:
                 'suggestions': cls.DEFAULT_SUGGESTIONS,
             }
 
-        # Step 2: Contextual fallback / lore reasoning engine
-        response_text, universe, badge = cls._orchestrate_fallback(user_message)
+        # Step 2: Use Gemini with persisted session context when configured.
+        response_text = cls._generate_gemini_response(user_message, session_id, user)
+        if response_text:
+            response_text = cls._clean_response_markdown(response_text)
+            universe, badge = 'Multiverse AI', 'Gemini AI'
+        else:
+            response_text, universe, badge = cls._orchestrate_fallback(user_message)
+            response_text = cls._clean_response_markdown(response_text)
         latency = round((time.time() - start_time) * 1000, 2)
 
         ChatAuditLogger.log_query(
@@ -103,6 +132,44 @@ class PromptOrchestrator:
             'latency_ms': latency,
             'suggestions': cls.DEFAULT_SUGGESTIONS,
         }
+
+    @classmethod
+    def _generate_gemini_response(cls, user_message, session_id, user):
+        api_key = getattr(settings, 'GEMINI_FANHUB_APIKEY', '')
+        if not api_key or not getattr(settings, 'CHATBOT_ENABLE_GEMINI', True):
+            return None
+
+        history = ChatbotQuery.objects.filter(session_id=session_id or 'anon').order_by('-created_at')[:8]
+        history = list(reversed(history))
+        recent_content = Content.objects.filter(is_published=True).order_by('-popularity_score')[:10]
+        content_context = ', '.join(
+            f'{item.title} ({item.category.name if item.category else "Uncategorized"})'
+            for item in recent_content
+        ) or 'No published catalog items are available.'
+        faq_context = list(ChatbotFAQ.objects.filter(is_active=True).values('question', 'answer')[:12])
+
+        history_context = '\n'.join(
+            f'User: {query.message}\nFandomBot: {query.response}'
+            for query in history
+        ) or 'No previous conversation.'
+        prompt = (
+            f'{cls.SYSTEM_PROMPT}\n\n'
+            f'Platform catalog: {content_context}\n'
+            f'FAQ knowledge base: {json.dumps(faq_context)}\n\n'
+            f'Conversation history:\n{history_context}\n\n'
+            f'User\'s new message: {user_message}'
+        )
+
+        try:
+            client = genai.Client(api_key=api_key)
+            interaction = client.interactions.create(
+                model=getattr(settings, 'GEMINI_MODEL', 'gemini-3.8-flash'),
+                input=prompt,
+            )
+            response_text = getattr(interaction, 'output_text', '')
+            return response_text.strip() if response_text else None
+        except Exception:
+            return None
 
     @classmethod
     def _orchestrate_fallback(cls, message):

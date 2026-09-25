@@ -4,6 +4,9 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
+from django.test import override_settings
+from unittest.mock import patch
+import json
 from fandoms.models import Category
 from .models import ChatbotFAQ, ChatbotQuery
 from .services import ContextMatcher, PromptOrchestrator
@@ -11,6 +14,7 @@ from .services import ContextMatcher, PromptOrchestrator
 User = get_user_model()
 
 
+@override_settings(GEMINI_FANHUB_APIKEY='')
 class ChatbotTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -75,3 +79,34 @@ class ChatbotTests(TestCase):
         self.assertGreaterEqual(res.data['total_queries'], 1)
         self.assertIn('faq_hit_rate_pct', res.data)
         self.assertIn('recent_queries', res.data)
+
+    def test_chatbot_history_endpoint(self):
+        self.client.post('/api/chatbot/query/', {
+            'message': 'How do I submit fan art?',
+            'session_id': 'sess-history'
+        }, format='json')
+
+        response = self.client.get('/api/chatbot/history/?session_id=sess-history')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['session_id'], 'sess-history')
+
+    @override_settings(GEMINI_FANHUB_APIKEY='test-key', CHATBOT_ENABLE_GEMINI=True)
+    @patch('chatbot.services.genai.Client')
+    def test_gemini_response_uses_session_history(self, mocked_client):
+        mocked_interaction = mocked_client.return_value.interactions.create.return_value
+        mocked_interaction.output_text = 'Gemini remembers your anime preference.'
+        first = self.client.post('/api/chatbot/query/', {
+            'message': 'I enjoy serialized space adventures',
+            'session_id': 'sess-gemini'
+        }, format='json')
+        second = self.client.post('/api/chatbot/query/', {
+            'message': 'What should I explore next?',
+            'session_id': 'sess-gemini'
+        }, format='json')
+
+        self.assertEqual(first.data['badge'], 'Gemini AI')
+        self.assertEqual(second.data['response'], 'Gemini remembers your anime preference.')
+        prompt = mocked_client.return_value.interactions.create.call_args.kwargs['input']
+        self.assertIn('I enjoy serialized space adventures', prompt)
+        self.assertEqual(ChatbotQuery.objects.filter(session_id='sess-gemini').count(), 2)

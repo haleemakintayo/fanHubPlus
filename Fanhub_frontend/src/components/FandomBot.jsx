@@ -5,20 +5,39 @@ import {
   X, 
   RotateCcw
 } from 'lucide-react'
+import { chatbotApi, formatApiError } from '../services/api'
 
-export default function FandomBot({ qaData, onShowToast }) {
+const INITIAL_MESSAGE = {
+  id: 'initial',
+  sender: 'bot',
+  text: "Hey! Looking for a new anime or need a Marvel timeline breakdown? Ask me anything across the 8 fandom universes!",
+  timestamp: 'Just now',
+  badge: 'Multiverse AI Engine'
+}
+
+function createSessionId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `web-${crypto.randomUUID()}`
+  }
+  return `web-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
+function getStoredSessionId() {
+  if (typeof window === 'undefined') return createSessionId()
+  const storedSessionId = localStorage.getItem('fanhub_chatbot_session')
+  if (storedSessionId) return storedSessionId
+  const sessionId = createSessionId()
+  localStorage.setItem('fanhub_chatbot_session', sessionId)
+  return sessionId
+}
+
+export default function FandomBot({ onShowToast }) {
   const botMsgCounterRef = useRef(0)
+  const historyLoadedRef = useRef(false)
 
   const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState([
-    {
-      id: 'initial',
-      sender: 'bot',
-      text: "Hey! Looking for a new anime or need a Marvel timeline breakdown? Ask me anything across the 8 fandom universes!",
-      timestamp: 'Just now',
-      badge: 'Multiverse AI Engine v2.4'
-    }
-  ])
+  const [sessionId, setSessionId] = useState(getStoredSessionId)
+  const [messages, setMessages] = useState([INITIAL_MESSAGE])
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef(null)
@@ -39,7 +58,45 @@ export default function FandomBot({ qaData, onShowToast }) {
     }
   }, [messages, isOpen, isTyping])
 
-  const handleSendPrompt = (promptText) => {
+  useEffect(() => {
+    if (!isOpen || historyLoadedRef.current) return
+
+    let isCancelled = false
+    chatbotApi.getHistory(sessionId)
+      .then((history) => {
+        if (isCancelled || !Array.isArray(history) || history.length === 0) return
+        setMessages([
+          INITIAL_MESSAGE,
+          ...history.flatMap((entry, index) => [
+            {
+              id: `history-user-${entry.id || index}`,
+              sender: 'user',
+              text: entry.message,
+              timestamp: new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+            {
+              id: `history-bot-${entry.id || index}`,
+              sender: 'bot',
+              text: entry.response,
+              timestamp: new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              badge: entry.matched_faq ? 'Curated FAQ' : 'Gemini AI',
+            },
+          ]),
+        ])
+      })
+      .catch(() => {
+        // A missing history should not prevent a new conversation.
+      })
+      .finally(() => {
+        if (!isCancelled) historyLoadedRef.current = true
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [isOpen, sessionId])
+
+  const handleSendPrompt = async (promptText) => {
     if (!promptText.trim()) return
 
     botMsgCounterRef.current += 1
@@ -55,45 +112,39 @@ export default function FandomBot({ qaData, onShowToast }) {
     setInputValue('')
     setIsTyping(true)
 
-    // Simulate AI thinking and reply
-    setTimeout(() => {
-      let botReply = qaData[promptText]
-
-      if (!botReply) {
-        // Fallback contextual response for custom questions
-        botReply = {
-          reply: `Great question about "${promptText}"! In the Fan Hub Plus canon matrix, this spans multiple lore arcs. Our curators recommend checking the Universe Category directory and verified community discussions for in-depth source analysis.`,
-          badge: 'Live Canon Query',
-          universe: 'Multiverse'
-        }
-      }
-
+    try {
+      const botReply = await chatbotApi.sendMessage(promptText, sessionId)
       botMsgCounterRef.current += 1
       const botMsg = {
         id: `bot-${botMsgCounterRef.current}`,
         sender: 'bot',
-        text: botReply.reply,
+        text: botReply.response,
         badge: botReply.badge,
         timestamp: 'Just now'
       }
 
       setMessages(prev => [...prev, botMsg])
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        id: `error-${Date.now()}`,
+        sender: 'bot',
+        text: formatApiError(error.data, error.message || 'FandomBot is temporarily unavailable. Please try again.'),
+        badge: 'Connection Notice',
+        timestamp: 'Just now'
+      }])
+    } finally {
       setIsTyping(false)
-    }, 700)
+    }
   }
 
 
 
   const handleResetChat = () => {
-    setMessages([
-      {
-        id: 'initial',
-        sender: 'bot',
-        text: "Hey! Looking for a new anime or need a Marvel timeline breakdown? Ask me anything across the 8 fandom universes!",
-        timestamp: 'Just now',
-        badge: 'Multiverse AI Engine v2.4'
-      }
-    ])
+    const nextSessionId = createSessionId()
+    localStorage.setItem('fanhub_chatbot_session', nextSessionId)
+    setSessionId(nextSessionId)
+    historyLoadedRef.current = true
+    setMessages([INITIAL_MESSAGE])
     onShowToast({
       title: 'Chat Reset',
       message: 'FandomBot session memory cleared.',

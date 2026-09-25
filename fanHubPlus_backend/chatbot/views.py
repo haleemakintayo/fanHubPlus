@@ -68,6 +68,24 @@ class ChatbotMessageAPIView(APIView):
 ChatbotQueryView = ChatbotMessageAPIView
 
 
+class ChatbotHistoryView(APIView):
+    """GET /api/chatbot/history/?session_id=... returns chronological session context."""
+    permission_classes = [permissions.AllowAny]
+
+    @extend_schema(
+        tags=['Chatbot'],
+        summary='Retrieve stored chatbot conversation history',
+        responses={200: ChatbotQuerySerializer(many=True)},
+    )
+    def get(self, request, *args, **kwargs):
+        session_id = request.query_params.get('session_id')
+        if not session_id:
+            return Response({'session_id': ['This query parameter is required.']}, status=status.HTTP_400_BAD_REQUEST)
+
+        queries = ChatbotQuery.objects.filter(session_id=session_id).select_related('matched_faq').order_by('created_at')[:50]
+        return Response(ChatbotQuerySerializer(queries, many=True).data, status=status.HTTP_200_OK)
+
+
 @extend_schema(tags=['Chatbot'], summary='List or create Chatbot FAQ knowledge base entries')
 class FAQKnowledgeBaseView(generics.ListCreateAPIView):
     """

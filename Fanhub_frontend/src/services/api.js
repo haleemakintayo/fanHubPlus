@@ -209,6 +209,22 @@ export const accountsApi = {
 };
 
 /**
+ * Chatbot Domain API Service
+ */
+export const chatbotApi = {
+  sendMessage: (message, sessionId) =>
+    apiRequest('/chatbot/query/', {
+      method: 'POST',
+      body: JSON.stringify({ message, session_id: sessionId }),
+    }),
+
+  getHistory: (sessionId) =>
+    apiRequest(`/chatbot/history/?session_id=${encodeURIComponent(sessionId)}`, {
+      method: 'GET',
+    }),
+};
+
+/**
  * Interactions Domain API Service (Bookmarks, Notes, Activity Stream, Submissions, Feedback)
  */
 export const interactionsApi = {
