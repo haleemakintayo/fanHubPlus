@@ -340,7 +340,7 @@ class AdminAnalyticsService:
             for item in top_content_qs
         ]
 
-        merch_qs = MerchandiseItem.objects.select_related('category').order_by('-view_count', '-created_at')
+        merch_qs = MerchandiseItem.objects.select_related('category').order_by('-popularity_score', '-view_count', '-created_at')
         merchandise_metrics = [
             {
                 'id': m.id,
@@ -357,7 +357,7 @@ class AdminAnalyticsService:
                 'msrp': m.msrp,
                 'manufacturer': m.manufacturer,
                 'view_count': m.view_count,
-                'popularity_score': round(min(5.0, 3.5 + (m.view_count / 3000.0)), 2),
+                'popularity_score': round(m.popularity_score, 2),
             }
             for m in merch_qs
         ]

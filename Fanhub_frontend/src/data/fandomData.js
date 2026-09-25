@@ -1534,6 +1534,76 @@ export const MERCH_DROPS = [
   }
 ]
 
+export const UPCOMING_RELEASES = [
+  {
+    id: 'release-solo-leveling',
+    type: 'Anime',
+    category: 'anime',
+    title: 'Solo Leveling: Season 3',
+    studio: 'A-1 Pictures',
+    date: 'Oct 2026',
+    status: 'Confirmed',
+    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
+    description: 'The next hunter chapter continues Sung Jinwoo’s climb through the double gates.',
+  },
+  {
+    id: 'release-elden-ring',
+    type: 'Game',
+    category: 'gaming',
+    title: 'Elden Ring: Nightreign',
+    studio: 'FromSoftware',
+    date: 'Nov 2026',
+    status: 'In development',
+    image: 'https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=800&q=80',
+    description: 'A new multiplayer PvE roguelite set in the Lands Between.',
+  },
+  {
+    id: 'release-spider-verse',
+    type: 'Movie',
+    category: 'movies-tv',
+    title: 'Spider-Man: Brand New Day',
+    studio: 'Sony Pictures Animation',
+    date: 'Dec 2026',
+    status: 'Trailer expected',
+    image: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
+    description: 'Miles Morales returns for a new chapter of the Spider-Verse.',
+  },
+  {
+    id: 'release-one-piece',
+    type: 'Show',
+    category: 'anime',
+    title: 'One Piece: The Elbaf Arc',
+    studio: 'Toei Animation',
+    date: '2027',
+    status: 'On the horizon',
+    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+    description: 'The Straw Hat crew enters the final saga and the unknown world of Elbaf.',
+  },
+  {
+    id: 'release-x-men',
+    type: 'Comic',
+    category: 'comics',
+    title: 'X-Men: From the Ashes #1',
+    studio: 'Marvel Comics',
+    date: 'Oct 2026',
+    status: 'Solicited',
+    image: 'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&w=800&q=80',
+    description: 'A bold new beginning for the X-Men after the fall of Krakoa.',
+  },
+  {
+    id: 'release-merch-drops',
+    type: 'Merchandise',
+    category: 'anime',
+    title: 'Fall Collectors Drop: Anime & Gaming',
+    studio: 'Fan Hub Partner Network',
+    date: 'Oct–Dec 2026',
+    status: 'Pre-orders opening',
+    image: 'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=800&q=80',
+    description: 'Limited figures, OST vinyl, apparel, and display pieces curated for the next drop window.',
+  },
+]
+
+
 export const CONVENTIONS_DATA = [
   {
     id: 'event-tokyo',

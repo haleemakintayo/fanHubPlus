@@ -38,6 +38,7 @@ class MerchandiseItemSerializer(serializers.ModelSerializer):
             'manufacturer',
             'description',
             'view_count',
+            'popularity_score',
             'created_at',
         ]
 

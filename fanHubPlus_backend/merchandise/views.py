@@ -1,6 +1,7 @@
 # merchandise/views.py
 
 from rest_framework import generics, viewsets, permissions, status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -11,6 +12,12 @@ from .serializers import MerchandiseItemSerializer
 from .services import ViewCounterService, DropRadarScheduler
 from interactions.views import IsAdminOrReadOnly
 from fandoms.views import DualLookupMixin
+
+
+class MerchandisePagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
 @extend_schema(
@@ -25,7 +32,7 @@ class MerchandiseGalleryAPIView(generics.ListCreateAPIView):
     """
     serializer_class = MerchandiseItemSerializer
     permission_classes = [IsAdminOrReadOnly]
-    pagination_class = None
+    pagination_class = MerchandisePagination
 
     def get_queryset(self):
         qs = MerchandiseItem.objects.all().select_related('category')
@@ -48,7 +55,7 @@ class MerchandiseGalleryAPIView(generics.ListCreateAPIView):
             elif is_upcoming.lower() in ['false', '0']:
                 qs = qs.filter(is_upcoming=False)
 
-        return qs.order_by('-view_count', '-created_at')
+        return qs.order_by('-popularity_score', '-view_count', '-created_at')
 
 
 MerchGalleryView = MerchandiseGalleryAPIView
@@ -89,7 +96,7 @@ MerchDetailView = MerchandiseDetailAPIView
 
 @extend_schema(tags=['Merchandise Admin'], summary='Manage merchandise items and drop radar')
 class AdminMerchandiseViewSet(DualLookupMixin, viewsets.ModelViewSet):
-    queryset = MerchandiseItem.objects.all().select_related('category').order_by('-view_count', '-created_at')
+    queryset = MerchandiseItem.objects.all().select_related('category').order_by('-popularity_score', '-view_count', '-created_at')
     serializer_class = MerchandiseItemSerializer
     permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'slug'

@@ -5,7 +5,7 @@ import Hero from './components/Hero'
 import UniverseMatrix from './components/UniverseMatrix'
 import MultimediaCenter from './components/MultimediaCenter'
 import CharacterArchive from './components/CharacterArchive'
-import MerchRadar from './components/MerchRadar'
+import ResourceLibrary from './components/ResourceLibrary'
 import ConventionRadar from './components/ConventionRadar'
 import FandomBot from './components/FandomBot'
 import Footer from './components/Footer'
@@ -890,7 +890,7 @@ export default function App() {
             />
 
             {/* 6. Merchandise Showcase & Upcoming Drop Radar */}
-            <MerchRadar
+            <ResourceLibrary
               merchDrops={MERCH_DROPS}
               onShowToast={addToast}
               bookmarkedItems={bookmarkedItems}

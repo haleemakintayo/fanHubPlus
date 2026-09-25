@@ -187,6 +187,7 @@ export default function Admin({
     description: '',
     is_upcoming: true,
     view_count: 1000,
+    popularity_score: 4.0,
   });
 
   // 4. Chatbot FAQ Knowledge Base State
@@ -1644,6 +1645,7 @@ export default function Admin({
                     description: '',
                     is_upcoming: true,
                     view_count: 1000,
+                    popularity_score: 4.0,
                   });
                   setShowMerchForm(true);
                 }}
@@ -2038,6 +2040,18 @@ export default function Admin({
                       }
                       className="border-2 border-black p-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
                     />
+                    <input
+                      type="number"
+                      min="0"
+                      max="5"
+                      step="0.1"
+                      placeholder="Popularity score (0–5)"
+                      value={merchForm.popularity_score}
+                      onChange={(e) =>
+                        setMerchForm({ ...merchForm, popularity_score: e.target.value })
+                      }
+                      className="border-2 border-black p-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
+                    />
                   </div>
                   <div className="flex justify-end gap-2">
                     <button
@@ -2065,7 +2079,7 @@ export default function Admin({
                   >
                     <div>
                       <span className="text-[10px] font-mono font-bold text-white bg-[#F43F5E] px-1.5 py-0.2 uppercase border border-black">
-                        {m.tag_display || m.tag} • {(m.view_count || 0).toLocaleString()} views
+                        {m.tag_display || m.tag} • {(m.view_count || 0).toLocaleString()} views • {Number(m.popularity_score || 0).toFixed(2)}/5
                       </span>
                       <h5 className="font-black text-xs sm:text-sm uppercase text-black dark:text-white mt-0.5">
                         {m.name}
@@ -2090,6 +2104,7 @@ export default function Admin({
                             description: m.description || '',
                             is_upcoming: m.is_upcoming ?? true,
                             view_count: m.view_count || 0,
+                            popularity_score: m.popularity_score ?? 0,
                           });
                           setShowMerchForm(true);
                         }}

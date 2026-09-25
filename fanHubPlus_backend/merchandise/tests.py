@@ -58,6 +58,7 @@ class MerchandiseTests(TestCase):
         self.assertEqual(new_count, initial_views + 1)
         self.item1.refresh_from_db()
         self.assertEqual(self.item1.view_count, initial_views + 1)
+        self.assertGreater(self.item1.popularity_score, 0)
 
     def test_track_click_api(self):
         initial_views = self.item2.view_count

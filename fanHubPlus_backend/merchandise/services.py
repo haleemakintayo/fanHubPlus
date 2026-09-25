@@ -11,12 +11,20 @@ class ViewCounterService:
     to prevent race conditions during high-concurrency traffic.
     """
     @staticmethod
+    def _refresh_popularity(item):
+        import math
+        item.popularity_score = round(min(5.0, 3.5 + math.log10(item.view_count + 1) * 0.45), 2)
+        item.save(update_fields=['popularity_score'])
+        return item.popularity_score
+
+    @staticmethod
     def increment_view_count(merchandise_id):
         updated = MerchandiseItem.objects.filter(pk=merchandise_id).update(
             view_count=F('view_count') + 1
         )
         if updated:
             item = MerchandiseItem.objects.get(pk=merchandise_id)
+            ViewCounterService._refresh_popularity(item)
             return item.view_count
         return None
 
@@ -27,6 +35,7 @@ class ViewCounterService:
         )
         if updated:
             item = MerchandiseItem.objects.get(slug=slug)
+            ViewCounterService._refresh_popularity(item)
             return item.view_count
         return None
 

@@ -38,6 +38,7 @@ class MerchandiseItem(models.Model):
     manufacturer = models.CharField(max_length=150, blank=True)
     description = models.TextField(blank=True)
     view_count = models.PositiveIntegerField(default=0, db_index=True)
+    popularity_score = models.FloatField(default=0.0, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

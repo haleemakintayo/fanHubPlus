@@ -443,9 +443,28 @@ export const interactionsApi = {
     }),
 };
 
-/**
- * Admin Control Panel API Service (Analytics, Content CRUD across 8 Categories, Moderation, Feedback, Chatbot KB)
- */
+export const merchandiseApi = {
+  getItems: ({ category, tag, upcoming, page, pageSize = 50 } = {}) => {
+    const params = new URLSearchParams();
+    if (category && category !== 'all') params.set('category', category);
+    if (tag && tag !== 'all') params.set('tag', tag);
+    if (upcoming !== undefined && upcoming !== null) params.set('upcoming', String(upcoming));
+    if (page) params.set('page', String(page));
+    params.set('page_size', String(pageSize));
+    const qs = params.toString();
+    return apiRequest(`/merchandise/?${qs}`, { method: 'GET', skipAuth: true });
+  },
+  getUpcoming: ({ category, tag } = {}) => {
+    const params = new URLSearchParams();
+    if (category && category !== 'all') params.set('category', category);
+    if (tag && tag !== 'all') params.set('tag', tag);
+    const qs = params.toString();
+    return apiRequest(`/merchandise/upcoming/${qs ? `?${qs}` : ''}`, { method: 'GET', skipAuth: true });
+  },
+  trackView: (identifier) =>
+    apiRequest(`/merchandise/${encodeURIComponent(identifier)}/track-click/`, { method: 'POST', skipAuth: true }),
+};
+
 export const adminApi = {
   getAnalytics: () =>
     apiRequest('/accounts/admin/analytics/', {
