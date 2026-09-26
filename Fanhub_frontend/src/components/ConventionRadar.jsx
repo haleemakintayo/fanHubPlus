@@ -3,7 +3,9 @@ import {
   Calendar as CalendarIcon, 
   Users, 
   Check, 
-  Crosshair
+  Crosshair,
+  ExternalLink,
+  Filter
 } from 'lucide-react'
 
 
@@ -12,13 +14,16 @@ export default function ConventionRadar({
   onShowToast 
 }) {
   const [selectedCity, setSelectedCity] = useState('All Cities')
+  const [selectedEventType, setSelectedEventType] = useState('All Types')
   const [calendarAdded, setCalendarAdded] = useState({})
 
   const cities = ['All Cities', 'Tokyo', 'Los Angeles', 'London', 'Lagos']
+  const eventTypes = ['All Types', 'Convention', 'Cosplay Meetup', 'Screening']
 
   const filteredEvents = conventionsData.filter((ev) => {
-    if (selectedCity === 'All Cities') return true
-    return ev.city === selectedCity
+    if (selectedCity !== 'All Cities' && ev.city !== selectedCity) return false
+    if (selectedEventType !== 'All Types' && (ev.eventType || 'Convention') !== selectedEventType) return false
+    return true
   })
 
   // Simulated .ics calendar generator & toast
@@ -61,7 +66,7 @@ export default function ConventionRadar({
       <div className="max-w-7xl mx-auto">
 
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4 mb-6 sm:mb-10 pb-4 sm:pb-6 border-b-2 border-black dark:border-neutral-800">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b-2 border-black dark:border-neutral-800">
           <div>
             <div className="inline-flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
               <span className="bg-[#C084FC] text-black font-black text-[10px] sm:text-xs uppercase px-2 sm:px-2.5 py-0.5 border-2 border-black brutal-shadow-sm">
@@ -75,19 +80,19 @@ export default function ConventionRadar({
               CONVENTIONS & GATHERINGS
             </h2>
             <p className="text-neutral-700 dark:text-neutral-300 font-medium text-xs sm:text-sm md:text-base mt-1 max-w-2xl">
-              Find fan meetups, comic cons, and screening events near you.
+              Find fan meetups, comic cons, cosplay stages, and midnight screening events near you.
             </p>
           </div>
 
           {/* City Filter Buttons */}
-          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 sm:gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             {cities.map((city) => {
               const isSelected = selectedCity === city
               return (
                 <button
                   key={city}
                   onClick={() => setSelectedCity(city)}
-                  className={`px-2 sm:px-3 py-1 sm:py-1.5 font-bold text-[10px] sm:text-sm uppercase tracking-tight border-2 border-black dark:border-white transition-all brutal-btn ${
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 font-bold text-[10px] sm:text-xs uppercase tracking-tight border-2 border-black dark:border-white transition-all brutal-btn ${
                     isSelected
                       ? 'bg-black text-white dark:bg-white dark:text-black brutal-shadow-sm'
                       : 'bg-white dark:bg-[#161B22] text-black dark:text-white hover:bg-neutral-100'
@@ -100,6 +105,31 @@ export default function ConventionRadar({
               )
             })}
           </div>
+        </div>
+
+        {/* Event Type Filter Bar */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-6 sm:mb-8">
+          <span className="inline-flex items-center gap-1 font-mono text-[10px] sm:text-xs font-black uppercase text-neutral-500 mr-1">
+            <Filter className="w-3.5 h-3.5" /> Event Type:
+          </span>
+          {eventTypes.map((type) => {
+            const isSelected = selectedEventType === type
+            return (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setSelectedEventType(type)}
+                className={`px-2.5 py-1 font-mono text-[10px] sm:text-xs font-black uppercase border-2 border-black dark:border-white transition-all brutal-btn ${
+                  isSelected
+                    ? 'bg-[#C084FC] text-black brutal-shadow-sm'
+                    : 'bg-white dark:bg-[#161B22] text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                }`}
+                aria-pressed={isSelected}
+              >
+                {type}
+              </button>
+            )
+          })}
         </div>
 
         {/* Radar Map & Event Schedule Grid */}
@@ -219,13 +249,16 @@ export default function ConventionRadar({
             {filteredEvents.length === 0 ? (
               <div className="p-8 bg-white dark:bg-[#161B22] border-3 border-black text-center brutal-shadow-md">
                 <p className="font-black uppercase text-base text-black dark:text-white">
-                  No conventions scheduled for {selectedCity}
+                  No events scheduled for {selectedCity} ({selectedEventType})
                 </p>
                 <button
-                  onClick={() => setSelectedCity('All Cities')}
+                  onClick={() => {
+                    setSelectedCity('All Cities')
+                    setSelectedEventType('All Types')
+                  }}
                   className="mt-3 px-4 py-1.5 bg-[#FACC15] text-black font-black text-xs uppercase border-2 border-black brutal-shadow-sm"
                 >
-                  View All Cities
+                  Reset Event Filters
                 </button>
               </div>
             ) : (
@@ -253,12 +286,15 @@ export default function ConventionRadar({
 
                       {/* Event Core Info */}
                       <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
                           <span 
                             className="font-mono text-[10px] font-black uppercase px-2 py-0.5 border border-black text-black"
                             style={{ backgroundColor: event.categoryColor }}
                           >
                             {event.category}
+                          </span>
+                          <span className="font-mono text-[10px] font-black uppercase px-2 py-0.5 border border-black bg-neutral-100 dark:bg-[#0D1117] text-black dark:text-white">
+                            {event.eventType || 'Convention'}
                           </span>
                           <span className="font-mono text-[10px] font-bold text-neutral-500 uppercase">
                             📍 {event.city}
@@ -286,11 +322,11 @@ export default function ConventionRadar({
                       </div>
                     </div>
 
-                    {/* Right: Add to Calendar Action Button */}
-                    <div className="w-full sm:w-auto sm:shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-black/10 dark:border-neutral-800">
+                    {/* Right: Add to Calendar & External Ticket Links */}
+                    <div className="w-full sm:w-auto sm:shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-black/10 dark:border-neutral-800 flex flex-row sm:flex-col gap-2">
                       <button
                         onClick={() => handleAddToCalendar(event)}
-                        className={`w-full sm:w-auto px-4 py-2.5 font-black text-xs uppercase tracking-tight border-2 border-black dark:border-white brutal-shadow-sm brutal-btn flex items-center justify-center gap-1.5 ${
+                        className={`flex-1 sm:w-auto px-3.5 py-2 font-black text-xs uppercase tracking-tight border-2 border-black dark:border-white brutal-shadow-sm brutal-btn flex items-center justify-center gap-1.5 ${
                           isAdded
                             ? 'bg-[#A3E635] text-black'
                             : 'bg-[#FACC15] text-black hover:bg-[#fde047]'
@@ -300,7 +336,7 @@ export default function ConventionRadar({
                         {isAdded ? (
                           <>
                             <Check className="w-4 h-4" />
-                            <span>Saved to Cal (.ics)</span>
+                            <span>Saved (.ics)</span>
                           </>
                         ) : (
                           <>
@@ -309,6 +345,19 @@ export default function ConventionRadar({
                           </>
                         )}
                       </button>
+
+                      {event.ticketUrl && (
+                        <a
+                          href={event.ticketUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 sm:w-auto px-3.5 py-2 bg-black text-white dark:bg-white dark:text-black font-black text-xs uppercase tracking-tight border-2 border-black dark:border-white brutal-shadow-sm brutal-btn flex items-center justify-center gap-1.5"
+                          title={`Official registration & tickets for ${event.name}`}
+                        >
+                          <span>Official Tickets</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
                     </div>
 
                   </div>

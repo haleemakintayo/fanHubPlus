@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { ArrowLeft, Upload, MessageSquarePlus, ShieldAlert, LayoutDashboard } from 'lucide-react'
 import Header from './components/Header'
+import Breadcrumbs from './components/Breadcrumbs'
 import Hero from './components/Hero'
 import UniverseMatrix from './components/UniverseMatrix'
+import ContentExplorer from './components/ContentExplorer'
 import MultimediaCenter from './components/MultimediaCenter'
 import CharacterArchive from './components/CharacterArchive'
 import ResourceLibrary from './components/ResourceLibrary'
@@ -197,21 +199,28 @@ export default function App() {
   useEffect(() => {
     let isMounted = true
     adminApi.getCharacters()
-      .then((profiles) => {
-        if (!isMounted || !Array.isArray(profiles) || profiles.length === 0) return
+      .then((res) => {
+        const profiles = Array.isArray(res) ? res : res?.results || []
+        if (!isMounted || profiles.length === 0) return
         const mappedProfiles = profiles.map((profile) => {
           const category = UNIVERSES.find((universe) => universe.slug === profile.category?.slug)
-          const fallbackCharacter = CHARACTERS_DATA.find((character) => character.universe === profile.category?.name)
+          const fallbackCharacter = CHARACTERS_DATA.find(
+            (character) =>
+              character.id === profile.slug ||
+              character.universe === profile.category?.name
+          )
           const details = profile.details_json && typeof profile.details_json === 'object'
             ? profile.details_json
             : {}
 
           return {
-            id: `character-${profile.id}`,
+            id: profile.slug || `character-${profile.id}`,
             name: profile.name,
             alias: profile.alias || profile.archetype || 'Community Profile',
-            universe: profile.category?.name || 'Community Vault',
-            accentColor: category?.accentColor || '#A3E635',
+            universe: profile.category?.name || fallbackCharacter?.universe || 'Community Vault',
+            universeSlug: profile.category?.slug || category?.slug || fallbackCharacter?.universeSlug || 'community-vault',
+            accentColor: category?.accentColor || fallbackCharacter?.accentColor || '#A3E635',
+            archetype: profile.archetype || fallbackCharacter?.archetype || 'Canon Icon',
             image: profile.image_url || fallbackCharacter?.image || '',
             faction: profile.faction || 'Independent',
             origin: profile.origin || 'Unknown Origin',
@@ -220,6 +229,7 @@ export default function App() {
               ? profile.stats_json.map((stat) => ({
                 label: stat.label || 'Attribute',
                 value: stat.value,
+                max: stat.max || 100,
                 textValue: stat.textValue || stat.value || 'N/A',
               }))
               : [{ label: 'Profile Status', textValue: 'Community submission' }],
@@ -229,7 +239,15 @@ export default function App() {
             },
           }
         })
-        setHomeCharacters(mappedProfiles)
+        const seenIds = new Set(mappedProfiles.map((p) => p.id))
+        const seenNames = new Set(mappedProfiles.map((p) => p.name.toLowerCase()))
+        const merged = [
+          ...mappedProfiles,
+          ...CHARACTERS_DATA.filter(
+            (c) => !seenIds.has(c.id) && !seenNames.has(c.name.toLowerCase())
+          ),
+        ]
+        setHomeCharacters(merged)
       })
       .catch(() => {
         // Keep the curated static archive available when the API is unavailable.
@@ -478,19 +496,19 @@ export default function App() {
 
   const toastCounterRef = useRef(0)
 
+  const dismissToast = useCallback((id) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
+  }, [])
+
   // Toast Management
-  const addToast = ({ title, message, type = 'info' }) => {
+  const addToast = useCallback(({ title, message, type = 'info' }) => {
     toastCounterRef.current += 1
     const id = `toast-${toastCounterRef.current}`
     setToasts(prev => [...prev, { id, title, message, type }])
     setTimeout(() => {
       dismissToast(id)
     }, 4500)
-  }
-
-  const dismissToast = (id) => {
-    setToasts(prev => prev.filter(t => t.id !== id))
-  }
+  }, [dismissToast])
 
   // Bookmark Toggle (syncs local vault + backend database)
   const toggleBookmark = (id, title, type = 'Featured Article', extra = {}) => {
@@ -592,7 +610,7 @@ export default function App() {
       message: 'Your canon rating has been recorded in the telemetry matrix.',
       type: 'success',
     })
-  }, [recordActivity])
+  }, [recordActivity, addToast])
 
   // Calculate live matching results count
   const totalResultsCount = useMemo(() => {
@@ -645,10 +663,26 @@ export default function App() {
         onOpenAuth={handleOpenRouteOrModal}
       />
 
+      {/* 1B. Dynamic Breadcrumbs Bar */}
+      <Breadcrumbs
+        activePage={activePage}
+        selectedUniverse={activePage === 'universe' ? activeUniverseSlug : selectedUniverse}
+        activeArticle={activePage === 'article' ? getArticleBySlugOrTopic(activeArticleSlug) : null}
+        onNavigatePage={navigateToPage}
+        onSelectUniverse={(u) => {
+          setSelectedUniverse(u)
+          if (activePage !== 'home') {
+            navigateToPage('home', '#explore')
+          }
+        }}
+        onCloseArticle={() => navigateToPage('home', '#content-explorer')}
+      />
+
       {/* Main Content Area: Switches between Dedicated Pages ('universe', 'article', 'dashboard', 'admin', and 'home') */}
       <main className="flex-1">
         {activePage === 'universe' ? (
           <UniversePage
+            key={activeUniverseSlug}
             universeSlug={activeUniverseSlug}
             onNavigateHome={() => navigateToPage('home', '#top')}
             onSelectUniverse={(slug) => openUniversePage(slug)}
@@ -866,6 +900,25 @@ export default function App() {
               }}
             />
 
+            {/* 3B. Multi-Level Fandom Content Explorer & Dossier Grid */}
+            <ContentExplorer
+              articles={ARTICLES_DATA}
+              multimediaData={MULTIMEDIA_DATA}
+              universes={UNIVERSES}
+              selectedUniverse={selectedUniverse}
+              onSelectUniverse={(u) => {
+                setSelectedUniverse(u)
+              }}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              bookmarkedItems={bookmarkedItems}
+              toggleBookmark={toggleBookmark}
+              onRecordActivity={recordActivity}
+              onSelectArticle={(articleItem) => {
+                openArticlePage(articleItem.slug || articleItem.id)
+              }}
+            />
+
             {/* 4. Interactive Multimedia Center */}
             <MultimediaCenter
               multimediaData={MULTIMEDIA_DATA}
@@ -879,6 +932,7 @@ export default function App() {
               characters={homeCharacters}
               bookmarkedItems={bookmarkedItems}
               toggleBookmark={toggleBookmark}
+              onOpenSubmissionModal={() => setActiveModal('submission')}
               onOpenLoreModal={(character) => {
                 setActiveLoreCharacter(character)
                 recordActivity({
@@ -911,6 +965,15 @@ export default function App() {
       <FandomBot
         qaData={FANDOM_BOT_QA}
         onShowToast={addToast}
+        onCompleteOnboarding={({ universeSlug, universeName, sectionSelector }) => {
+          setSelectedUniverse(universeSlug)
+          navigateToPage('home', sectionSelector)
+          addToast({
+            title: 'Guided Setup Complete',
+            message: `Hub calibrated to ${universeName}!`,
+            type: 'success',
+          })
+        }}
       />
 
       {/* 9. Footer */}

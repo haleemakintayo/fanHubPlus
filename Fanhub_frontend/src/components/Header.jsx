@@ -15,8 +15,6 @@ import {
   UserPlus,
   LogOut,
   User,
-  ShieldAlert,
-  LayoutDashboard,
   ArrowLeft
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
@@ -36,11 +34,11 @@ export default function Header({
 
   const navLinks = [
     { name: 'Explore', href: '#explore', icon: Compass },
+    { name: 'Content Vault', href: '#content-explorer', icon: FileText },
     { name: 'Multimedia', href: '#multimedia', icon: Radio },
     { name: 'Characters', href: '#characters', icon: Users },
     { name: 'Radar & Events', href: '#events', icon: Calendar },
     { name: 'Merch Showcase', href: '#merch', icon: ShoppingBag },
-    { name: 'Sitemap', href: '#sitemap', icon: FileText },
   ]
 
   const handleNavClick = (e, href) => {
@@ -62,15 +60,6 @@ export default function Header({
       onNavigatePage('dashboard')
     } else {
       onOpenAuth?.('dashboard')
-    }
-  }
-
-  const handleOpenAdminPage = () => {
-    setMobileMenuOpen(false)
-    if (onNavigatePage) {
-      onNavigatePage('admin')
-    } else {
-      onOpenAuth?.('admin')
     }
   }
 

@@ -13,7 +13,11 @@ import {
   BookOpen,
   Sparkles,
   FileText,
-  Layers
+  Layers,
+  ThumbsUp,
+  ThumbsDown,
+  Milestone,
+  MapPin
 } from 'lucide-react'
 import {
   ARTICLES_DATA,
@@ -36,8 +40,9 @@ export default function ArticlePage({
   onRateItem,
   onShowToast
 }) {
-  const [remoteArticle, setRemoteArticle] = useState(null)
-  const [noteDraft, setNoteDraft] = useState('')
+  const [remoteArticleMap, setRemoteArticleMap] = useState({})
+  const [noteEdits, setNoteEdits] = useState({})
+  const [thumbVotes, setThumbVotes] = useState({})
   const [copiedLink, setCopiedLink] = useState(false)
 
   // Resolve curated article first, or fallback to remote backend article
@@ -54,8 +59,7 @@ export default function ArticlePage({
   }, [articleSlug])
 
   useEffect(() => {
-    setRemoteArticle(null)
-    if (curatedMatch) return
+    if (curatedMatch || !articleSlug) return
 
     let isMounted = true
     fandomsApi
@@ -63,7 +67,8 @@ export default function ArticlePage({
       .then((data) => {
         if (!isMounted || !data) return
         const uni = getUniverseBySlug(data.category_slug)
-        setRemoteArticle(normalizeBackendArticle(data, uni.accentColor))
+        const normalized = normalizeBackendArticle(data, uni.accentColor)
+        setRemoteArticleMap((prev) => ({ ...prev, [articleSlug]: normalized }))
       })
       .catch(() => {
         // Fallback handled by getArticleBySlugOrTopic
@@ -74,6 +79,8 @@ export default function ArticlePage({
     }
   }, [articleSlug, curatedMatch])
 
+  const remoteArticle = remoteArticleMap[articleSlug] || null
+
   const article = useMemo(
     () => curatedMatch || remoteArticle || getArticleBySlugOrTopic(articleSlug),
     [curatedMatch, remoteArticle, articleSlug]
@@ -81,15 +88,13 @@ export default function ArticlePage({
 
   const universe = useMemo(() => getUniverseBySlug(article.universe), [article.universe])
 
-  // Sync bookmark note draft when article or bookmarks change
   const existingBookmark = useMemo(
     () => bookmarks.find((b) => b.id === article.id),
     [bookmarks, article.id]
   )
 
-  useEffect(() => {
-    setNoteDraft(existingBookmark?.note || '')
-  }, [existingBookmark])
+  const noteDraft = noteEdits[article.id] !== undefined ? noteEdits[article.id] : (existingBookmark?.note || '')
+  const thumbVote = thumbVotes[article.id] || null
 
   // Related articles in the same universe
   const relatedInUniverse = useMemo(() => {
@@ -387,6 +392,96 @@ export default function ArticlePage({
               ))}
             </div>
 
+            {/* Timeline-Style Event Highlights */}
+            <div className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-neutral-200 p-6 sm:p-8 brutal-shadow">
+              <div className="flex items-center gap-2 mb-5 pb-3 border-b-2 border-black dark:border-neutral-700">
+                <Milestone className="w-5 h-5 text-[#C084FC]" />
+                <h2 className="text-lg sm:text-xl font-black uppercase tracking-tight text-black dark:text-white">
+                  TIMELINE-STYLE EVENT HIGHLIGHTS & CHRONOLOGY
+                </h2>
+              </div>
+
+              <div className="relative pl-6 border-l-4 border-black dark:border-neutral-400 space-y-6">
+                {[
+                  {
+                    phase: 'PHASE 01 • ORIGIN',
+                    title: 'Initial Reveal & Studio Announcement',
+                    date: `${article.releaseYear || '2025'} Q1`,
+                    detail: `First canon key visual and production staff confirmation unveiled to global ${universe.name} audiences.`,
+                  },
+                  {
+                    phase: 'PHASE 02 • ESCALATION',
+                    title: 'World Premiere Showcase & Convention Panel',
+                    date: `${article.releaseYear || '2026'} Q2`,
+                    detail: `Standing-room-only stage panel featuring live director commentary, voice cast table reads, and exclusive 4K teaser footage.`,
+                  },
+                  {
+                    phase: 'PHASE 03 • CLIMAX',
+                    title: article.title,
+                    date: article.publishedAt || '2026 Current',
+                    detail: article.synopsis,
+                  },
+                ].map((milestone, idx) => (
+                  <div key={idx} className="relative">
+                    <span
+                      className="absolute -left-[33px] top-1 w-4 h-4 border-2 border-black"
+                      style={{ backgroundColor: universe.accentColor }}
+                    />
+                    <div className="bg-[#FDFBF7] dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 p-4 brutal-shadow-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <span className="font-mono text-[10px] font-black uppercase px-2 py-0.5 bg-black text-[#FACC15]">
+                          {milestone.phase}
+                        </span>
+                        <span className="font-mono text-xs font-bold text-neutral-500">
+                          {milestone.date}
+                        </span>
+                      </div>
+                      <h4 className="font-black text-sm sm:text-base uppercase text-black dark:text-white mb-1">
+                        {milestone.title}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 font-medium">
+                        {milestone.detail}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Event Storytelling Layout for Past Conventions & Premieres */}
+            <div className="bg-black text-white border-3 border-black dark:border-white p-6 sm:p-8 brutal-shadow">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-neutral-800">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-[#F43F5E]" />
+                  <h2 className="text-lg sm:text-xl font-black uppercase tracking-tight">
+                    CONVENTION & PREMIERE STORYTELLING ARCHIVE
+                  </h2>
+                </div>
+                <span className="font-mono text-[10px] font-black uppercase px-2.5 py-1 bg-[#A3E635] text-black border border-white">
+                  ON-SITE DISPATCH
+                </span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-neutral-300 font-medium leading-relaxed mb-4">
+                Relive the atmosphere from the main stage floor: over 40,000 fans gathered with synchronized lightsticks, screen-accurate cosplay armor, and deafening cheers as the lights dimmed for the world premiere of <strong className="text-[#FACC15]">{article.title}</strong>.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+                <div className="p-3 bg-neutral-900 border border-neutral-700">
+                  <span className="text-neutral-400 block text-[10px] uppercase">CROWD PEAK DECIBELS</span>
+                  <span className="text-lg font-black text-[#A3E635]">114.8 dBA</span>
+                </div>
+                <div className="p-3 bg-neutral-900 border border-neutral-700">
+                  <span className="text-neutral-400 block text-[10px] uppercase">GLOBAL LIVESTREAM</span>
+                  <span className="text-lg font-black text-[#38BDF8]">1.9M Concurrent</span>
+                </div>
+                <div className="p-3 bg-neutral-900 border border-neutral-700">
+                  <span className="text-neutral-400 block text-[10px] uppercase">ARCHIVE STATUS</span>
+                  <span className="text-lg font-black text-[#FACC15]">Preserved 4K</span>
+                </div>
+              </div>
+            </div>
+
             {/* INTERACTIVE READER ENGAGEMENT: RATING & PERSONAL COLLECTOR NOTE */}
             <div className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-neutral-200 p-6 sm:p-8 brutal-shadow space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b-2 border-black/15 dark:border-neutral-700">
@@ -399,26 +494,57 @@ export default function ArticlePage({
                   </h3>
                 </div>
 
-                <div className="flex items-center gap-2 bg-[#FDFBF7] dark:bg-[#0D1117] px-4 py-2.5 border-2 border-black dark:border-neutral-300 brutal-shadow-sm">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      onClick={() => onRateItem && onRateItem(article.id, star)}
-                      className="p-1 hover:scale-125 transition-transform"
-                      aria-label={`Rate ${star} stars`}
-                    >
-                      <Star
-                        className={`w-6 h-6 ${
-                          star <= (userStar || Math.round(article.rating))
-                            ? 'text-[#FACC15] fill-[#FACC15]'
-                            : 'text-neutral-400'
-                        }`}
-                      />
-                    </button>
-                  ))}
-                  <span className="ml-2 font-mono text-xs font-black uppercase text-black dark:text-white">
-                    {userStar ? `Your Rating: ${userStar}/5` : `${article.rating}/5 Avg`}
-                  </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1.5 bg-[#FDFBF7] dark:bg-[#0D1117] px-3.5 py-2 border-2 border-black dark:border-neutral-300 brutal-shadow-sm">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => onRateItem && onRateItem(article.id, star)}
+                        className="p-1 hover:scale-125 transition-transform"
+                        aria-label={`Rate ${star} stars`}
+                      >
+                        <Star
+                          className={`w-5 h-5 ${
+                            star <= (userStar || Math.round(article.rating))
+                              ? 'text-[#FACC15] fill-[#FACC15]'
+                              : 'text-neutral-400'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="ml-1.5 font-mono text-xs font-black uppercase text-black dark:text-white">
+                      {userStar ? `${userStar}/5` : `${article.rating}/5`}
+                    </span>
+                  </div>
+
+                  {/* Thumbs Up / Thumbs Down Quick Rating */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThumbVotes((prev) => ({ ...prev, [article.id]: 'up' }))
+                      onRateItem && onRateItem(article.id, 5)
+                    }}
+                    className={`px-2.5 py-2 border-2 border-black dark:border-white font-mono text-xs font-black uppercase flex items-center gap-1 brutal-btn ${
+                      thumbVote === 'up' ? 'bg-[#A3E635] text-black' : 'bg-white dark:bg-[#0D1117] text-black dark:text-white'
+                    }`}
+                    aria-label="Thumbs Up"
+                  >
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                    <span>Canon</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThumbVotes((prev) => ({ ...prev, [article.id]: 'down' }))
+                      onRateItem && onRateItem(article.id, 2)
+                    }}
+                    className={`px-2.5 py-2 border-2 border-black dark:border-white font-mono text-xs font-black uppercase flex items-center gap-1 brutal-btn ${
+                      thumbVote === 'down' ? 'bg-[#F43F5E] text-white' : 'bg-white dark:bg-[#0D1117] text-black dark:text-white'
+                    }`}
+                    aria-label="Thumbs Down"
+                  >
+                    <ThumbsDown className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
@@ -430,7 +556,7 @@ export default function ArticlePage({
                 <textarea
                   rows={3}
                   value={noteDraft}
-                  onChange={(e) => setNoteDraft(e.target.value)}
+                  onChange={(e) => setNoteEdits((prev) => ({ ...prev, [article.id]: e.target.value }))}
                   placeholder="Jot down favorite chapter numbers, timestamps, build dimensions, or theories..."
                   className="w-full p-3 bg-[#FDFBF7] dark:bg-[#0D1117] border-2 border-black dark:border-neutral-400 text-xs sm:text-sm font-bold text-black dark:text-white focus:outline-none"
                 />

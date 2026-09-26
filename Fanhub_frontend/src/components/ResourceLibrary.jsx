@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Bookmark, Calendar, Eye, Filter, Flame, Package, Sparkles, TrendingUp } from 'lucide-react'
 import { merchandiseApi } from '../services/api'
 import MediaSpinner from './MediaSpinner'
@@ -9,9 +9,11 @@ const CATEGORIES = [
   { slug: 'anime', name: 'Anime', color: '#A3E635' },
   { slug: 'gaming', name: 'Gaming', color: '#FACC15' },
   { slug: 'movies-tv', name: 'Movies & TV', color: '#38BDF8' },
+  { slug: 'kpop', name: 'K-Pop', color: '#F43F5E' },
   { slug: 'comics', name: 'Comics', color: '#FB7185' },
   { slug: 'manga', name: 'Manga', color: '#FB923C' },
   { slug: 'cosplay', name: 'Cosplay', color: '#C084FC' },
+  { slug: 'community-vault', name: 'Community Vault', color: '#34D399' },
 ]
 
 const TAGS = ['LIMITED_EDITION', 'PRE_ORDER', 'COLLECTIBLE', 'OFFICIAL_LICENSED']
@@ -29,31 +31,60 @@ const tagStyles = {
   OFFICIAL_LICENSED: 'bg-[#34D399] text-black',
 }
 
+function normalizeTagCode(rawTag) {
+  if (!rawTag) return 'COLLECTIBLE'
+  const upper = String(rawTag).toUpperCase().replace(/[\s-]+/g, '_')
+  if (TAGS.includes(upper)) return upper
+  if (upper.includes('LIMITED')) return 'LIMITED_EDITION'
+  if (upper.includes('PRE')) return 'PRE_ORDER'
+  if (upper.includes('OFFICIAL') || upper.includes('LICENSE')) return 'OFFICIAL_LICENSED'
+  return 'COLLECTIBLE'
+}
+
 function normalizeItem(item, fallback = {}) {
-  const category = item.category?.slug || item.category_slug || fallback.universeSlug || 'anime'
+  const category =
+    item.category?.slug ||
+    item.category_slug ||
+    item.categorySlug ||
+    fallback.universeSlug ||
+    'anime'
+  const normalizedTag = normalizeTagCode(item.tag || item.badgeType || item.statusTag || fallback.statusTag)
   return {
     id: item.id || item.slug || fallback.id,
     slug: item.slug || fallback.slug || item.id || fallback.id,
     title: item.name || item.title || fallback.title,
     category,
-    categoryName: item.category?.name || fallback.universe || category,
-    categoryColor: item.category?.accent_color || fallback.universeColor || '#A3E635',
+    categoryName: item.category?.name || item.universe || fallback.universe || category,
+    categoryColor: item.category?.accent_color || item.universeColor || fallback.universeColor || '#A3E635',
     image: item.image_url || item.image || fallback.image,
-    gallery: item.gallery || fallback.gallery || [fallback.image, ...FALLBACK_GALLERY].filter(Boolean).slice(0, 3),
-    tag: item.tag || fallback.statusTag || 'COLLECTIBLE',
-    tagDisplay: item.tag_display || fallback.statusTag || 'Collectible',
-    dropDate: item.drop_date_text || fallback.dropDate || 'Release date to be announced',
+    gallery: item.gallery || fallback.gallery || [item.image_url || item.image || fallback.image, ...FALLBACK_GALLERY].filter(Boolean).slice(0, 3),
+    tag: normalizedTag,
+    tagDisplay: item.tag_display || item.statusTag || fallback.statusTag || normalizedTag.replaceAll('_', ' '),
+    dropDate: item.drop_date_text || item.dropDate || fallback.dropDate || 'Release date to be announced',
     msrp: item.msrp || fallback.msrp || 'MSRP preview',
     manufacturer: item.manufacturer || fallback.manufacturer || 'Official partner',
     description: item.description || fallback.description || 'A curated release from the Fan Hub partner network.',
-    viewCount: Number(item.view_count ?? fallback.viewCountNum ?? 0),
-    popularity: Number(item.popularity_score ?? fallback.popularity ?? 0),
+    viewCount: Number(item.view_count ?? item.viewCountNum ?? fallback.viewCountNum ?? 0),
+    popularity: Number(item.popularity_score ?? item.popularity ?? fallback.popularity ?? 0),
     isUpcoming: item.is_upcoming ?? true,
   }
 }
 
+function computeReleaseCountdown(targetIso, nowMs) {
+  const target = new Date(targetIso || '2026-11-15T00:00:00Z').getTime()
+  const diff = Math.max(0, target - nowMs)
+  const pad = (n) => String(n).padStart(2, '0')
+  return {
+    days: pad(Math.floor(diff / (1000 * 60 * 60 * 24))),
+    hours: pad(Math.floor((diff / (1000 * 60 * 60)) % 24)),
+    minutes: pad(Math.floor((diff / (1000 * 60)) % 60)),
+    seconds: pad(Math.floor((diff / 1000) % 60)),
+  }
+}
+
 export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {}, toggleBookmark, onRecordActivity }) {
-  const [items, setItems] = useState(() => merchDrops.map((item) => normalizeItem(item)))
+  const fallbackNormalized = useMemo(() => merchDrops.map((item) => normalizeItem(item)), [merchDrops])
+  const [items, setItems] = useState(() => fallbackNormalized)
   const [upcomingMerch, setUpcomingMerch] = useState([])
   const [activeCategory, setActiveCategory] = useState('all')
   const [activeTag, setActiveTag] = useState('all')
@@ -65,6 +96,20 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
   const [serverPage, setServerPage] = useState(1)
   const [serverTotalPages, setServerTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
+  const [nowMs, setNowMs] = useState(() => Date.now())
+
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const getFilteredFallback = useCallback((catSlug, tagCode) => {
+    return fallbackNormalized.filter((item) => {
+      const matchesCat = catSlug === 'all' || item.category === catSlug
+      const matchesTag = tagCode === 'all' || item.tag === tagCode
+      return matchesCat && matchesTag
+    })
+  }, [fallbackNormalized])
 
   useEffect(() => {
     let mounted = true
@@ -76,19 +121,27 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
         if (!mounted) return
         const results = Array.isArray(response) ? response : response?.results
         const count = Array.isArray(response) ? response.length : response?.count
-        if (Array.isArray(results)) {
+        if (Array.isArray(results) && results.length > 0) {
           const normalized = results.map((item) => normalizeItem(item))
           setItems((prev) => serverPage === 1 ? normalized : [...prev, ...normalized])
           setServerTotalPages(Math.max(1, Math.ceil((count || results.length) / 50)))
+        } else if (serverPage === 1) {
+          setItems(getFilteredFallback(activeCategory, activeTag))
+          setServerTotalPages(1)
         }
-        if (Array.isArray(upcomingResponse)) {
+        if (Array.isArray(upcomingResponse) && upcomingResponse.length > 0) {
           setUpcomingMerch(upcomingResponse.map((item) => normalizeItem(item)))
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!mounted) return
+        if (serverPage === 1) {
+          setItems(getFilteredFallback(activeCategory, activeTag))
+        }
+      })
       .finally(() => { if (mounted) setIsLoading(false) })
     return () => { mounted = false }
-  }, [activeCategory, activeTag, serverPage])
+  }, [activeCategory, activeTag, serverPage, getFilteredFallback])
 
   const tags = ['all', ...TAGS]
   const groupedItemsByCategory = useMemo(() => {
@@ -177,7 +230,7 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
               <div className="flex items-center gap-2 font-mono text-xs font-black uppercase text-neutral-500"><Filter className="w-4 h-4" /> Filter gallery</div>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((category) => (
-                  <button key={category.slug} type="button" onClick={() => { setIsLoading(true); setActiveCategory(category.slug); setPage(1); setServerPage(1); setItems([]) }} className={`px-3 py-1.5 font-mono text-[11px] font-black uppercase border-2 border-black dark:border-white ${activeCategory === category.slug ? 'text-black' : 'bg-white dark:bg-[#161B22] text-neutral-600 dark:text-neutral-300'}`} style={activeCategory === category.slug ? { backgroundColor: category.color } : undefined}>
+                  <button key={category.slug} type="button" onClick={() => { setIsLoading(true); setActiveCategory(category.slug); setPage(1); setServerPage(1); setItems(getFilteredFallback(category.slug, activeTag)) }} className={`px-3 py-1.5 font-mono text-[11px] font-black uppercase border-2 border-black dark:border-white ${activeCategory === category.slug ? 'text-black' : 'bg-white dark:bg-[#161B22] text-neutral-600 dark:text-neutral-300'}`} style={activeCategory === category.slug ? { backgroundColor: category.color } : undefined}>
                     {category.name}
                   </button>
                 ))}
@@ -185,7 +238,7 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
               <div className="flex flex-wrap items-center gap-2 pt-2">
                 <span className="font-mono text-[10px] font-black uppercase text-neutral-500">Tags:</span>
                 {tags.map((tag) => (
-                  <button key={tag} type="button" onClick={() => { setIsLoading(true); setActiveTag(tag); setPage(1); setServerPage(1); setItems([]) }} className={`px-2 py-1 font-mono text-[10px] font-bold uppercase border border-black dark:border-neutral-600 ${activeTag === tag ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-neutral-600 dark:text-neutral-300'}`}>
+                  <button key={tag} type="button" onClick={() => { setIsLoading(true); setActiveTag(tag); setPage(1); setServerPage(1); setItems(getFilteredFallback(activeCategory, tag)) }} className={`px-2 py-1 font-mono text-[10px] font-bold uppercase border border-black dark:border-neutral-600 ${activeTag === tag ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-neutral-600 dark:text-neutral-300'}`}>
                     {tag === 'all' ? 'All tags' : tag.replaceAll('_', ' ')}
                   </button>
                 ))}
@@ -260,12 +313,55 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
           </>
         ) : (
           <div>
-            <div className="flex items-center gap-2 mb-4"><Sparkles className="w-5 h-5 text-[#F43F5E]" /><span className="font-mono text-xs font-black uppercase">Anticipated drops across the multiverse</span></div>
+            <div className="flex items-center gap-2 mb-4"><Sparkles className="w-5 h-5 text-[#F43F5E]" /><span className="font-mono text-xs font-black uppercase">Anticipated drops across the multiverse • Live UTC Countdown</span></div>
             <div className="flex flex-wrap gap-2 mb-6">
               {releaseTypes.map((type) => <button key={type} type="button" onClick={() => setActiveReleaseType(type)} className={`px-3 py-1.5 font-mono text-[11px] font-black uppercase border-2 border-black dark:border-white ${activeReleaseType === type ? 'bg-[#38BDF8] text-black' : 'bg-white dark:bg-[#161B22] text-neutral-600 dark:text-neutral-300'}`}>{type}</button>)}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {visibleReleases.map((release) => <article key={release.id} className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white brutal-shadow-sm overflow-hidden"><div className="relative aspect-video bg-neutral-100 dark:bg-neutral-800"><img src={release.image} alt={release.title} className="w-full h-full object-cover" /><span className="absolute top-2 left-2 bg-[#38BDF8] text-black border-2 border-black px-2 py-1 font-mono text-[10px] font-black uppercase">{release.type}</span></div><div className="p-4"><div className="flex items-center gap-1.5 font-mono text-[10px] font-black uppercase text-neutral-500"><Calendar className="w-3.5 h-3.5" /> {release.date} • {release.status}</div><h3 className="font-black uppercase text-lg mt-2 text-black dark:text-white">{release.title}</h3><p className="font-mono text-[10px] font-bold uppercase text-neutral-500 mt-1">{release.studio}</p><p className="text-xs text-neutral-700 dark:text-neutral-300 mt-3 leading-relaxed">{release.description}</p><div className="mt-4 flex items-center gap-1.5 font-mono text-[10px] font-black uppercase text-[#10B981]"><Flame className="w-3.5 h-3.5" /> Watchlist this release</div></div></article>)}
+              {visibleReleases.map((release) => {
+                const cd = computeReleaseCountdown(release.targetDate, nowMs)
+                return (
+                  <article key={release.id} className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white brutal-shadow-sm overflow-hidden flex flex-col justify-between">
+                    <div>
+                      <div className="relative aspect-video bg-neutral-100 dark:bg-neutral-800">
+                        <img src={release.image} alt={release.title} className="w-full h-full object-cover" />
+                        <span className="absolute top-2 left-2 bg-[#38BDF8] text-black border-2 border-black px-2 py-1 font-mono text-[10px] font-black uppercase">{release.type}</span>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-center gap-1.5 font-mono text-[10px] font-black uppercase text-neutral-500">
+                          <Calendar className="w-3.5 h-3.5" /> {release.date} • {release.status}
+                        </div>
+                        <h3 className="font-black uppercase text-lg mt-2 text-black dark:text-white">{release.title}</h3>
+                        <p className="font-mono text-[10px] font-bold uppercase text-neutral-500 mt-1">{release.studio}</p>
+                        <p className="text-xs text-neutral-700 dark:text-neutral-300 mt-3 leading-relaxed">{release.description}</p>
+                      </div>
+                    </div>
+                    <div className="px-4 pb-4">
+                      <div className="grid grid-cols-4 gap-1.5 p-2 bg-black text-white border-2 border-black mb-3 text-center font-mono">
+                        <div>
+                          <span className="block text-sm font-black text-[#A3E635]">{cd.days}</span>
+                          <span className="block text-[8px] uppercase text-neutral-400">DAYS</span>
+                        </div>
+                        <div>
+                          <span className="block text-sm font-black text-[#FACC15]">{cd.hours}</span>
+                          <span className="block text-[8px] uppercase text-neutral-400">HRS</span>
+                        </div>
+                        <div>
+                          <span className="block text-sm font-black text-[#38BDF8]">{cd.minutes}</span>
+                          <span className="block text-[8px] uppercase text-neutral-400">MIN</span>
+                        </div>
+                        <div>
+                          <span className="block text-sm font-black text-[#F43F5E]">{cd.seconds}</span>
+                          <span className="block text-[8px] uppercase text-neutral-400">SEC</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 font-mono text-[10px] font-black uppercase text-[#10B981]">
+                        <Flame className="w-3.5 h-3.5" /> Live Countdown Active
+                      </div>
+                    </div>
+                  </article>
+                )
+              })}
             </div>
             <div className="mt-6 p-4 border-2 border-black dark:border-white bg-[#FACC15] text-black flex items-center gap-2 brutal-shadow-sm"><Package className="w-5 h-5" /><span className="font-mono text-xs font-black uppercase">Merchandise drops sync automatically from the admin catalog.</span></div>
           </div>

@@ -56,16 +56,6 @@ export default function MultimediaCenter({
   const audioIframeRef = useRef(null)
   const videoContainerRef = useRef(null)
 
-  // Sync with props if multimediaData changes
-  useEffect(() => {
-    if (multimediaData?.trailers?.length) {
-      setTrailers(multimediaData.trailers)
-    }
-    if (multimediaData?.audioTracks?.length) {
-      setAudioTracks(multimediaData.audioTracks)
-    }
-  }, [multimediaData])
-
   // Fetch live Stream & Discover data from Django backend API
   useEffect(() => {
     let isMounted = true

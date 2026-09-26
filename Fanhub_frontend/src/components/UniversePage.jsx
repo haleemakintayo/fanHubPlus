@@ -22,8 +22,7 @@ import {
   X,
   CheckCircle2,
   Play,
-  Music,
-  ShoppingBag
+  Music
 } from 'lucide-react'
 import {
   UNIVERSES,
@@ -67,14 +66,8 @@ export default function UniversePage({
   const universe = useMemo(() => getUniverseBySlug(universeSlug), [universeSlug])
   const IconComponent = ICON_MAP[universe.icon] || Tv
 
-  // Reset filters on universe change
+  // Fetch any live backend articles & characters for this category
   useEffect(() => {
-    setActiveTab('all')
-    setLocalSearch('')
-    setSelectedTag('ALL')
-    setBackendArticles([])
-    setBackendCharacters([])
-
     let isMounted = true
     // Attempt to fetch any live backend articles & characters for this category
     fandomsApi
@@ -97,32 +90,38 @@ export default function UniversePage({
       .then((res) => {
         if (!isMounted) return
         const list = Array.isArray(res) ? res : res?.results || []
-        const mapped = list.map((c) => ({
-          id: `db-char-${c.id || c.slug}`,
-          name: c.name,
-          alias: c.alias_or_title || 'Canon Figure',
-          universe: universe.name,
-          universeSlug: universe.slug,
-          accentColor: universe.accentColor,
-          archetype: c.faction || `${universe.name} Icon`,
-          origin: c.origin_world || universe.name,
-          faction: c.faction || 'Official Canon',
-          tagline: `“${c.biography ? c.biography.slice(0, 95) + '...' : 'Archived in the Fan Hub Plus Character Vault.'}”`,
-          image:
-            c.image_url ||
-            'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80',
-          stats: [
-            { label: 'Power', value: c.power_stat || 90, max: 100 },
-            { label: 'Speed', value: c.speed_stat || 85, max: 100 },
-            { label: 'Intelligence', value: c.intelligence_stat || 88, max: 100 }
-          ],
-          details: {
-            firstAppearance: c.first_appearance || 'Official Canon Archive',
-            weapon: c.signature_weapon || 'Classified Relic',
-            nemesis: c.primary_nemesis || 'Unknown Adversary',
-            bio: c.biography || 'Verified character dossier in the Fan Hub Plus database.'
+        const mapped = list.map((c) => {
+          const detailsObj = c.details_json && typeof c.details_json === 'object' ? c.details_json : {}
+          return {
+            id: c.slug || `db-char-${c.id}`,
+            slug: c.slug,
+            name: c.name,
+            alias: c.alias || c.alias_or_title || 'Canon Figure',
+            universe: universe.name,
+            universeSlug: universe.slug,
+            accentColor: universe.accentColor,
+            archetype: c.archetype || c.faction || `${universe.name} Icon`,
+            origin: c.origin || c.origin_world || universe.name,
+            faction: c.faction || 'Official Canon',
+            tagline: c.tagline || `“${c.biography ? c.biography.slice(0, 95) + '...' : 'Archived in the Fan Hub Plus Character Vault.'}”`,
+            image:
+              c.image_url ||
+              'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80',
+            stats: Array.isArray(c.stats_json) && c.stats_json.length > 0
+              ? c.stats_json
+              : [
+                  { label: 'Power', value: c.power_stat || 90, max: 100 },
+                  { label: 'Speed', value: c.speed_stat || 85, max: 100 },
+                  { label: 'Intelligence', value: c.intelligence_stat || 88, max: 100 }
+                ],
+            details: {
+              firstAppearance: detailsObj.firstAppearance || c.first_appearance || 'Official Canon Archive',
+              weapon: detailsObj.weapon || c.signature_weapon || 'Classified Relic',
+              nemesis: detailsObj.nemesis || c.primary_nemesis || 'Unknown Adversary',
+              bio: c.biography || detailsObj.bio || 'Verified character dossier in the Fan Hub Plus database.'
+            }
           }
-        }))
+        })
         setBackendCharacters(mapped)
       })
       .catch(() => {})
@@ -166,14 +165,19 @@ export default function UniversePage({
     })
   }, [allUniverseArticles, selectedTag, localSearch])
 
-  // Characters for this universe
+  // Characters for this universe (deduplicated by id/name)
   const universeCharacters = useMemo(() => {
     const curated = CHARACTERS_DATA.filter(
       (c) =>
         c.universeSlug === universe.slug ||
         c.universe.toLowerCase().includes(universe.name.toLowerCase())
     )
-    return [...curated, ...backendCharacters]
+    const seenIds = new Set(curated.map((c) => c.id))
+    const seenNames = new Set(curated.map((c) => c.name.toLowerCase()))
+    const uniqueBackend = backendCharacters.filter(
+      (bc) => !seenIds.has(bc.id) && !seenNames.has(bc.name.toLowerCase())
+    )
+    return [...curated, ...uniqueBackend]
   }, [universe.slug, universe.name, backendCharacters])
 
   // Multimedia & Merch related to this universe
