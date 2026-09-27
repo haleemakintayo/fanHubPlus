@@ -24,7 +24,6 @@ import {
   UNIVERSES,
   ARTICLES_DATA,
   MULTIMEDIA_DATA,
-  CHARACTERS_DATA,
   MERCH_DROPS,
   CONVENTIONS_DATA,
   FANDOM_BOT_QA,
@@ -106,7 +105,7 @@ export default function App() {
   // Search & Category Filtering State
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUniverse, setSelectedUniverse] = useState('all')
-  const [homeCharacters, setHomeCharacters] = useState(CHARACTERS_DATA)
+  const [homeCharacters, setHomeCharacters] = useState([])
 
   // Toast Notification State
   const [toasts, setToasts] = useState([])
@@ -204,50 +203,61 @@ export default function App() {
         if (!isMounted || profiles.length === 0) return
         const mappedProfiles = profiles.map((profile) => {
           const category = UNIVERSES.find((universe) => universe.slug === profile.category?.slug)
-          const fallbackCharacter = CHARACTERS_DATA.find(
-            (character) =>
-              character.id === profile.slug ||
-              character.universe === profile.category?.name
-          )
           const details = profile.details_json && typeof profile.details_json === 'object'
             ? profile.details_json
             : {}
+
+          // Handle two possible stats_json formats:
+          // Format A: {label: 'Strength', value: 95} (frontend format)
+          // Format B: {'stat_name': 95} (backend seed format: {'strength': 95})
+          const statsArray = Array.isArray(profile.stats_json) && profile.stats_json.length > 0
+            ? profile.stats_json.map((stat) => {
+                if (stat.label !== undefined && stat.value !== undefined) {
+                  // Format A: already has label/value
+                  return {
+                    label: stat.label,
+                    value: stat.value,
+                    max: stat.max || 100,
+                    textValue: stat.textValue || String(stat.value) || 'N/A',
+                  }
+                }
+                // Format B: single key-value pair like {'strength': 95}
+                const keys = Object.keys(stat)
+                if (keys.length === 1) {
+                  const label = keys[0]
+                  const value = stat[label]
+                  return {
+                    label: label.charAt(0).toUpperCase() + label.slice(1),
+                    value: typeof value === 'number' ? value : 0,
+                    max: 100,
+                    textValue: String(value || 'N/A'),
+                  }
+                }
+                // Unknown format
+                return { label: 'Attribute', value: 0, max: 100, textValue: 'N/A' }
+              })
+            : []
 
           return {
             id: profile.slug || `character-${profile.id}`,
             name: profile.name,
             alias: profile.alias || profile.archetype || 'Community Profile',
-            universe: profile.category?.name || fallbackCharacter?.universe || 'Community Vault',
-            universeSlug: profile.category?.slug || category?.slug || fallbackCharacter?.universeSlug || 'community-vault',
-            accentColor: category?.accentColor || fallbackCharacter?.accentColor || '#A3E635',
-            archetype: profile.archetype || fallbackCharacter?.archetype || 'Canon Icon',
-            image: profile.image_url || fallbackCharacter?.image || '',
+            universe: profile.category?.name || 'Community Vault',
+            universeSlug: profile.category?.slug || category?.slug || 'community-vault',
+            accentColor: category?.accentColor || '#A3E635',
+            archetype: profile.archetype || 'Canon Icon',
+            image: profile.image_url || '',
             faction: profile.faction || 'Independent',
             origin: profile.origin || 'Unknown Origin',
             tagline: profile.tagline || profile.archetype || 'Community-submitted character profile',
-            stats: Array.isArray(profile.stats_json) && profile.stats_json.length > 0
-              ? profile.stats_json.map((stat) => ({
-                label: stat.label || 'Attribute',
-                value: stat.value,
-                max: stat.max || 100,
-                textValue: stat.textValue || stat.value || 'N/A',
-              }))
-              : [{ label: 'Profile Status', textValue: 'Community submission' }],
+            stats: statsArray,
             details: {
               ...details,
               bio: profile.biography || details.bio || 'No biography supplied.',
             },
           }
         })
-        const seenIds = new Set(mappedProfiles.map((p) => p.id))
-        const seenNames = new Set(mappedProfiles.map((p) => p.name.toLowerCase()))
-        const merged = [
-          ...mappedProfiles,
-          ...CHARACTERS_DATA.filter(
-            (c) => !seenIds.has(c.id) && !seenNames.has(c.name.toLowerCase())
-          ),
-        ]
-        setHomeCharacters(merged)
+        setHomeCharacters(mappedProfiles)
       })
       .catch(() => {
         // Keep the curated static archive available when the API is unavailable.
@@ -631,7 +641,7 @@ export default function App() {
       }
     })
 
-    CHARACTERS_DATA.forEach(c => {
+    homeCharacters.forEach(c => {
       if (q === '' || c.name.toLowerCase().includes(q) || c.universe.toLowerCase().includes(q) || c.alias.toLowerCase().includes(q)) {
         count++
       }
@@ -644,7 +654,7 @@ export default function App() {
     })
 
     return count
-  }, [searchQuery, selectedUniverse])
+  }, [searchQuery, selectedUniverse, homeCharacters])
 
   return (
     <div id="top" className="min-h-screen bg-[#FDFBF7] dark:bg-[#0D1117] text-neutral-900 dark:text-neutral-100 transition-colors duration-200 flex flex-col font-sans">

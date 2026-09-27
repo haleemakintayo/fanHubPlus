@@ -21,7 +21,6 @@ import {
 } from 'lucide-react'
 import {
   ARTICLES_DATA,
-  CHARACTERS_DATA,
   getArticleBySlugOrTopic,
   getArticlesByUniverse,
   getUniverseBySlug
@@ -111,12 +110,12 @@ export default function ArticlePage({
 
   // Related characters in this universe
   const relatedCharacters = useMemo(() => {
-    return CHARACTERS_DATA.filter(
+    return homeCharacters.filter(
       (c) =>
         c.universeSlug === universe.slug ||
         c.universe.toLowerCase().includes(universe.name.toLowerCase())
     )
-  }, [universe.slug, universe.name])
+  }, [universe.slug, universe.name, homeCharacters])
 
   const userStar = userRatings[article.id] || 0
   const isBookmarked = Boolean(existingBookmark)

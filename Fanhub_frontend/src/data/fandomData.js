@@ -218,200 +218,202 @@ export const MULTIMEDIA_DATA = {
   ]
 }
 
-export const CHARACTERS_DATA = [
-  {
-    id: 'ryuto-kazama',
-    name: 'Ryuto Kazama',
-    alias: 'Titan Slayer',
-    universe: 'Anime',
-    universeSlug: 'anime',
-    accentColor: '#A3E635',
-    archetype: 'Anime Protagonist',
-    origin: 'Scout Regiment Neo • District Shiganshina 2.0',
-    faction: 'Survey Scout Vanguard Neo',
-    tagline: '“The wall wasn’t built to keep the titans in. It was built to protect them from us.”',
-    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80',
-    stats: [
-      { label: 'Agility', value: 94, max: 100 },
-      { label: 'Power', value: 88, max: 100 },
-      { label: 'Strategic IQ', value: 92, max: 100 }
-    ],
-    details: {
-      firstAppearance: 'Ch. 01 "Awakening of the Bloodline"',
-      weapon: 'Dual Thunder Spears & Carbon Blade Rigs',
-      nemesis: 'The Colossal Behemoth of Ward 12',
-      bio: 'Surviving the fall of District 7, Ryuto mastered the 3D maneuver gear before turning 16. His specialized reflex reaction matches hyper-velocity kinetic strikes, enabling split-second decimation of class-15 bio-monstrosities.'
-    }
-  },
-  {
-    id: 'valkyrie-v09',
-    name: 'Valkyrie V-09',
-    alias: 'Cyber Merc',
-    universe: 'Gaming',
-    universeSlug: 'gaming',
-    accentColor: '#FACC15',
-    archetype: 'Gaming Hero',
-    origin: 'Neo-Kyoto Underbelly',
-    faction: 'Afterlife Independent Mercs',
-    tagline: '“When the ICE melts and the sirens cry, my monowire sings the final lullaby.”',
-    image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80',
-    stats: [
-      { label: 'Class', textValue: 'Vanguard Infiltrator' },
-      { label: 'Origin', textValue: 'Neo-Kyoto Underbelly' },
-      { label: 'Weapon', textValue: 'Dual Plasma Blades' }
-    ],
-    details: {
-      firstAppearance: 'Night City Patch 2.2 Cyber-Infiltration',
-      weapon: 'Thermal Monowire & Arasaka Prototype MK-7',
-      nemesis: 'Corporate Overlord Saburo-X',
-      bio: 'Equipped with illegal military-grade Sandevistan neural implants and thermal monowires, V-09 infiltrates mega-corporation data fortresses without leaving a single digital trace.'
-    }
-  },
-  {
-    id: 'shadow-raven',
-    name: 'Shadow Raven',
-    alias: 'The Nocturnal Vigilante',
-    universe: 'Comics',
-    universeSlug: 'comics',
-    accentColor: '#FB7185',
-    archetype: 'Comic Anti-Hero',
-    origin: 'Gotham Prime • Earth-99',
-    faction: 'Midnight Syndicate',
-    tagline: '“Justice is a luxury for the daylight. The dark requires a harsher toll.”',
-    image: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
-    stats: [
-      { label: 'Universe', textValue: 'Earth-Prime 99' },
-      { label: 'First Appearance', textValue: 'Issue #12 (1998)' },
-      { label: 'Nemesis', textValue: 'Baron Void' }
-    ],
-    details: {
-      firstAppearance: 'Shadow Syndicate #12 (Collector Silver Holo)',
-      weapon: 'Obsidian Batarangs & Dark Energy Cloak',
-      nemesis: 'Baron Void (Dimensional Conqueror)',
-      bio: 'Exiled from the High Council of Champions after refusing to compromise with political corrupt lords, Shadow Raven established the Midnight Syndicate to hunt down interdimensional syndicate smugglers.'
-    }
-  },
-  {
-    id: 'lyra-solaris',
-    name: 'Lyra Solaris',
-    alias: 'Celestial Weaver',
-    universe: 'Cosplay',
-    universeSlug: 'cosplay',
-    accentColor: '#C084FC',
-    archetype: 'Cosplay & Lore Icon',
-    origin: 'Astral Leyline Nexus',
-    faction: 'Astral Order of Luminaries',
-    tagline: '“The threads of the multiverse weave not by chance, but by deliberate grace.”',
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
-    stats: [
-      { label: 'Affinity', textValue: 'Starlight Arcana' },
-      { label: 'Rank', textValue: 'Grand Master' },
-      { label: 'Relic', textValue: 'Prism Staff' }
-    ],
-    details: {
-      firstAppearance: 'Arcana Chronicles Vol. 4 "Starlight Symphony"',
-      weapon: 'Prism Leyline Staff with Luminescent Core',
-      nemesis: 'Eclipse Harvester Malakor',
-      bio: 'A favorite of master cosplayers worldwide, Lyra Solaris channels solar plasma through custom hand-spun silk armor. Her prop build tutorials have garnered over 3 million views in the Cosplay Guild.'
-    }
-  },
-  {
-    id: 'paul-muaddib',
-    name: 'Kwisatz Navigator',
-    alias: 'Sovereign of Arrakis',
-    universe: 'Movies & TV',
-    universeSlug: 'movies-tv',
-    accentColor: '#38BDF8',
-    archetype: 'Cinematic Visionary',
-    origin: 'Caladan / Deep Desert Sietch',
-    faction: 'Fremen Fedaykin Council',
-    tagline: '“He who can destroy a thing has the real control of it.”',
-    image: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
-    stats: [
-      { label: 'Prescience', value: 99, max: 100 },
-      { label: 'Voice Mastery', value: 95, max: 100 },
-      { label: 'Desert Warfare', value: 96, max: 100 }
-    ],
-    details: {
-      firstAppearance: 'Dune Part One (IMAX 70mm Archival Cut)',
-      weapon: 'Crysknife of Maker Tooth & Weirding Module',
-      nemesis: 'Padishah Emperor & Bene Gesserit Sisterhood',
-      bio: 'Walking the Golden Path across billions of potential futures, the Navigator unites the desert tribes while wrestling with the terrifying galactic jihad sparked in his name.'
-    }
-  },
-  {
-    id: 'nova-kwangya',
-    name: 'AE-Karina Prime',
-    alias: 'Hyper-Pop Avatar',
-    universe: 'K-Pop',
-    universeSlug: 'kpop',
-    accentColor: '#F43F5E',
-    archetype: 'Virtual & Stage Idol',
-    origin: 'FLAT • KWANGYA Digital Realm',
-    faction: 'SYNK Hyper-Lineage',
-    tagline: '“Sync your frequency to the Supernova; our stage bends reality.”',
-    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80',
-    stats: [
-      { label: 'Stage Presence', value: 98, max: 100 },
-      { label: 'Vocal Range', value: 93, max: 100 },
-      { label: 'SYNK Level', value: 100, max: 100 }
-    ],
-    details: {
-      firstAppearance: 'Savage SYNK Showcase • Armageddon Era',
-      weapon: 'Sonic Lightstick Frequency & Rocket Puncher',
-      nemesis: 'Black Mamba Hallucination',
-      bio: 'Bridging real-world stadium choreography with AI-driven KWANGYA lore, AE-Karina Prime leads the 4th-gen sonic revolution with metallic hyper-pop production.'
-    }
-  },
-  {
-    id: 'kuro-kenshin',
-    name: 'Chihiro Rokuhira',
-    alias: 'Bearer of Enten',
-    universe: 'Manga',
-    universeSlug: 'manga',
-    accentColor: '#FB923C',
-    archetype: 'Seinen / Shonen Swordsman',
-    origin: 'Kamunabi Forge Sanctuary',
-    faction: 'Rokuhira Swordsmith Lineage',
-    tagline: '“Every morning I wake up with fresh hatred—and a sharper edge.”',
-    image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80',
-    stats: [
-      { label: 'Swordplay', value: 97, max: 100 },
-      { label: 'Spirit Energy', value: 94, max: 100 },
-      { label: 'Resolve', value: 100, max: 100 }
-    ],
-    details: {
-      firstAppearance: 'Weekly Shonen Jump Issue #42',
-      weapon: 'Enchanted Blade: Enten (Kuro, Aka, Nishiki)',
-      nemesis: 'The Hishaku Sorcerer Syndicate',
-      bio: 'Trained beside his legendary swordsmith father, Chihiro wields the seventh enchanted katana capable of absorbing and manifesting spirit energy as obsidian goldfish.'
-    }
-  },
-  {
-    id: 'archivist-zero',
-    name: 'Archivist Zero',
-    alias: 'Keeper of the Vault',
-    universe: 'Community Vault',
-    universeSlug: 'community-vault',
-    accentColor: '#34D399',
-    archetype: 'Grand Lore Historian',
-    origin: 'Citadel of Canon • Sector 08',
-    faction: 'Verified Contributors Guild',
-    tagline: '“No theory survives without citations; every timeline leaves a footprint.”',
-    image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80',
-    stats: [
-      { label: 'Canon Accuracy', value: 99, max: 100 },
-      { label: 'Essays Vetted', textValue: '1,420+ Approved' },
-      { label: 'Clearance', textValue: 'Level 5 Moderator' }
-    ],
-    details: {
-      firstAppearance: 'Fan Hub Plus Founding Charter v1.0',
-      weapon: 'Cross-Universe Citation Matrix',
-      nemesis: 'Unverified Spoilers & Low-Effort Filler',
-      bio: 'Synthesizing decades of interviews, artbooks, and frame-by-frame analyses, Archivist Zero curates the Community Vault so only the highest-caliber fan scholarship enters the permanent record.'
-    }
-  }
-]
+// export const CHARACTERS_DATA = [
+
+//   {
+//     id: 'ryuto-kazama',
+//     name: 'Ryuto Kazama',
+//     alias: 'Titan Slayer',
+//     universe: 'Anime',
+//     universeSlug: 'anime',
+//     accentColor: '#A3E635',
+//     archetype: 'Anime Protagonist',
+//     origin: 'Scout Regiment Neo • District Shiganshina 2.0',
+//     faction: 'Survey Scout Vanguard Neo',
+//     tagline: '“The wall wasn’t built to keep the titans in. It was built to protect them from us.”',
+//     image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80',
+//     stats: [
+//       { label: 'Agility', value: 94, max: 100 },
+//       { label: 'Power', value: 88, max: 100 },
+//       { label: 'Strategic IQ', value: 92, max: 100 }
+//     ],
+//     details: {
+//       firstAppearance: 'Ch. 01 "Awakening of the Bloodline"',
+//       weapon: 'Dual Thunder Spears & Carbon Blade Rigs',
+//       nemesis: 'The Colossal Behemoth of Ward 12',
+//       bio: 'Surviving the fall of District 7, Ryuto mastered the 3D maneuver gear before turning 16. His specialized reflex reaction matches hyper-velocity kinetic strikes, enabling split-second decimation of class-15 bio-monstrosities.'
+//     }
+//   },
+//   {
+//     id: 'valkyrie-v09',
+//     name: 'Valkyrie V-09',
+//     alias: 'Cyber Merc',
+//     universe: 'Gaming',
+//     universeSlug: 'gaming',
+//     accentColor: '#FACC15',
+//     archetype: 'Gaming Hero',
+//     origin: 'Neo-Kyoto Underbelly',
+//     faction: 'Afterlife Independent Mercs',
+//     tagline: '“When the ICE melts and the sirens cry, my monowire sings the final lullaby.”',
+//     image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80',
+//     stats: [
+//       { label: 'Class', textValue: 'Vanguard Infiltrator' },
+//       { label: 'Origin', textValue: 'Neo-Kyoto Underbelly' },
+//       { label: 'Weapon', textValue: 'Dual Plasma Blades' }
+//     ],
+//     details: {
+//       firstAppearance: 'Night City Patch 2.2 Cyber-Infiltration',
+//       weapon: 'Thermal Monowire & Arasaka Prototype MK-7',
+//       nemesis: 'Corporate Overlord Saburo-X',
+//       bio: 'Equipped with illegal military-grade Sandevistan neural implants and thermal monowires, V-09 infiltrates mega-corporation data fortresses without leaving a single digital trace.'
+//     }
+//   },
+//   {
+//     id: 'shadow-raven',
+//     name: 'Shadow Raven',
+//     alias: 'The Nocturnal Vigilante',
+//     universe: 'Comics',
+//     universeSlug: 'comics',
+//     accentColor: '#FB7185',
+//     archetype: 'Comic Anti-Hero',
+//     origin: 'Gotham Prime • Earth-99',
+//     faction: 'Midnight Syndicate',
+//     tagline: '“Justice is a luxury for the daylight. The dark requires a harsher toll.”',
+//     image: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
+//     stats: [
+//       { label: 'Universe', textValue: 'Earth-Prime 99' },
+//       { label: 'First Appearance', textValue: 'Issue #12 (1998)' },
+//       { label: 'Nemesis', textValue: 'Baron Void' }
+//     ],
+//     details: {
+//       firstAppearance: 'Shadow Syndicate #12 (Collector Silver Holo)',
+//       weapon: 'Obsidian Batarangs & Dark Energy Cloak',
+//       nemesis: 'Baron Void (Dimensional Conqueror)',
+//       bio: 'Exiled from the High Council of Champions after refusing to compromise with political corrupt lords, Shadow Raven established the Midnight Syndicate to hunt down interdimensional syndicate smugglers.'
+//     }
+//   },
+//   {
+//     id: 'lyra-solaris',
+//     name: 'Lyra Solaris',
+//     alias: 'Celestial Weaver',
+//     universe: 'Cosplay',
+//     universeSlug: 'cosplay',
+//     accentColor: '#C084FC',
+//     archetype: 'Cosplay & Lore Icon',
+//     origin: 'Astral Leyline Nexus',
+//     faction: 'Astral Order of Luminaries',
+//     tagline: '“The threads of the multiverse weave not by chance, but by deliberate grace.”',
+//     image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
+//     stats: [
+//       { label: 'Affinity', textValue: 'Starlight Arcana' },
+//       { label: 'Rank', textValue: 'Grand Master' },
+//       { label: 'Relic', textValue: 'Prism Staff' }
+//     ],
+//     details: {
+//       firstAppearance: 'Arcana Chronicles Vol. 4 "Starlight Symphony"',
+//       weapon: 'Prism Leyline Staff with Luminescent Core',
+//       nemesis: 'Eclipse Harvester Malakor',
+//       bio: 'A favorite of master cosplayers worldwide, Lyra Solaris channels solar plasma through custom hand-spun silk armor. Her prop build tutorials have garnered over 3 million views in the Cosplay Guild.'
+//     }
+//   },
+//   {
+//     id: 'paul-muaddib',
+//     name: 'Kwisatz Navigator',
+//     alias: 'Sovereign of Arrakis',
+//     universe: 'Movies & TV',
+//     universeSlug: 'movies-tv',
+//     accentColor: '#38BDF8',
+//     archetype: 'Cinematic Visionary',
+//     origin: 'Caladan / Deep Desert Sietch',
+//     faction: 'Fremen Fedaykin Council',
+//     tagline: '“He who can destroy a thing has the real control of it.”',
+//     image: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
+//     stats: [
+//       { label: 'Prescience', value: 99, max: 100 },
+//       { label: 'Voice Mastery', value: 95, max: 100 },
+//       { label: 'Desert Warfare', value: 96, max: 100 }
+//     ],
+//     details: {
+//       firstAppearance: 'Dune Part One (IMAX 70mm Archival Cut)',
+//       weapon: 'Crysknife of Maker Tooth & Weirding Module',
+//       nemesis: 'Padishah Emperor & Bene Gesserit Sisterhood',
+//       bio: 'Walking the Golden Path across billions of potential futures, the Navigator unites the desert tribes while wrestling with the terrifying galactic jihad sparked in his name.'
+//     }
+//   },
+//   {
+//     id: 'nova-kwangya',
+//     name: 'AE-Karina Prime',
+//     alias: 'Hyper-Pop Avatar',
+//     universe: 'K-Pop',
+//     universeSlug: 'kpop',
+//     accentColor: '#F43F5E',
+//     archetype: 'Virtual & Stage Idol',
+//     origin: 'FLAT • KWANGYA Digital Realm',
+//     faction: 'SYNK Hyper-Lineage',
+//     tagline: '“Sync your frequency to the Supernova; our stage bends reality.”',
+//     image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80',
+//     stats: [
+//       { label: 'Stage Presence', value: 98, max: 100 },
+//       { label: 'Vocal Range', value: 93, max: 100 },
+//       { label: 'SYNK Level', value: 100, max: 100 }
+//     ],
+//     details: {
+//       firstAppearance: 'Savage SYNK Showcase • Armageddon Era',
+//       weapon: 'Sonic Lightstick Frequency & Rocket Puncher',
+//       nemesis: 'Black Mamba Hallucination',
+//       bio: 'Bridging real-world stadium choreography with AI-driven KWANGYA lore, AE-Karina Prime leads the 4th-gen sonic revolution with metallic hyper-pop production.'
+//     }
+//   },
+//   {
+//     id: 'kuro-kenshin',
+//     name: 'Chihiro Rokuhira',
+//     alias: 'Bearer of Enten',
+//     universe: 'Manga',
+//     universeSlug: 'manga',
+//     accentColor: '#FB923C',
+//     archetype: 'Seinen / Shonen Swordsman',
+//     origin: 'Kamunabi Forge Sanctuary',
+//     faction: 'Rokuhira Swordsmith Lineage',
+//     tagline: '“Every morning I wake up with fresh hatred—and a sharper edge.”',
+//     image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80',
+//     stats: [
+//       { label: 'Swordplay', value: 97, max: 100 },
+//       { label: 'Spirit Energy', value: 94, max: 100 },
+//       { label: 'Resolve', value: 100, max: 100 }
+//     ],
+//     details: {
+//       firstAppearance: 'Weekly Shonen Jump Issue #42',
+//       weapon: 'Enchanted Blade: Enten (Kuro, Aka, Nishiki)',
+//       nemesis: 'The Hishaku Sorcerer Syndicate',
+//       bio: 'Trained beside his legendary swordsmith father, Chihiro wields the seventh enchanted katana capable of absorbing and manifesting spirit energy as obsidian goldfish.'
+//     }
+//   },
+//   {
+//     id: 'archivist-zero',
+//     name: 'Archivist Zero',
+//     alias: 'Keeper of the Vault',
+//     universe: 'Community Vault',
+//     universeSlug: 'community-vault',
+//     accentColor: '#34D399',
+//     archetype: 'Grand Lore Historian',
+//     origin: 'Citadel of Canon • Sector 08',
+//     faction: 'Verified Contributors Guild',
+//     tagline: '“No theory survives without citations; every timeline leaves a footprint.”',
+//     image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80',
+//     stats: [
+//       { label: 'Canon Accuracy', value: 99, max: 100 },
+//       { label: 'Essays Vetted', textValue: '1,420+ Approved' },
+//       { label: 'Clearance', textValue: 'Level 5 Moderator' }
+//     ],
+//     details: {
+//       firstAppearance: 'Fan Hub Plus Founding Charter v1.0',
+//       weapon: 'Cross-Universe Citation Matrix',
+//       nemesis: 'Unverified Spoilers & Low-Effort Filler',
+//       bio: 'Synthesizing decades of interviews, artbooks, and frame-by-frame analyses, Archivist Zero curates the Community Vault so only the highest-caliber fan scholarship enters the permanent record.'
+//     }
+//   }
+
+// ]
 
 export const ARTICLES_DATA = [
   // ==================== 1. ANIME ====================

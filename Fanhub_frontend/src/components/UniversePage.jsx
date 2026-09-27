@@ -26,7 +26,6 @@ import {
 } from 'lucide-react'
 import {
   UNIVERSES,
-  CHARACTERS_DATA,
   MULTIMEDIA_DATA,
   MERCH_DROPS,
   getUniverseBySlug,
@@ -167,7 +166,7 @@ export default function UniversePage({
 
   // Characters for this universe (deduplicated by id/name)
   const universeCharacters = useMemo(() => {
-    const curated = CHARACTERS_DATA.filter(
+    const curated = homeCharacters.filter(
       (c) =>
         c.universeSlug === universe.slug ||
         c.universe.toLowerCase().includes(universe.name.toLowerCase())
@@ -178,7 +177,7 @@ export default function UniversePage({
       (bc) => !seenIds.has(bc.id) && !seenNames.has(bc.name.toLowerCase())
     )
     return [...curated, ...uniqueBackend]
-  }, [universe.slug, universe.name, backendCharacters])
+  }, [universe.slug, universe.name, backendCharacters, homeCharacters])
 
   // Multimedia & Merch related to this universe
   const universeMedia = useMemo(() => {

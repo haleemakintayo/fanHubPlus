@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Bookmark, ChevronRight, PlusCircle, Filter } from 'lucide-react'
+import { Bookmark, ChevronRight, PlusCircle, Filter, ChevronLeft } from 'lucide-react'
 
 const CHARACTER_CATEGORY_FILTERS = [
   { id: 'all', label: 'All Champions' },
@@ -13,20 +13,33 @@ const CHARACTER_CATEGORY_FILTERS = [
   { id: 'community-vault', label: 'Community Vault' },
 ]
 
-export default function CharacterArchive({ 
-  characters, 
-  bookmarkedItems, 
-  toggleBookmark, 
+export default function CharacterArchive({
+  characters,
+  bookmarkedItems,
+  toggleBookmark,
   onOpenLoreModal,
   onOpenSubmissionModal
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 8
+
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId)
+    setCurrentPage(1)
+  }
 
   const displayedCharacters = characters.filter((char) => {
     if (selectedCategory === 'all') return true
-    const slug = (char.universeSlug || char.universe || '').toLowerCase()
-    return slug === selectedCategory || char.universe.toLowerCase().includes(selectedCategory)
+    const slug = (char.universeSlug || char.category?.slug || char.categorySlug || '').toLowerCase()
+    const name = (char.universe || char.category?.name || '').toLowerCase()
+    return slug === selectedCategory || name.includes(selectedCategory)
   })
+
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentCharacters = displayedCharacters.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(displayedCharacters.length / itemsPerPage)
 
   return (
     <section id="characters" className="py-8 sm:py-16 px-3 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors">
@@ -80,7 +93,7 @@ export default function CharacterArchive({
               <button
                 key={cat.id}
                 type="button"
-                onClick={() => setSelectedCategory(cat.id)}
+                onClick={() => handleCategoryChange(cat.id)}
                 className={`px-2.5 py-1 font-mono text-[10px] sm:text-xs font-black uppercase border-2 border-black dark:border-white transition-all brutal-btn ${
                   isActive
                     ? 'bg-[#FACC15] text-black brutal-shadow-sm'
@@ -95,7 +108,7 @@ export default function CharacterArchive({
         </div>
 
         {/* Character Cards Grid */}
-        {displayedCharacters.length === 0 ? (
+        {currentCharacters.length === 0 ? (
           <div className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white p-8 text-center brutal-shadow-md">
             <p className="font-black text-base uppercase text-black dark:text-white mb-2">
               No character dossiers match this category filter
@@ -110,7 +123,7 @@ export default function CharacterArchive({
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {displayedCharacters.map((char) => {
+            {currentCharacters.map((char) => {
               const isBookmarked = !!bookmarkedItems[char.id]
 
               return (
@@ -125,7 +138,7 @@ export default function CharacterArchive({
                   />
 
                   <div>
-                    {/* Top Header: Universe Tag & Bookmark Button */}
+                    {/* Top Header: Category Tag & Bookmark Button */}
                     <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                       <span
                         className="font-mono text-[10px] sm:text-[11px] font-black uppercase px-2 sm:px-2.5 py-0.5 border-2 border-black text-black"
@@ -180,45 +193,47 @@ export default function CharacterArchive({
                     </div>
 
                     {/* Power Statistics Breakdown */}
-                    <div className="p-2 sm:p-3 bg-neutral-50 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 mb-3 sm:mb-4">
-                      <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase text-neutral-500 block mb-1.5 sm:mb-2">
-                        CANON BATTLE TELEMETRY
-                      </span>
+                    {Array.isArray(char.stats) && char.stats.length > 0 && (
+                      <div className="p-2 sm:p-3 bg-neutral-50 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 mb-3 sm:mb-4">
+                        <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase text-neutral-500 block mb-1.5 sm:mb-2">
+                          CANON BATTLE TELEMETRY
+                        </span>
 
-                      {/* Check if character uses numerical bar stats or text stats */}
-                      {char.stats[0].value !== undefined ? (
-                        <div className="space-y-2">
-                          {char.stats.map((s, sIdx) => (
-                            <div key={sIdx}>
-                              <div className="flex justify-between text-xs font-mono font-bold text-black dark:text-white mb-0.5">
-                                <span>{s.label}</span>
-                                <span>{s.value}%</span>
+                        {/* Check if character uses numerical bar stats or text stats */}
+                        {char.stats[0]?.value !== undefined ? (
+                          <div className="space-y-2">
+                            {char.stats.map((s, sIdx) => (
+                              <div key={sIdx}>
+                                <div className="flex justify-between text-xs font-mono font-bold text-black dark:text-white mb-0.5">
+                                  <span>{s.label}</span>
+                                  <span>{s.value}%</span>
+                                </div>
+                                <div className="h-2 w-full bg-neutral-200 dark:bg-neutral-800 border border-black">
+                                  <div
+                                    className="h-full border-r border-black"
+                                    style={{
+                                      width: `${s.value}%`,
+                                      backgroundColor: char.accentColor
+                                    }}
+                                  />
+                                </div>
                               </div>
-                              <div className="h-2 w-full bg-neutral-200 dark:bg-neutral-800 border border-black">
-                                <div
-                                  className="h-full border-r border-black"
-                                  style={{
-                                    width: `${s.value}%`,
-                                    backgroundColor: char.accentColor
-                                  }}
-                                />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5 text-xs font-mono">
+                            {char.stats.map((s, sIdx) => (
+                              <div key={sIdx} className="flex justify-between border-b border-neutral-300 dark:border-neutral-800 pb-1">
+                                <span className="text-neutral-500 font-bold">{s.label}:</span>
+                                <span className="font-black text-black dark:text-white truncate max-w-[120px] text-right">
+                                  {s.textValue}
+                                </span>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="space-y-1.5 text-xs font-mono">
-                          {char.stats.map((s, sIdx) => (
-                            <div key={sIdx} className="flex justify-between border-b border-neutral-300 dark:border-neutral-800 pb-1">
-                              <span className="text-neutral-500 font-bold">{s.label}:</span>
-                              <span className="font-black text-black dark:text-white truncate max-w-[120px] text-right">
-                                {s.textValue}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Read Full Lore Action Button */}
@@ -233,6 +248,31 @@ export default function CharacterArchive({
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-8 gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="p-2 border-2 border-black dark:border-white disabled:opacity-50"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            
+            <span className="flex items-center px-3 font-mono text-xs">
+              Page {currentPage} of {totalPages}
+            </span>
+            
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="p-2 border-2 border-black dark:border-white disabled:opacity-50"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         )}
 

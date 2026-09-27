@@ -152,6 +152,7 @@ export default function Admin({
     image_url: '',
     weapon: '',
     nemesis: '',
+    firstAppearance: '',
   });
 
   const [eventsList, setEventsList] = useState([]);
@@ -499,10 +500,12 @@ export default function Admin({
       biography: charForm.biography,
       image_url: charForm.image_url,
       details_json: {
-        weapon: charForm.weapon || 'Signature Relic',
-        nemesis: charForm.nemesis || 'Unknown Rival',
+        weapon: charForm.weapon || '',
+        nemesis: charForm.nemesis || '',
+        firstAppearance: charForm.firstAppearance || '',
         bio: charForm.biography,
       },
+      stats_json: [],
     };
     try {
       if (editingChar) {
@@ -764,14 +767,19 @@ export default function Admin({
 
   const openCharacterReview = (item) => {
     setSelectedCharacterSubmission(item);
+    const details = item.details_json || {};
     setCharacterReviewDraft({
       name: item.name || '',
       alias: item.alias || '',
       archetype: item.archetype || '',
       origin: item.origin || '',
       faction: item.faction || '',
+      tagline: item.tagline || '',
       biography: item.biography || '',
       image_url: item.image_url || '',
+      weapon: details.weapon || '',
+      nemesis: details.nemesis || '',
+      firstAppearance: details.firstAppearance || '',
     });
   };
 
@@ -779,10 +787,18 @@ export default function Admin({
     if (!selectedCharacterSubmission || !characterReviewDraft) return;
     setIsSavingCharacterDraft(true);
     try {
+      const { weapon, nemesis, firstAppearance, ...restDraft } = characterReviewDraft;
+      const detailsJson = {
+        weapon: weapon || '',
+        nemesis: nemesis || '',
+        firstAppearance: firstAppearance || '',
+        bio: restDraft.biography || '',
+      };
       const updated = await adminApi.moderateCharacterSubmission(selectedCharacterSubmission.sourceId, {
         status: selectedCharacterSubmission.status,
         adminFeedback: modFeedbackNotes[selectedCharacterSubmission.id] || selectedCharacterSubmission.admin_feedback || '',
-        ...characterReviewDraft,
+        ...restDraft,
+        details_json: detailsJson,
       });
       const updatedItem = {
         ...selectedCharacterSubmission,
@@ -794,14 +810,19 @@ export default function Admin({
         body: updated.biography,
       };
       setSelectedCharacterSubmission(updatedItem);
+      const updatedDetails = updated.details_json || detailsJson;
       setCharacterReviewDraft({
         name: updated.name || '',
         alias: updated.alias || '',
         archetype: updated.archetype || '',
         origin: updated.origin || '',
         faction: updated.faction || '',
+        tagline: updated.tagline || '',
         biography: updated.biography || '',
         image_url: updated.image_url || '',
+        weapon: updatedDetails.weapon || '',
+        nemesis: updatedDetails.nemesis || '',
+        firstAppearance: updatedDetails.firstAppearance || '',
       });
       setModerationQueue((prev) => prev.map((item) => item.id === updatedItem.id ? updatedItem : item));
       onShowToast?.({ title: 'Character Draft Updated', message: 'Changes saved. The submission remains pending review.', type: 'success' });
@@ -2568,6 +2589,29 @@ export default function Admin({
                   </div>
 
                   <div className="md:col-span-8 space-y-4">
+                    <div>
+                      <label className="font-mono text-xs font-black uppercase text-black dark:text-white mb-1 block" htmlFor="review-character-name">Character Name</label>
+                      <input
+                        id="review-character-name"
+                        type="text"
+                        value={characterReviewDraft?.name || ''}
+                        onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, name: event.target.value }))}
+                        className="w-full border-2 border-black dark:border-neutral-600 px-2.5 py-2 text-sm font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-mono text-xs font-black uppercase text-black dark:text-white mb-1 block" htmlFor="review-character-tagline">Tagline / Canonical Quote</label>
+                      <input
+                        id="review-character-tagline"
+                        type="text"
+                        value={characterReviewDraft?.tagline || ''}
+                        onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, tagline: event.target.value }))}
+                        placeholder="A memorable quote or tagline for the character"
+                        className="w-full border-2 border-black dark:border-neutral-600 px-2.5 py-2 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       {[
                         ['alias', 'Alias'],
@@ -2586,17 +2630,6 @@ export default function Admin({
                           />
                         </div>
                       ))}
-                    </div>
-
-                    <div>
-                      <label className="font-mono text-xs font-black uppercase text-black dark:text-white mb-1 block" htmlFor="review-character-name">Character Name</label>
-                      <input
-                        id="review-character-name"
-                        type="text"
-                        value={characterReviewDraft?.name || ''}
-                        onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, name: event.target.value }))}
-                        className="w-full border-2 border-black dark:border-neutral-600 px-2.5 py-2 text-sm font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
-                      />
                     </div>
 
                     <div>
@@ -2619,6 +2652,46 @@ export default function Admin({
                         onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, image_url: event.target.value }))}
                         className="w-full border-2 border-black dark:border-neutral-600 px-2.5 py-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
                       />
+                    </div>
+
+                    {/* Lore Details Fields */}
+                    <div className="p-3 bg-neutral-50 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700">
+                      <h4 className="font-mono text-xs font-black uppercase text-neutral-500 mb-3">LORE DETAILS</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div>
+                          <label className="font-mono font-black uppercase text-neutral-500 mb-1 block" htmlFor="review-weapon">Primary Weapon / Relic</label>
+                          <input
+                            id="review-weapon"
+                            type="text"
+                            value={characterReviewDraft?.weapon || ''}
+                            onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, weapon: event.target.value }))}
+                            placeholder="e.g. Starlight Blade"
+                            className="w-full border border-black dark:border-neutral-600 px-2 py-1 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-mono font-black uppercase text-neutral-500 mb-1 block" htmlFor="review-nemesis">Archnemesis</label>
+                          <input
+                            id="review-nemesis"
+                            type="text"
+                            value={characterReviewDraft?.nemesis || ''}
+                            onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, nemesis: event.target.value }))}
+                            placeholder="e.g. The Void King"
+                            className="w-full border border-black dark:border-neutral-600 px-2 py-1 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-mono font-black uppercase text-neutral-500 mb-1 block" htmlFor="review-first-appearance">First Appearance</label>
+                          <input
+                            id="review-first-appearance"
+                            type="text"
+                            value={characterReviewDraft?.firstAppearance || ''}
+                            onChange={(event) => setCharacterReviewDraft((draft) => ({ ...draft, firstAppearance: event.target.value }))}
+                            placeholder="e.g. Episode 1 / Ch. 1"
+                            className="w-full border border-black dark:border-neutral-600 px-2 py-1 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     {Array.isArray(selectedCharacterSubmission.stats_json) && selectedCharacterSubmission.stats_json.length > 0 && (

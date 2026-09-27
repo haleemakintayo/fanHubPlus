@@ -782,6 +782,11 @@ export default function MultimediaCenter({
 
         </div>
 
+        {/* Copyright Disclaimer Footer */}
+        <div className="mt-6 pt-4 border-t-2 border-black dark:border-neutral-200 text-center text-xs font-mono text-neutral-500">
+          © {new Date().getFullYear()} Fan Hub Plus. All multimedia content is property of their respective copyright holders.
+        </div>
+
       </div>
     </section>
   )

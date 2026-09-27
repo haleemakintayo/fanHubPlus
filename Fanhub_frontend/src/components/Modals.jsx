@@ -63,8 +63,12 @@ export default function Modals({
   const [subArchetype, setSubArchetype] = useState('')
   const [subOrigin, setSubOrigin] = useState('')
   const [subFaction, setSubFaction] = useState('')
+  const [subTagline, setSubTagline] = useState('')
   const [subImageUrl, setSubImageUrl] = useState('')
   const [subContent, setSubContent] = useState('')
+  const [subWeapon, setSubWeapon] = useState('')
+  const [subNemesis, setSubNemesis] = useState('')
+  const [subFirstAppearance, setSubFirstAppearance] = useState('')
   const [isSubmittingLore, setIsSubmittingLore] = useState(false)
 
   if (!activeModal && !activeLoreCharacter) return null
@@ -86,7 +90,7 @@ export default function Modals({
           {/* Header */}
           <div className="flex items-start justify-between gap-4 pb-4 border-b-2 border-black dark:border-neutral-700 mb-6">
             <div className="flex items-center gap-3">
-              <span 
+              <span
                 className="font-mono text-xs font-black uppercase px-2.5 py-1 border-2 border-black text-black"
                 style={{ backgroundColor: activeLoreCharacter.accentColor }}
               >
@@ -127,7 +131,7 @@ export default function Modals({
 
           {/* Grid Layout: Visual + In-depth Lore */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-            
+
             {/* Visual Column */}
             <div className="md:col-span-5 space-y-4">
               <div className="border-2 border-black overflow-hidden bg-neutral-900 brutal-shadow-sm aspect-3/4">
@@ -147,12 +151,16 @@ export default function Modals({
                   <span className="text-neutral-500 uppercase block">Origin Realm:</span>
                   <span className="font-black text-black dark:text-white">{activeLoreCharacter.origin}</span>
                 </div>
+                <div>
+                  <span className="text-neutral-500 uppercase block">Archetype:</span>
+                  <span className="font-black text-black dark:text-white">{activeLoreCharacter.archetype}</span>
+                </div>
               </div>
             </div>
 
             {/* Lore Dossier Column */}
             <div className="md:col-span-7 space-y-4">
-              
+
               <div className="p-4 border-2 border-black dark:border-neutral-700 bg-[#FDFBF7] dark:bg-[#0D1117]">
                 <h4 className="font-mono text-xs font-black uppercase text-neutral-500 mb-1">
                   CANONICAL QUOTE
@@ -167,30 +175,55 @@ export default function Modals({
                   CLASSIFIED DOSSIER & BIOGRAPHY
                 </h4>
                 <p className="text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 font-medium leading-relaxed">
-                  {activeLoreCharacter.details.bio}
+                  {activeLoreCharacter.details?.bio}
                 </p>
               </div>
 
-              {(activeLoreCharacter.details.weapon || activeLoreCharacter.details.nemesis || activeLoreCharacter.details.firstAppearance) && (
+              {(activeLoreCharacter.details?.weapon || activeLoreCharacter.details?.nemesis || activeLoreCharacter.details?.firstAppearance) && (
                 <div className="p-3 bg-neutral-100 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 space-y-2 text-xs font-mono">
-                  {activeLoreCharacter.details.weapon && (
+                  {activeLoreCharacter.details?.weapon && (
                     <div className="flex justify-between border-b border-black/10 dark:border-neutral-800 pb-1.5">
                       <span className="text-neutral-500 font-bold">PRIMARY WEAPON / RELIC:</span>
                       <span className="font-black text-black dark:text-white">{activeLoreCharacter.details.weapon}</span>
                     </div>
                   )}
-                  {activeLoreCharacter.details.nemesis && (
+                  {activeLoreCharacter.details?.nemesis && (
                     <div className="flex justify-between border-b border-black/10 dark:border-neutral-800 pb-1.5">
                       <span className="text-neutral-500 font-bold">PRIMARY ARCHNEMESIS:</span>
                       <span className="font-black text-[#F43F5E]">{activeLoreCharacter.details.nemesis}</span>
                     </div>
                   )}
-                  {activeLoreCharacter.details.firstAppearance && (
+                  {activeLoreCharacter.details?.firstAppearance && (
                     <div className="flex justify-between">
                       <span className="text-neutral-500 font-bold">FIRST CANON APPEARANCE:</span>
                       <span className="font-black text-black dark:text-white">{activeLoreCharacter.details.firstAppearance}</span>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Stats display if available */}
+              {Array.isArray(activeLoreCharacter.stats) && activeLoreCharacter.stats.length > 0 && activeLoreCharacter.stats[0]?.value !== undefined && (
+                <div className="p-3 bg-neutral-50 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700">
+                  <h4 className="font-mono text-xs font-black uppercase text-neutral-500 mb-2">
+                    BATTLE TELEMETRY
+                  </h4>
+                  <div className="space-y-2">
+                    {activeLoreCharacter.stats.map((s, i) => (
+                      <div key={i}>
+                        <div className="flex justify-between text-xs font-mono font-bold text-black dark:text-white mb-0.5">
+                          <span>{s.label}</span>
+                          <span>{s.value}%</span>
+                        </div>
+                        <div className="h-2 w-full bg-neutral-200 dark:bg-neutral-800 border border-black">
+                          <div
+                            className="h-full border-r border-black"
+                            style={{ width: `${s.value}%`, backgroundColor: activeLoreCharacter.accentColor }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -519,15 +552,24 @@ export default function Modals({
 
       try {
         if (subType === 'CHARACTER') {
+          const detailsJson = {}
+          if (subWeapon) detailsJson.weapon = subWeapon
+          if (subNemesis) detailsJson.nemesis = subNemesis
+          if (subFirstAppearance) detailsJson.firstAppearance = subFirstAppearance
+          detailsJson.bio = subContent
+
           await interactionsApi.submitCharacterProfile({
             name: subTitle,
             alias: subAlias,
             archetype: subArchetype,
             origin: subOrigin,
             faction: subFaction,
-            imageUrl: subImageUrl,
+            tagline: subTagline,
+            image_url: subImageUrl,
             biography: subContent,
-            categorySlug: subUniverse,
+            category_slug: subUniverse,
+            details_json: detailsJson,
+            stats_json: [],
           })
         } else {
           await interactionsApi.submitFanWork({
@@ -558,8 +600,12 @@ export default function Modals({
       setSubArchetype('')
       setSubOrigin('')
       setSubFaction('')
+      setSubTagline('')
       setSubImageUrl('')
       setSubContent('')
+      setSubWeapon('')
+      setSubNemesis('')
+      setSubFirstAppearance('')
       setSubType('ARTICLE')
       onClose()
     }
@@ -674,6 +720,18 @@ export default function Modals({
                 </div>
                 <div>
                   <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
+                    Tagline / Canonical Quote
+                  </label>
+                  <input
+                    type="text"
+                    value={subTagline}
+                    onChange={(e) => setSubTagline(e.target.value)}
+                    placeholder="e.g. 'The stars remember those who dare to chart them.'"
+                    className="w-full border-2 border-black dark:border-white p-2.5 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-mono font-black uppercase text-black dark:text-white mb-1">
                     Character Image URL
                   </label>
                   <input
@@ -683,6 +741,49 @@ export default function Modals({
                     placeholder="https://..."
                     className="w-full border-2 border-black dark:border-white p-2.5 text-xs font-bold bg-neutral-50 dark:bg-[#0D1117] text-black dark:text-white focus:outline-none"
                   />
+                </div>
+                <div className="p-3 bg-neutral-50 dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700">
+                  <span className="block text-xs font-mono font-black uppercase text-neutral-500 mb-2">
+                    LORE DETAILS (OPTIONAL)
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-mono font-black uppercase text-black dark:text-white mb-1">
+                        Primary Weapon / Relic
+                      </label>
+                      <input
+                        type="text"
+                        value={subWeapon}
+                        onChange={(e) => setSubWeapon(e.target.value)}
+                        placeholder="e.g. Starlight Blade"
+                        className="w-full border-2 border-black dark:border-white p-2 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono font-black uppercase text-black dark:text-white mb-1">
+                        Archnemesis
+                      </label>
+                      <input
+                        type="text"
+                        value={subNemesis}
+                        onChange={(e) => setSubNemesis(e.target.value)}
+                        placeholder="e.g. The Void King"
+                        className="w-full border-2 border-black dark:border-white p-2 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono font-black uppercase text-black dark:text-white mb-1">
+                        First Appearance
+                      </label>
+                      <input
+                        type="text"
+                        value={subFirstAppearance}
+                        onChange={(e) => setSubFirstAppearance(e.target.value)}
+                        placeholder="e.g. Episode 1 / Ch. 1"
+                        className="w-full border-2 border-black dark:border-white p-2 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
                 </div>
               </>
             )}
