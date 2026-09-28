@@ -217,6 +217,31 @@ export default function Footer({
                   Moderation Queue (Audit)
                 </button>
               </li>
+              <li className="pt-1 border-t border-black/15 dark:border-neutral-800">
+                <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => onOpenModal('error-404')}
+                    className="px-1.5 py-0.5 bg-[#A3E635] text-black font-mono text-[10px] font-black uppercase border border-black hover:opacity-90"
+                  >
+                    404 Page
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenModal('error-500')}
+                    className="px-1.5 py-0.5 bg-[#F43F5E] text-white font-mono text-[10px] font-black uppercase border border-black hover:opacity-90"
+                  >
+                    500 Page
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenModal('error-403')}
+                    className="px-1.5 py-0.5 bg-[#FACC15] text-black font-mono text-[10px] font-black uppercase border border-black hover:opacity-90"
+                  >
+                    403 / More
+                  </button>
+                </div>
+              </li>
             </ul>
           </div>
 

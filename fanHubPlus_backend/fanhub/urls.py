@@ -38,6 +38,7 @@ from interactions.views import (
     FeedbackView,
     AdminModerationViewSet,
 )
+from fanhub.error_views import error_preview_view
 
 
 class LogoutAliasView(APIView):
@@ -112,7 +113,16 @@ urlpatterns = [
     path('api/admin/analytics/', AdminAnalyticsAPIView.as_view(), name='checklist_admin_analytics'),
     path('api/admin/submissions/pending', AdminModerationViewSet.as_view({'get': 'list'}), name='checklist_admin_pending_no_slash'),
     path('api/admin/submissions/pending/', AdminModerationViewSet.as_view({'get': 'list'}), name='checklist_admin_pending'),
+
+    # HTTP Error Status Pages & Diagnostic API Endpoints (400, 401, 403, 404, 405, 408, 429, 500, 502, 503, 504)
+    path('errors/<int:status_code>/', error_preview_view, name='error_page_preview'),
+    path('api/errors/<int:status_code>/', error_preview_view, name='api_error_preview'),
 ]
+
+handler400 = 'fanhub.error_views.custom_bad_request_400'
+handler403 = 'fanhub.error_views.custom_permission_denied_403'
+handler404 = 'fanhub.error_views.custom_page_not_found_404'
+handler500 = 'fanhub.error_views.custom_server_error_500'
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

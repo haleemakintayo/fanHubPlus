@@ -18,11 +18,13 @@ import Admin from './components/Admin'
 import UniversePage from './components/UniversePage'
 import ArticlePage from './components/ArticlePage'
 import AboutPage from './components/AboutPage'
+import ErrorPage, { ERROR_CATALOG } from './components/ErrorPage'
 import { interactionsApi, adminApi, getAuthToken } from './services/api'
 
 import {
   UNIVERSES,
   ARTICLES_DATA,
+  CHARACTERS_DATA,
   MULTIMEDIA_DATA,
   MERCH_DROPS,
   CONVENTIONS_DATA,
@@ -47,35 +49,58 @@ const TYPE_TO_BACKEND_ENUM = {
 }
 
 function parseRouteFromLocation() {
-  if (typeof window === 'undefined') return { page: 'home', slug: null }
+  if (typeof window === 'undefined') return { page: 'home', slug: null, statusCode: 404 }
   const path = window.location.pathname
   const lowerPath = path.toLowerCase()
   const hash = window.location.hash.toLowerCase()
 
+  // Explicit error status routes: /error/404, /error/500, /404, /500, #error-500, etc.
+  const errorPathMatch = lowerPath.match(/^\/(?:error\/)?(400|401|403|404|405|408|429|500|502|503|504)\/?$/)
+  if (errorPathMatch) {
+    return { page: 'error', slug: path, statusCode: Number(errorPathMatch[1]) }
+  }
+  const errorHashMatch = hash.match(/^#\/?error[-/](400|401|403|404|405|408|429|500|502|503|504)$/)
+  if (errorHashMatch) {
+    return { page: 'error', slug: path, statusCode: Number(errorHashMatch[1]) }
+  }
+
   if (lowerPath.startsWith('/universe/')) {
     const slug = decodeURIComponent(path.slice('/universe/'.length).replace(/\/+$/, ''))
-    return { page: 'universe', slug: slug || 'anime' }
+    if (!slug) return { page: 'universe', slug: 'anime', statusCode: 200 }
+    const exists = UNIVERSES.some(
+      (u) => u.slug.toLowerCase() === slug.toLowerCase() || u.id.toLowerCase() === slug.toLowerCase()
+    )
+    if (!exists) {
+      return { page: 'error', slug: path, statusCode: 404 }
+    }
+    return { page: 'universe', slug, statusCode: 200 }
   }
-   if (lowerPath.startsWith('/article/')) {
+  if (lowerPath.startsWith('/article/')) {
     const slug = decodeURIComponent(path.slice('/article/'.length).replace(/\/+$/, ''))
-    return { page: 'article', slug: slug || ARTICLES_DATA[0]?.slug }
+    return { page: 'article', slug: slug || ARTICLES_DATA[0]?.slug, statusCode: 200 }
   }
   if (lowerPath === '/about' || lowerPath === '/about/') {
-    return { page: 'about', slug: null }
+    return { page: 'about', slug: null, statusCode: 200 }
   }
   if (lowerPath.startsWith('/dashboard') || hash === '#dashboard' || hash === '#/dashboard') {
-    return { page: 'dashboard', slug: null }
+    return { page: 'dashboard', slug: null, statusCode: 200 }
   }
   if (lowerPath.startsWith('/admin') || hash === '#admin' || hash === '#/admin') {
-    return { page: 'admin', slug: null }
+    return { page: 'admin', slug: null, statusCode: 200 }
   }
-  return { page: 'home', slug: null }
+  if (lowerPath === '/' || lowerPath === '' || lowerPath === '/index.html') {
+    return { page: 'home', slug: null, statusCode: 200 }
+  }
+
+  // Catch-all for unknown paths -> 404 Not Found
+  return { page: 'error', slug: path, statusCode: 404 }
 }
 
 export default function App() {
-  // Dedicated Page Routing State ('home' | 'universe' | 'article' | 'dashboard' | 'admin')
+  // Dedicated Page Routing State ('home' | 'universe' | 'article' | 'dashboard' | 'admin' | 'error')
   const initialRoute = useMemo(() => parseRouteFromLocation(), [])
   const [activePage, setActivePage] = useState(initialRoute.page)
+  const [errorStatusCode, setErrorStatusCode] = useState(initialRoute.statusCode || 404)
   const [activeUniverseSlug, setActiveUniverseSlug] = useState(
     initialRoute.page === 'universe' ? initialRoute.slug : 'anime'
   )
@@ -105,7 +130,7 @@ export default function App() {
   // Search & Category Filtering State
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUniverse, setSelectedUniverse] = useState('all')
-  const [homeCharacters, setHomeCharacters] = useState([])
+  const [homeCharacters, setHomeCharacters] = useState(CHARACTERS_DATA)
 
   // Toast Notification State
   const [toasts, setToasts] = useState([])
@@ -312,6 +337,8 @@ export default function App() {
         setActiveUniverseSlug(route.slug)
       } else if (route.page === 'article' && route.slug) {
         setActiveArticleSlug(route.slug)
+      } else if (route.page === 'error') {
+        setErrorStatusCode(route.statusCode || 404)
       }
     }
     window.addEventListener('popstate', handlePopState)
@@ -345,10 +372,22 @@ export default function App() {
     }
   }, [])
 
-  // Navigate between dedicated pages ('home' | 'universe' | 'article' | 'dashboard' | 'admin')
+  // Navigate between dedicated pages ('home' | 'universe' | 'article' | 'dashboard' | 'admin' | 'error')
   const navigateToPage = useCallback((page, sectionHref = null) => {
     setActiveModal(null)
     setActiveLoreCharacter(null)
+
+    if (typeof page === 'string' && page.startsWith('error')) {
+      const parsedCode = Number(page.replace('error-', '').replace('error/', '')) || Number(sectionHref) || 404
+      const code = ERROR_CATALOG[parsedCode] ? parsedCode : 404
+      setErrorStatusCode(code)
+      setActivePage('error')
+      if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', `/error/${code}`)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      return
+    }
 
     if (page === 'moderation') {
       setAdminInitialSection('moderation')
@@ -406,9 +445,15 @@ export default function App() {
     }
   }, [])
 
-  // Unified handler for opening either a dedicated page ('dashboard', 'admin', 'moderation') or a modal ('login', 'register', 'feedback', 'submission', 'about')
+  // Unified handler for opening either a dedicated page ('dashboard', 'admin', 'moderation', 'about', 'error-404', etc.) or a modal ('login', 'register', 'feedback', 'submission')
   const handleOpenRouteOrModal = useCallback((target) => {
-    if (target === 'dashboard' || target === 'admin' || target === 'moderation' || target === 'about') {
+    if (
+      target === 'dashboard' ||
+      target === 'admin' ||
+      target === 'moderation' ||
+      target === 'about' ||
+      (typeof target === 'string' && target.startsWith('error'))
+    ) {
       navigateToPage(target)
     } else {
       setActiveLoreCharacter(null)
@@ -753,6 +798,15 @@ export default function App() {
            <AboutPage
              onNavigateHome={() => navigateToPage('home', '#top')}
              onOpenModal={handleOpenRouteOrModal}
+           />
+         ) : activePage === 'error' ? (
+           <ErrorPage
+             key={errorStatusCode}
+             statusCode={errorStatusCode}
+             onNavigateHome={() => navigateToPage('home', '#top')}
+             onSelectUniverse={(slug) => openUniversePage(slug)}
+             onOpenModal={handleOpenRouteOrModal}
+             onChangeStatusCode={(code) => navigateToPage(`error-${code}`)}
            />
          ) : activePage === 'dashboard' ? (
           <section className="py-8 sm:py-12 px-3 sm:px-6 lg:px-8 bg-[#FDFBF7] dark:bg-[#0D1117] border-b-2 border-black dark:border-neutral-100">
