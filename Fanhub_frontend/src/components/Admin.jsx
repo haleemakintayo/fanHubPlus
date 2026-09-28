@@ -1946,7 +1946,7 @@ export default function Admin({
                       type="submit"
                       className="px-6 py-2 bg-[#A3E635] text-black border-2 border-black text-xs font-black uppercase hover:bg-[#84CC16] transition-colors brutal-shadow-sm"
                     >
-                      ✅ Save Profile
+                      Save Profile
                     </button>
                   </div>
                   </form>

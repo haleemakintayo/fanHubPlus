@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import {
   Filter,
   ArrowUpDown,
@@ -13,7 +13,9 @@ import {
   SlidersHorizontal,
   X,
   ArrowUpRight,
-  Search
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { BrutalGridSkeleton } from './BrutalSkeleton'
 import { fandomsApi } from '../services/api'
@@ -48,6 +50,8 @@ const POPULARITY_OPTIONS = [
   { value: 98, label: '98+ Mythic Tier' },
 ]
 
+const PAGE_SIZE = 9
+
 export default function ContentExplorer({
   articles = [],
   multimediaData = MULTIMEDIA_DATA,
@@ -69,9 +73,10 @@ export default function ContentExplorer({
   const [selectedYear, setSelectedYear] = useState('All Years')
   const [minPopularity, setMinPopularity] = useState(0)
   const [sortBy, setSortBy] = useState('popular') // 'popular' | 'latest' | 'alpha'
-  const [visibleCount, setVisibleCount] = useState(9)
+  const [currentPage, setCurrentPage] = useState(1)
   const [apiContent, setApiContent] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const sectionRef = useRef(null)
 
   // Hydrate additional published items from backend ContentExplorer endpoint
   useEffect(() => {
@@ -392,6 +397,7 @@ export default function ContentExplorer({
     setSelectedYear('All Years')
     setMinPopularity(0)
     setSortBy('popular')
+    setCurrentPage(1)
     onSearchChange?.('')
   }
 
@@ -403,11 +409,60 @@ export default function ContentExplorer({
     (minPopularity > 0 ? 1 : 0) +
     (searchQuery.trim() !== '' ? 1 : 0)
 
-  const displayedItems = filteredAndSorted.slice(0, visibleCount)
+  // Clamp the active page whenever the filtered result set shrinks
+  const totalPages = Math.max(1, Math.ceil(filteredAndSorted.length / PAGE_SIZE))
+  const activePage = Math.min(currentPage, totalPages)
+
+  const displayedItems = filteredAndSorted.slice(
+    (activePage - 1) * PAGE_SIZE,
+    activePage * PAGE_SIZE
+  )
+
+  // Reset to the first page whenever any filter / sort / dataset changes
+  // (render-phase adjustment, avoids a cascading setState inside an effect)
+  const filterSignature = [
+    selectedUniverse,
+    selectedType,
+    selectedGenre,
+    selectedYear,
+    minPopularity,
+    searchQuery,
+    sortBy,
+    apiContent,
+  ].join('|')
+
+  const [prevFilterSignature, setPrevFilterSignature] = useState(filterSignature)
+  if (prevFilterSignature !== filterSignature) {
+    setPrevFilterSignature(filterSignature)
+    setCurrentPage(1)
+  }
+
+  const goToPage = (page) => {
+    const target = Math.min(Math.max(1, page), totalPages)
+    setCurrentPage(target)
+    if (sectionRef.current) {
+      sectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  // Windowed page numbers with ellipsis: 1 … 4 5 6 … 12
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
+    const pages = new Set([1, totalPages, activePage])
+    if (activePage - 1 > 1) pages.add(activePage - 1)
+    if (activePage + 1 < totalPages) pages.add(activePage + 1)
+    if (activePage <= 3) [2, 3, 4].forEach((p) => pages.add(p))
+    if (activePage >= totalPages - 2)
+      [totalPages - 3, totalPages - 2, totalPages - 1].forEach((p) => pages.add(p))
+    return [...pages].sort((a, b) => a - b)
+  }, [totalPages, activePage])
 
   return (
     <section
       id="content-explorer"
+      ref={sectionRef}
       className="py-8 sm:py-16 px-3 sm:px-6 lg:px-8 border-b-2 border-black dark:border-neutral-100 bg-[#FDFBF7] dark:bg-[#0D1117] transition-colors"
     >
       <div className="max-w-7xl mx-auto">
@@ -658,7 +713,9 @@ export default function ContentExplorer({
             <div className="mb-4 p-3 bg-white dark:bg-[#161B22] border-2 border-black dark:border-neutral-700 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
               <div className="flex items-center gap-2">
                 <span className="font-black uppercase text-black dark:text-white">
-                  Showing {displayedItems.length} of {filteredAndSorted.length} Indexed Entries
+                  Showing {(activePage - 1) * PAGE_SIZE + (filteredAndSorted.length ? 1 : 0)}–
+                  {Math.min(activePage * PAGE_SIZE, filteredAndSorted.length)} of{' '}
+                  {filteredAndSorted.length} Indexed Entries
                 </span>
                 {selectedUniverse !== 'all' && (
                   <span className="px-2 py-0.5 bg-[#FACC15] text-black font-black uppercase border border-black text-[10px]">
@@ -872,17 +929,64 @@ export default function ContentExplorer({
                   })}
                 </div>
 
-                {/* Load More Pagination Control */}
-                {visibleCount < filteredAndSorted.length && (
-                  <div className="mt-8 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setVisibleCount((prev) => prev + 6)}
-                      className="px-6 py-3 bg-[#FACC15] text-black font-black text-xs sm:text-sm uppercase tracking-tight border-2 border-black brutal-shadow brutal-btn"
-                    >
-                      Load More Canon Entries ({filteredAndSorted.length - visibleCount} Remaining)
-                    </button>
-                  </div>
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <nav
+                    aria-label="Content Explorer pagination"
+                    className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => goToPage(activePage - 1)}
+                        disabled={activePage === 1}
+                        aria-label="Previous page"
+                        className="p-2 border-2 border-black dark:border-white bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm brutal-btn disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+
+                      {pageNumbers.map((page, idx) => {
+                        const previous = pageNumbers[idx - 1]
+                        const showGap = previous !== undefined && page - previous > 1
+                        return (
+                          <span key={page} className="flex items-center gap-1.5">
+                            {showGap && (
+                              <span className="font-mono text-xs font-black text-neutral-500 px-1">
+                                …
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => goToPage(page)}
+                              aria-current={page === activePage ? 'page' : undefined}
+                              className={`min-w-[2.25rem] px-2.5 py-2 font-mono text-xs font-black uppercase border-2 border-black dark:border-white ${
+                                page === activePage
+                                  ? 'bg-black text-[#A3E635] dark:bg-white dark:text-black brutal-shadow-sm'
+                                  : 'bg-white dark:bg-[#161B22] text-black dark:text-white hover:bg-[#FACC15] hover:text-black'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </span>
+                        )
+                      })}
+
+                      <button
+                        type="button"
+                        onClick={() => goToPage(activePage + 1)}
+                        disabled={activePage === totalPages}
+                        aria-label="Next page"
+                        className="p-2 border-2 border-black dark:border-white bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm brutal-btn disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <span className="font-mono text-[10px] font-black uppercase text-neutral-500">
+                      Page {activePage} / {totalPages} • {PAGE_SIZE} entries per page
+                    </span>
+                  </nav>
                 )}
               </>
             )}

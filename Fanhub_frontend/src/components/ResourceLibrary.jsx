@@ -144,7 +144,10 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
   }, [activeCategory, activeTag, serverPage, getFilteredFallback])
 
   const tags = ['all', ...TAGS]
+  // Grouping only applies once a filter narrows the view; "all" stays a flat grid
+  const isFiltering = activeCategory !== 'all' || activeTag !== 'all'
   const groupedItemsByCategory = useMemo(() => {
+    if (!isFiltering) return [['all', items]]
     const groups = {}
     items.forEach((item) => {
       groups[item.category] = groups[item.category] || []
@@ -154,8 +157,16 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
     return Object.keys(groups)
       .sort((a, b) => order.indexOf(a) - order.indexOf(b))
       .map((category) => [category, groups[category]])
-  }, [items])
+  }, [items, isFiltering])
   const pagedGroups = useMemo(() => {
+    if (!isFiltering) {
+      // Unfiltered view: paginate the flat list directly, 10 items per page
+      const pages = []
+      for (let start = 0; start < items.length; start += 10) {
+        pages.push([['all', items.slice(start, start + 10)]])
+      }
+      return pages.length > 0 ? pages : [[]]
+    }
     const pages = []
     let current = []
     let currentSize = 0
@@ -171,7 +182,7 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
     })
     if (current.length > 0) pages.push(current)
     return pages
-  }, [groupedItemsByCategory])
+  }, [groupedItemsByCategory, isFiltering, items])
   const localTotalPages = Math.max(1, pagedGroups.length)
   const visibleItems = pagedGroups[page - 1]?.flatMap((group) => group[1]) || []
   const groupedItems = useMemo(() => Object.fromEntries(pagedGroups[page - 1] || []), [pagedGroups, page])
@@ -201,6 +212,42 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
 
   const selectGallery = (item, image) => {
     setSelectedGallery((prev) => ({ ...prev, [item.slug]: image }))
+  }
+
+  const renderMerchCard = (item) => {
+    const activeImage = selectedGallery[item.slug] || item.image
+    const currentViews = viewCounts[item.slug] ?? item.viewCount
+    const isBookmarked = !!bookmarkedItems[item.slug]
+    return (
+      <article key={item.slug} className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white brutal-shadow-md overflow-hidden">
+        <button type="button" onClick={() => trackItem(item)} className="block w-full text-left">
+          <div className="relative aspect-4/3 overflow-hidden bg-neutral-100 dark:bg-neutral-800 border-b-2 border-black dark:border-white">
+            <img src={activeImage} alt={item.title} className="w-full h-full object-cover hover:scale-105 transition-transform" />
+            <span className="absolute top-2 left-2 font-mono text-[10px] font-black uppercase px-2 py-1 border-2 border-black text-black" style={{ backgroundColor: item.categoryColor }}>{item.categoryName}</span>
+            <span className="absolute bottom-2 right-2 bg-black/85 text-white font-mono text-[10px] font-bold px-2 py-1 flex items-center gap-1"><Eye className="w-3 h-3 text-[#38BDF8]" /> {currentViews.toLocaleString()} views</span>
+          </div>
+        </button>
+        <div className="p-4">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="min-w-0">
+              <span className={`inline-block font-mono text-[10px] font-black uppercase px-2 py-1 border-2 border-black ${tagStyles[item.tag] || 'bg-[#FACC15] text-black'}`}>{item.tagDisplay}</span>
+              <h4 className="font-black uppercase text-lg leading-tight mt-2 text-black dark:text-white">{item.title}</h4>
+              <p className="font-mono text-[10px] font-bold uppercase text-neutral-500 mt-1">{item.manufacturer}</p>
+            </div>
+            <button type="button" onClick={() => toggleBookmark?.(item.slug, item.title, 'Merchandise Item', { category_name: item.categoryName, thumbnail_url: item.image })} className={`p-1.5 border-2 border-black dark:border-white brutal-shadow-sm brutal-btn ${isBookmarked ? 'bg-[#F43F5E] text-white' : 'bg-white dark:bg-[#0D1117] text-black dark:text-white'}`} aria-label={`Bookmark ${item.title}`}><Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} /></button>
+          </div>
+          <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed mb-3">{item.description}</p>
+          <div className="grid grid-cols-2 gap-2 text-[10px] font-mono mb-3">
+            <div className="p-2 bg-neutral-100 dark:bg-[#0D1117] border border-black dark:border-neutral-700"><span className="block text-neutral-500 font-bold uppercase">Drop</span><span className="font-black text-black dark:text-white">{item.dropDate}</span></div>
+            <div className="p-2 bg-neutral-100 dark:bg-[#0D1117] border border-black dark:border-neutral-700"><span className="block text-neutral-500 font-bold uppercase">Popularity</span><span className="font-black text-black dark:text-white">{item.popularity ? `${item.popularity}/5` : 'Tracking views'}</span></div>
+          </div>
+          <div className="flex gap-1.5 mb-3" aria-label="Image gallery">
+            {item.gallery.slice(0, 3).map((image, index) => <button key={`${item.slug}-${index}`} type="button" onClick={() => selectGallery(item, image)} className={`w-10 h-10 border-2 ${activeImage === image ? 'border-[#F43F5E]' : 'border-black dark:border-white'}`}><img src={image} alt="" className="w-full h-full object-cover" /></button>)}
+          </div>
+          <button type="button" onClick={() => trackItem(item)} className="w-full py-2 bg-[#A3E635] text-black border-2 border-black font-black text-xs uppercase brutal-shadow-sm brutal-btn flex items-center justify-center gap-1.5"><TrendingUp className="w-4 h-4" /> Track popularity</button>
+        </div>
+      </article>
+    )
   }
 
   return (
@@ -248,59 +295,31 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
             ) : (
               <>
               <div className="space-y-8">
-                {Object.entries(groupedItems).map(([category, categoryItems]) => {
-                  const categoryMeta = CATEGORIES.find((entry) => entry.slug === category) || CATEGORIES[0]
-                  return (
-                    <div key={category}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="w-3 h-3 border-2 border-black" style={{ backgroundColor: categoryMeta.color }} />
-                        <h3 className="font-black uppercase text-xl text-black dark:text-white">{categoryMeta.name}</h3>
-                        <span className="font-mono text-xs text-neutral-500">{categoryItems.length} showcase items</span>
+                {isFiltering ? (
+                  Object.entries(groupedItems).map(([category, categoryItems]) => {
+                    const categoryMeta = CATEGORIES.find((entry) => entry.slug === category) || CATEGORIES[0]
+                    return (
+                      <div key={category}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="w-3 h-3 border-2 border-black" style={{ backgroundColor: categoryMeta.color }} />
+                          <h3 className="font-black uppercase text-xl text-black dark:text-white">{categoryMeta.name}</h3>
+                          <span className="font-mono text-xs text-neutral-500">{categoryItems.length} showcase items</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                          {categoryItems.map(renderMerchCard)}
+                        </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                        {categoryItems.map((item) => {
-                          const activeImage = selectedGallery[item.slug] || item.image
-                          const currentViews = viewCounts[item.slug] ?? item.viewCount
-                          const isBookmarked = !!bookmarkedItems[item.slug]
-                          return (
-                            <article key={item.slug} className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-white brutal-shadow-md overflow-hidden">
-                              <button type="button" onClick={() => trackItem(item)} className="block w-full text-left">
-                                <div className="relative aspect-4/3 overflow-hidden bg-neutral-100 dark:bg-neutral-800 border-b-2 border-black dark:border-white">
-                                  <img src={activeImage} alt={item.title} className="w-full h-full object-cover hover:scale-105 transition-transform" />
-                                  <span className="absolute top-2 left-2 font-mono text-[10px] font-black uppercase px-2 py-1 border-2 border-black text-black" style={{ backgroundColor: item.categoryColor }}>{item.categoryName}</span>
-                                  <span className="absolute bottom-2 right-2 bg-black/85 text-white font-mono text-[10px] font-bold px-2 py-1 flex items-center gap-1"><Eye className="w-3 h-3 text-[#38BDF8]" /> {currentViews.toLocaleString()} views</span>
-                                </div>
-                              </button>
-                              <div className="p-4">
-                                <div className="flex items-start justify-between gap-2 mb-2">
-                                  <div className="min-w-0">
-                                    <span className={`inline-block font-mono text-[10px] font-black uppercase px-2 py-1 border-2 border-black ${tagStyles[item.tag] || 'bg-[#FACC15] text-black'}`}>{item.tagDisplay}</span>
-                                    <h4 className="font-black uppercase text-lg leading-tight mt-2 text-black dark:text-white">{item.title}</h4>
-                                    <p className="font-mono text-[10px] font-bold uppercase text-neutral-500 mt-1">{item.manufacturer}</p>
-                                  </div>
-                                  <button type="button" onClick={() => toggleBookmark?.(item.slug, item.title, 'Merchandise Item', { category_name: item.categoryName, thumbnail_url: item.image })} className={`p-1.5 border-2 border-black dark:border-white brutal-shadow-sm brutal-btn ${isBookmarked ? 'bg-[#F43F5E] text-white' : 'bg-white dark:bg-[#0D1117] text-black dark:text-white'}`} aria-label={`Bookmark ${item.title}`}><Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} /></button>
-                                </div>
-                                <p className="text-xs text-neutral-700 dark:text-neutral-300 leading-relaxed mb-3">{item.description}</p>
-                                <div className="grid grid-cols-2 gap-2 text-[10px] font-mono mb-3">
-                                  <div className="p-2 bg-neutral-100 dark:bg-[#0D1117] border border-black dark:border-neutral-700"><span className="block text-neutral-500 font-bold uppercase">Drop</span><span className="font-black text-black dark:text-white">{item.dropDate}</span></div>
-                                  <div className="p-2 bg-neutral-100 dark:bg-[#0D1117] border border-black dark:border-neutral-700"><span className="block text-neutral-500 font-bold uppercase">Popularity</span><span className="font-black text-black dark:text-white">{item.popularity ? `${item.popularity}/5` : 'Tracking views'}</span></div>
-                                </div>
-                                <div className="flex gap-1.5 mb-3" aria-label="Image gallery">
-                                  {item.gallery.slice(0, 3).map((image, index) => <button key={`${item.slug}-${index}`} type="button" onClick={() => selectGallery(item, image)} className={`w-10 h-10 border-2 ${activeImage === image ? 'border-[#F43F5E]' : 'border-black dark:border-white'}`}><img src={image} alt="" className="w-full h-full object-cover" /></button>)}
-                                </div>
-                                <button type="button" onClick={() => trackItem(item)} className="w-full py-2 bg-[#A3E635] text-black border-2 border-black font-black text-xs uppercase brutal-shadow-sm brutal-btn flex items-center justify-center gap-1.5"><TrendingUp className="w-4 h-4" /> Track popularity</button>
-                              </div>
-                            </article>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {visibleItems.map(renderMerchCard)}
+                  </div>
+                )}
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-4 border-t-2 border-black dark:border-neutral-800">
                 {isLoading && <div className="w-8 h-8"><MediaSpinner size={32} /></div>}
-                <span className="font-mono text-[10px] font-black uppercase text-neutral-500">Showing {visibleItems.length ? (page - 1) * 10 + 1 : 0}-{Math.min(page * 10, items.length)} of {items.length} loaded • grouped by fandom</span>
+                <span className="font-mono text-[10px] font-black uppercase text-neutral-500">Showing {visibleItems.length ? (page - 1) * 10 + 1 : 0}-{Math.min(page * 10, items.length)} of {items.length} loaded • {isFiltering ? 'grouped by fandom' : 'full collection'}</span>
                 <div className="flex items-center gap-2">
                   <button type="button" disabled={page <= 1 || isLoading} onClick={() => setPage((prev) => Math.max(1, prev - 1))} className="px-3 py-1.5 border-2 border-black dark:border-white font-mono text-xs font-black uppercase disabled:opacity-40">Previous</button>
                   <span className="font-mono text-xs font-black">Page {page} / {localTotalPages}</span>
