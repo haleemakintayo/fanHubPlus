@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+from django.core.mail import BadHeaderError
+from smtplib import SMTPException
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from .serializers import (
@@ -204,10 +206,13 @@ class PasswordResetRequestView(APIView):
 
         if user:
             token_data = PasswordResetService.generate_reset_token(user)
-            return Response({
-                'message': 'Password reset link generated.',
-                'reset_data': token_data
-            }, status=status.HTTP_200_OK)
+            try:
+                PasswordResetService.send_reset_email(user, token_data)
+            except (BadHeaderError, SMTPException, OSError):
+                return Response(
+                    {'error': 'Unable to send the password reset email right now.'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
 
         return Response({
             'message': 'If that email exists in our system, a reset link has been dispatched.'

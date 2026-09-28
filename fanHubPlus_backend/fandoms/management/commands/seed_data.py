@@ -548,7 +548,7 @@ class Command(BaseCommand):
                 'faction': 'Z Fighters',
                 'tagline': 'The strongest warrior in the universe',
                 'biography': 'A Saiyan sent to Earth as a baby, raised as a human, and became Earth\'s greatest protector.',
-                'image_url': 'https://e7.pngegg.com/pngimages/822/663/png-clipart-goku-dragon-ball-desktop-4k-resolution-goku-fictional-character-cartoon.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'strength': 99}, {'speed': 95}],
                 'details_json': {'universe': 'Dragon Ball', 'species': 'Saiyan'}
             },
@@ -561,7 +561,7 @@ class Command(BaseCommand):
                 'faction': 'Konoha',
                 'tagline': 'Believe it!',
                 'biography': 'A ninja from the Hidden Leaf Village with the Nine-Tails fox spirit sealed within him.',
-                'image_url': 'https://e7.pngegg.com/pngimages/521/928/png-clipart-naruto-uzumaki-sasuke-uchiha-kakashi-hatake-naruto-shippuden-anime-manga-naruto-child-cg-artwork-thumbnail.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'chakra': 90}, {'resilience': 95}],
                 'details_json': {'universe': 'Naruto', 'species': 'Human'}
             },
@@ -574,7 +574,7 @@ class Command(BaseCommand):
                 'faction': 'Straw Hat Pirates',
                 'tagline': 'I\'m going to be the King of the Pirates!',
                 'biography': 'A pirate with rubber powers who dreams of finding the One Piece treasure.',
-                'image_url': 'https://e7.pngegg.com/pngimages/244/971/png-clipart-monkey-d-luffy-one-piece-anime-manga-roronoa-zoro-character-superhero-cartoon.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'endurance': 100}, {'ambition': 100}],
                 'details_json': {'universe': 'One Piece', 'species': 'Human'}
             },
@@ -587,7 +587,7 @@ class Command(BaseCommand):
                 'faction': 'Team 7',
                 'tagline': 'I am an avenger.',
                 'biography': 'A powerful ninja seeking revenge against his brother, driven by ambition and pride.',
-                'image_url': 'https://e7.pngegg.com/pngimages/481/504/png-clipart-sasuke-uchiha-naruto-uzumaki-itachi-uchiha-kakashi-hatake-naruto-character-superhero-fictional-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'speed': 95}, {'power': 94}],
                 'details_json': {'universe': 'Naruto', 'species': 'Human'}
             },
@@ -600,7 +600,7 @@ class Command(BaseCommand):
                 'faction': 'Soul Society',
                 'tagline': 'I am the one who fights.',
                 'biography': 'A teenager with the ability to see and interact with spirits, protecting humans from hollows.',
-                'image_url': 'https://e7.pngegg.com/pngimages/559/125/png-clipart-ichigo-kurosaki-bleach-shinigami-anime-manga-bleach-characters-cartoon-orange-hair.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'swordsmanship': 92}, {'spiritual_power': 96}],
                 'details_json': {'universe': 'Bleach', 'species': 'Human'}
             },
@@ -613,7 +613,7 @@ class Command(BaseCommand):
                 'faction': 'Survey Corps',
                 'tagline': 'The difference in our strength is like the difference between clouds and mud.',
                 'biography': 'A skilled soldier with exceptional combat abilities, leading the Survey Corps.',
-                'image_url': 'https://e7.pngegg.com/pngimages/788/854/png-clipart-levi-ackerman-attack-on-titan-anime-manga-character-superhero-boy.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'combat': 98}, {'leadership': 90}],
                 'details_json': {'universe': 'Attack on Titan', 'species': 'Human'}
             },
@@ -626,7 +626,7 @@ class Command(BaseCommand):
                 'faction': 'Roswaal\'s Mansion',
                 'tagline': 'I love Subaru.',
                 'biography': 'A demon maid with blue hair who serves in a mansion and possesses formidable combat skills.',
-                'image_url': 'https://e7.pngegg.com/pngimages/892/631/png-clipart-rem-re-zero-anime-maid-blue-hair-character-manga.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'combat': 88}, {'loyalty': 100}],
                 'details_json': {'universe': 'Re:Zero', 'species': 'Demon'}
             },
@@ -639,7 +639,7 @@ class Command(BaseCommand):
                 'faction': 'Survey Corps',
                 'tagline': 'Eren, I\'ll always follow you.',
                 'biography': 'A skilled fighter and devoted friend who protects those she cares about.',
-                'image_url': 'https://e7.pngegg.com/pngimages/485/244/png-clipart-mikasa-ackerman-attack-on-titan-anime-character-superhero-manga.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'combat': 92}, {'devotion': 100}],
                 'details_json': {'universe': 'Attack on Titan', 'species': 'Human'}
             },
@@ -653,7 +653,7 @@ class Command(BaseCommand):
                 'faction': 'Witchers',
                 'tagline': 'I am the witcher.',
                 'biography': 'A monster hunter with supernatural abilities, mutated through ancient rites.',
-                'image_url': 'https://e7.pngegg.com/pngimages/405/863/png-clipart-geralt-of-rivia-the-witcher-3-wild-hunt-the-witcher-monster-hunter-video-game-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'swordsmanship': 95}, {'alchemy': 85}],
                 'details_json': {'universe': 'The Witcher', 'species': 'Human'}
             },
@@ -666,7 +666,7 @@ class Command(BaseCommand):
                 'faction': 'Hyrule',
                 'tagline': 'It\'s dangerous to go alone! Take this.',
                 'biography': 'The chosen hero destined to save Hyrule from darkness.',
-                'image_url': 'https://e7.pngegg.com/pngimages/513/595/png-clipart-link-the-legend-of-zelda-breath-of-the-wild-the-legend-of-zelda-link-s-awakening-video-game-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'courage': 100}, {'wisdom': 90}],
                 'details_json': {'universe': 'The Legend of Zelda', 'species': 'Hylian'}
             },
@@ -679,7 +679,7 @@ class Command(BaseCommand):
                 'faction': 'UNSC',
                 'tagline': 'I\'ll finish the fight.',
                 'biography': 'A genetically enhanced supersoldier fighting against the Covenant.',
-                'image_url': 'https://e7.pngegg.com/pngimages/844/233/png-clipart-master-chief-halo-infinite-video-game-character-spartan.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'strength': 95}, {'tactical': 90}],
                 'details_json': {'universe': 'Halo', 'species': 'Human'}
             },
@@ -692,7 +692,7 @@ class Command(BaseCommand):
                 'faction': 'AVALANCHE',
                 'tagline': 'Let\'s mosey.',
                 'biography': 'A former member of an elite military unit turned eco-terrorist who fights to save the planet.',
-                'image_url': 'https://e7.pngegg.com/pngimages/365/618/png-clipart-cloud-strife-final-fantasy-vii-remake-buster-sword-final-fantasy-video-game-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'swordsmanship': 94}, {'materia': 88}],
                 'details_json': {'universe': 'Final Fantasy VII', 'species': 'Human'}
             },
@@ -705,7 +705,7 @@ class Command(BaseCommand):
                 'faction': 'Independent',
                 'tagline': 'I\'ll find the truth.',
                 'biography': 'An adventurous archaeologist exploring ancient tombs and uncovering lost civilizations.',
-                'image_url': 'https://e7.pngegg.com/pngimages/476/816/png-clipart-lara-croft-tomb-raider-video-game-character-action-girl.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'agility': 92}, {'intelligence': 90}],
                 'details_json': {'universe': 'Tomb Raider', 'species': 'Human'}
             },
@@ -718,7 +718,7 @@ class Command(BaseCommand):
                 'faction': 'Norse Gods',
                 'tagline': 'Boy!',
                 'biography': 'A warrior who escaped the Greek underworld to challenge the gods themselves.',
-                'image_url': 'https://e7.pngegg.com/pngimages/844/233/png-clipart-kratos-god-of-war-video-game-character-spartan-warrior.png',
+                'image_url': 'https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'strength': 100}, {'rage': 95}],
                 'details_json': {'universe': 'God of War', 'species': 'Demigod'}
             },
@@ -731,7 +731,7 @@ class Command(BaseCommand):
                 'faction': 'Fireflies',
                 'tagline': 'I\'ll survive.',
                 'biography': 'A young survivor immune to infection, navigating a post-apocalyptic world.',
-                'image_url': 'https://e7.pngegg.com/pngimages/525/881/png-clipart-ellie-the-last-of-us-part-ii-video-game-character-girl.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'survival': 95}, {'courage': 92}],
                 'details_json': {'universe': 'The Last of Us', 'species': 'Human'}
             },
@@ -745,7 +745,7 @@ class Command(BaseCommand):
                 'faction': 'Avengers',
                 'tagline': 'I am Iron Man.',
                 'biography': 'A billionaire industrialist who builds a powered suit of armor to save the world.',
-                'image_url': 'https://e7.pngegg.com/pngimages/406/868/png-clipart-iron-man-tony-stark-marvel-cinematic-universe-superhero-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'intelligence': 100}, {'charisma': 85}],
                 'details_json': {'universe': 'Marvel', 'species': 'Human'}
             },
@@ -758,7 +758,7 @@ class Command(BaseCommand):
                 'faction': 'Night\'s Watch',
                 'tagline': 'Winter is coming.',
                 'biography': 'A nobleman raised as a bastard, destined to protect the realm from the White Walkers.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-jon-snow-game-of-thrones-character-white-walker-tv-series.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'honor': 90}, {'leadership': 85}],
                 'details_json': {'universe': 'Game of Thrones', 'species': 'Human'}
             },
@@ -771,7 +771,7 @@ class Command(BaseCommand):
                 'faction': 'Zion',
                 'tagline': 'I know kung fu.',
                 'biography': 'A computer programmer who discovers the true nature of reality and becomes humanity\'s savior.',
-                'image_url': 'https://e7.pngegg.com/pngimages/425/847/png-clipart-neo-the-matrix-kung-fu-character-movies.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'martial_arts': 100}, {'hacking': 95}],
                 'details_json': {'universe': 'The Matrix', 'species': 'Human'}
             },
@@ -784,7 +784,7 @@ class Command(BaseCommand):
                 'faction': 'Cartel',
                 'tagline': 'You\'re goddamn right.',
                 'biography': 'A chemistry teacher turned drug kingpin, motivated by pride and ego.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-walter-white-breaking-bad-chemistry-teacher-antihero-tv-series.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'chemistry': 98}, {'cunning': 95}],
                 'details_json': {'universe': 'Breaking Bad', 'species': 'Human'}
             },
@@ -797,7 +797,7 @@ class Command(BaseCommand):
                 'faction': 'House Targaryen',
                 'tagline': 'Dracarys!',
                 'biography': 'An exiled princess who rises to power, commanding dragons and loyal followers.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-daenerys-targaryen-game-of-thrones-mother-of-dragons-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'leadership': 96}, {'dragons': 100}],
                 'details_json': {'universe': 'Game of Thrones', 'species': 'Human'}
             },
@@ -810,7 +810,7 @@ class Command(BaseCommand):
                 'faction': 'Baker Street',
                 'tagline': 'The game is afoot.',
                 'biography': 'A brilliant modern detective solving crimes in contemporary London.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-sherlock-holmes-detective-bbc-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'intelligence': 100}, {'observation': 100}],
                 'details_json': {'universe': 'Sherlock', 'species': 'Human'}
             },
@@ -823,7 +823,7 @@ class Command(BaseCommand):
                 'faction': 'Hawkins Lab',
                 'tagline': 'Friends don\'t lie.',
                 'biography': 'A young girl with psychokinetic abilities escaping a secret laboratory.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-eleven-stranger-things-character-girl-psychokinetic.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'psychokinesis': 98}, {'growth': 95}],
                 'details_json': {'universe': 'Stranger Things', 'species': 'Human'}
             },
@@ -837,7 +837,7 @@ class Command(BaseCommand):
                 'faction': 'YG Entertainment',
                 'tagline': 'LISA is the name, dancing is my game.',
                 'biography': 'A Thai-born K-pop idol known for her exceptional dancing skills and charisma.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-lisa-blackpink-kpop-idol-dancer.png',
+                'image_url': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'dance': 100}, {'charisma': 95}],
                 'details_json': {'universe': 'K-Pop', 'species': 'Human'}
             },
@@ -850,7 +850,7 @@ class Command(BaseCommand):
                 'faction': 'Big Hit Music',
                 'tagline': 'I\'m the golden maknae.',
                 'biography': 'The youngest member of BTS, known for his vocal talent and versatility.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-jungkook-bts-idol-kpop-member.png',
+                'image_url': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'vocal': 95}, {'dance': 90}],
                 'details_json': {'universe': 'K-Pop', 'species': 'Human'}
             },
@@ -863,7 +863,7 @@ class Command(BaseCommand):
                 'faction': 'EDAM Entertainment',
                 'tagline': 'The nation\'s little sister.',
                 'biography': 'A South Korean singer-songwriter known for her sweet voice and heartfelt lyrics.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-iu-korean-singer-songwriter-kpop.png',
+                'image_url': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'vocal': 95}, {'songwriting': 90}],
                 'details_json': {'universe': 'K-Pop', 'species': 'Human'}
             },
@@ -876,7 +876,7 @@ class Command(BaseCommand):
                 'faction': 'YG Entertainment',
                 'tagline': 'Pretty savage.',
                 'biography': 'A South Korean rapper and member of Blackpink, known for her stage presence.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-jennie-blackpink-rapper-idol-kpop.png',
+                'image_url': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'rap': 92}, {'stage_presence': 95}],
                 'details_json': {'universe': 'K-Pop', 'species': 'Human'}
             },
@@ -889,7 +889,7 @@ class Command(BaseCommand):
                 'faction': 'Big Hit Music',
                 'tagline': 'I purple you.',
                 'biography': 'A member of BTS known for his deep voice and artistic talents.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-taehyung-bts-idol-kpop-member.png',
+                'image_url': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'vocal': 92}, {'visual': 98}],
                 'details_json': {'universe': 'K-Pop', 'species': 'Human'}
             },
@@ -903,7 +903,7 @@ class Command(BaseCommand):
                 'faction': 'Avengers',
                 'tagline': 'With great power comes great responsibility.',
                 'biography': 'A high school student bitten by a radioactive spider, gaining spider-like abilities.',
-                'image_url': 'https://e7.pngegg.com/pngimages/564/365/png-clipart-spider-man-marvel-comics-superhero-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'agility': 95}, {'strength': 85}],
                 'details_json': {'universe': 'Marvel', 'species': 'Human'}
             },
@@ -916,7 +916,7 @@ class Command(BaseCommand):
                 'faction': 'Justice League',
                 'tagline': 'I am the night.',
                 'biography': 'A billionaire who uses his intellect and resources to fight crime in Gotham City.',
-                'image_url': 'https://e7.pngegg.com/pngimages/523/581/png-clipart-batman-bruce-wayne-dc-comics-superhero-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'intelligence': 100}, {'martial_arts': 95}],
                 'details_json': {'universe': 'DC', 'species': 'Human'}
             },
@@ -929,7 +929,7 @@ class Command(BaseCommand):
                 'faction': 'Justice League',
                 'tagline': 'I am Diana of Themyscira, Princess of the Amazons.',
                 'biography': 'An Amazon princess with superhuman strength and the Lasso of Truth.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-wonder-woman-diana-prince-dc-comics-superhero.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'strength': 95}, {'wisdom': 90}],
                 'details_json': {'universe': 'DC', 'species': 'Amazon'}
             },
@@ -942,7 +942,7 @@ class Command(BaseCommand):
                 'faction': 'Justice League',
                 'tagline': 'Truth, justice, and the American way.',
                 'biography': 'An alien from Krypton with extraordinary powers, raised as a human in Kansas.',
-                'image_url': 'https://e7.pngegg.com/pngimages/523/581/png-clipart-superman-clark-kent-dc-comics-superhero-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'strength': 100}, {'flight': 100}],
                 'details_json': {'universe': 'DC', 'species': 'Kryptonian'}
             },
@@ -955,7 +955,7 @@ class Command(BaseCommand):
                 'faction': 'Avengers',
                 'tagline': 'Genius, billionaire, playboy, philanthropist.',
                 'biography': 'A brilliant engineer who creates advanced armor to fight evil.',
-                'image_url': 'https://e7.pngegg.com/pngimages/406/868/png-clipart-iron-man-tony-stark-marvel-comics-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'engineering': 99}, {'power': 90}],
                 'details_json': {'universe': 'Marvel', 'species': 'Human'}
             },
@@ -968,7 +968,7 @@ class Command(BaseCommand):
                 'faction': 'Avengers',
                 'tagline': 'I\'m always picking up after you boys.',
                 'biography': 'A highly trained spy and assassin turned hero, fighting for redemption.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-black-widow-natasha-romanoff-marvel-comics-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'espionage': 98}, {'combat': 96}],
                 'details_json': {'universe': 'Marvel', 'species': 'Human'}
             },
@@ -981,7 +981,7 @@ class Command(BaseCommand):
                 'faction': 'Justice League',
                 'tagline': 'My name is Barry Allen, and I\'m the fastest man alive.',
                 'biography': 'A forensic scientist struck by lightning, gaining super speed powers.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-the-flash-barry-allen-dc-comics-speedster-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'speed': 100}, {'agility': 95}],
                 'details_json': {'universe': 'DC', 'species': 'Human'}
             },
@@ -995,7 +995,7 @@ class Command(BaseCommand):
                 'faction': 'Hero Association',
                 'tagline': 'I\'m just a hero for fun.',
                 'biography': 'A hero who can defeat any opponent with a single punch, but is bored with his power.',
-                'image_url': 'https://e7.pngegg.com/pngimages/521/928/png-clipart-saitama-one-punch-man-anime-manga-character-bald-superhero.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'strength': 100}, {'speed': 100}],
                 'details_json': {'universe': 'One Punch Man', 'species': 'Human'}
             },
@@ -1008,7 +1008,7 @@ class Command(BaseCommand):
                 'faction': 'Survey Corps',
                 'tagline': 'I will destroy all the Titans.',
                 'biography': 'A young man who swears revenge on the Titans after they destroy his hometown.',
-                'image_url': 'https://e7.pngegg.com/pngimages/788/854/png-clipart-eren-yeager-attack-on-titan-anime-manga-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'determination': 100}, {'agility': 90}],
                 'details_json': {'universe': 'Attack on Titan', 'species': 'Human'}
             },
@@ -1021,7 +1021,7 @@ class Command(BaseCommand):
                 'faction': 'Kira',
                 'tagline': 'I am the god of the new world.',
                 'biography': 'A genius high school student who gains the power to kill with a notebook.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-light-yagami-death-note-anime-manga-genius-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'intelligence': 100}, {'manipulation': 95}],
                 'details_json': {'universe': 'Death Note', 'species': 'Human'}
             },
@@ -1034,7 +1034,7 @@ class Command(BaseCommand):
                 'faction': 'Demon Slayer Corps',
                 'tagline': 'I\'ll save everyone.',
                 'biography': 'A young demon slayer who fights to turn his sister back into a human.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-tanjiro-kamado-demon-slayer-anime-manga-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'swordsmanship': 93}, {'determination': 96}],
                 'details_json': {'universe': 'Demon Slayer', 'species': 'Human'}
             },
@@ -1047,7 +1047,7 @@ class Command(BaseCommand):
                 'faction': 'Spirit Medium Association',
                 'tagline': 'I\'m not special.',
                 'biography': 'A middle school student with overwhelming psychic powers seeking normalcy.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-mob-shigeo-kageyama-mob-psycho-100-anime-manga-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'psychic_power': 100}, {'growth': 95}],
                 'details_json': {'universe': 'Mob Psycho 100', 'species': 'Human'}
             },
@@ -1060,7 +1060,7 @@ class Command(BaseCommand):
                 'faction': 'Tokyo Jujutsu High',
                 'tagline': 'I will save everyone.',
                 'biography': 'A high schooler who swallows a cursed finger and becomes the vessel of a powerful demon.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-yuji-itadori-jujutsu-kaisen-anime-manga-character-sorcerer.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'cursed_energy': 92}, {'combat': 90}],
                 'details_json': {'universe': 'Jujutsu Kaisen', 'species': 'Human'}
             },
@@ -1073,7 +1073,7 @@ class Command(BaseCommand):
                 'faction': 'U.A. High School',
                 'tagline': 'Plus Ultra!',
                 'biography': 'A quirkless boy who gains superpowers and becomes a hero in training.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-deku-izuku-midoriya-my-hero-academia-anime-manga-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'quirk': 88}, {'determination': 98}],
                 'details_json': {'universe': 'My Hero Academia', 'species': 'Human'}
             },
@@ -1087,7 +1087,7 @@ class Command(BaseCommand):
                 'faction': 'Galactic Empire',
                 'tagline': 'I am your father.',
                 'biography': 'A former Jedi turned Sith Lord, known for his black armor and deep voice.',
-                'image_url': 'https://e7.pngegg.com/pngimages/336/592/png-clipart-darth-vader-anakin-skywalker-star-wars-sith-lord-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'dark_side': 100}, {'power': 95}],
                 'details_json': {'universe': 'Star Wars', 'species': 'Human'}
             },
@@ -1100,7 +1100,7 @@ class Command(BaseCommand):
                 'faction': 'Suicide Squad',
                 'tagline': 'Who\'s the bad guy now?',
                 'biography': 'A former psychiatrist turned criminal, known for her playful and chaotic nature.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-harley-quinn-harleen-quinzel-dc-comics-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'acrobatics': 90}, {'chaos': 100}],
                 'details_json': {'universe': 'DC', 'species': 'Human'}
             },
@@ -1113,7 +1113,7 @@ class Command(BaseCommand):
                 'faction': 'Mushroom Kingdom',
                 'tagline': 'It\'s-a me, Mario!',
                 'biography': 'A famous plumber who saves Princess Peach from Bowser.',
-                'image_url': 'https://e7.pngegg.com/pngimages/341/664/png-clipart-mario-super-mario-video-game-character-plumber.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'jumping': 100}, {'adventure': 95}],
                 'details_json': {'universe': 'Super Mario', 'species': 'Human'}
             },
@@ -1126,7 +1126,7 @@ class Command(BaseCommand):
                 'faction': 'Team Pikachu',
                 'tagline': 'Pika Pika!',
                 'biography': 'An electric-type Pokemon known for its iconic "Pika Pika" cry and powerful attacks.',
-                'image_url': 'https://e7.pngegg.com/pngimages/2/637/png-clipart-pikachu-pokemon-go-pokemon-yellow-pikachu-electric-mouse-pokemon.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'electric': 100}, {'speed': 92}],
                 'details_json': {'universe': 'Pokemon', 'species': 'Electric Mouse'}
             },
@@ -1139,7 +1139,7 @@ class Command(BaseCommand):
                 'faction': 'X-Men',
                 'tagline': 'The best there is at what I do.',
                 'biography': 'A mutant with healing powers and retractable adamantium claws, seeking redemption.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-wolverine-logan-marvel-comics-x-men-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'regeneration': 95}, {'combat': 94}],
                 'details_json': {'universe': 'Marvel', 'species': 'Mutant'}
             },
@@ -1152,7 +1152,7 @@ class Command(BaseCommand):
                 'faction': 'Merc with a Mouth',
                 'tagline': 'Maximum effort!',
                 'biography': 'A wisecracking mercenary with a healing factor and a love for chaos.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-deadpool-wade-wilson-marvel-comics-mercenary-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'humor': 100}, {'combat': 88}],
                 'details_json': {'universe': 'Marvel', 'species': 'Human'}
             },
@@ -1165,7 +1165,7 @@ class Command(BaseCommand):
                 'faction': 'None',
                 'tagline': 'Why so serious?',
                 'biography': 'Batman\'s arch-nemesis, a chaotic criminal mastermind with a twisted sense of humor.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-joker-the-clown-prince-dc-comics-villain-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'chaos': 100}, {'intelligence': 92}],
                 'details_json': {'universe': 'DC', 'species': 'Human'}
             },
@@ -1179,7 +1179,7 @@ class Command(BaseCommand):
                 'faction': 'Baker Street',
                 'tagline': 'The game is afoot.',
                 'biography': 'A brilliant detective known for his logical reasoning and forensic skills.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-sherlock-holmes-detective-consulting-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'intelligence': 100}, {'observation': 100}],
                 'details_json': {'universe': 'Sherlock Holmes', 'species': 'Human'}
             },
@@ -1192,7 +1192,7 @@ class Command(BaseCommand):
                 'faction': 'Gallifrey',
                 'tagline': 'Allons-y!',
                 'biography': 'A time-traveling alien who explores the universe in the TARDIS.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-the-doctor-doctor-who-time-lord-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'regeneration': 100}, {'wisdom': 95}],
                 'details_json': {'universe': 'Doctor Who', 'species': 'Time Lord'}
             },
@@ -1205,7 +1205,7 @@ class Command(BaseCommand):
                 'faction': 'Gryffindor',
                 'tagline': 'I\'m going to bed before either of you come up with another clever idea to get us killed.',
                 'biography': 'A brilliant witch known for her intelligence and loyalty.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-hermione-granger-harry-potter-witch-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'intelligence': 100}, {'loyalty': 95}],
                 'details_json': {'universe': 'Harry Potter', 'species': 'Human'}
             },
@@ -1218,7 +1218,7 @@ class Command(BaseCommand):
                 'faction': 'Gryffindor',
                 'tagline': 'I\'m not really famous for anything.',
                 'biography': 'A young wizard destined to defeat the dark wizard Voldemort.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-harry-potter-wizard-character-books.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'magic': 90}, {'courage': 95}],
                 'details_json': {'universe': 'Harry Potter', 'species': 'Wizard'}
             },
@@ -1231,7 +1231,7 @@ class Command(BaseCommand):
                 'faction': 'Hogwarts',
                 'tagline': 'It is our choices that show what we truly are.',
                 'biography': 'The most powerful wizard of his time, known for his wisdom and kindness.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-dumbledore-albus-harry-potter-sage-wizard.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'magic': 100}, {'wisdom': 100}],
                 'details_json': {'universe': 'Harry Potter', 'species': 'Wizard'}
             },
@@ -1244,7 +1244,7 @@ class Command(BaseCommand):
                 'faction': 'Fellowship',
                 'tagline': 'You shall not pass!',
                 'biography': 'An ancient wizard and mentor to hobbits, fighting against the forces of darkness.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-gandalf-the-grey-lord-of-the-rings-wizard-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'magic': 98}, {'leadership': 95}],
                 'details_json': {'universe': 'The Lord of the Rings', 'species': 'Maiar'}
             },
@@ -1257,7 +1257,7 @@ class Command(BaseCommand):
                 'faction': 'Fellowship',
                 'tagline': 'I wish it need not have happened in my time.',
                 'biography': 'A small hobbit entrusted with the One Ring and the fate of Middle-earth.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-frodo-baggins-hobbit-lord-of-the-rings-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'resilience': 95}, {'determination': 96}],
                 'details_json': {'universe': 'The Lord of the Rings', 'species': 'Hobbit'}
             },
@@ -1270,7 +1270,7 @@ class Command(BaseCommand):
                 'faction': 'Dúnedain',
                 'tagline': 'A wizard is never late.',
                 'biography': 'A ranger and rightful king of Gondor who leads the free peoples against darkness.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-aragorn-strider-lord-of-the-rings-ranger-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'swordsmanship': 94}, {'leadership': 92}],
                 'details_json': {'universe': 'The Lord of the Rings', 'species': 'Human'}
             },
@@ -1283,7 +1283,7 @@ class Command(BaseCommand):
                 'faction': 'Jedi Order',
                 'tagline': 'May the Force be with you.',
                 'biography': 'A young Jedi knight who learns the ways of the Force and defeats the Empire.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-luke-skywalker-jedi-star-wars-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'force': 95}, {'lightsaber': 92}],
                 'details_json': {'universe': 'Star Wars', 'species': 'Human'}
             },
@@ -1296,7 +1296,7 @@ class Command(BaseCommand):
                 'faction': 'District 12',
                 'tagline': 'If we burn, you burn with us.',
                 'biography': 'A skilled archer who becomes the symbol of rebellion against an oppressive regime.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-katniss-everdeen-mockingjay-hunger-games-archer-character.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'archery': 98}, {'survival': 95}],
                 'details_json': {'universe': 'The Hunger Games', 'species': 'Human'}
             },
@@ -1309,7 +1309,7 @@ class Command(BaseCommand):
                 'faction': 'Rohan',
                 'tagline': 'A day may come when the courage of men fails.',
                 'biography': 'A shield maiden of Rohan who disguises herself as a male warrior to fight in battle.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-eowyn-shield-maiden-lord-of-the-rings-warrior.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'courage': 96}, {'swordsmanship': 90}],
                 'details_json': {'universe': 'The Lord of the Rings', 'species': 'Human'}
             },
@@ -1322,7 +1322,7 @@ class Command(BaseCommand):
                 'faction': 'None',
                 'tagline': 'My precious.',
                 'biography': 'A corrupted creature obsessed with the One Ring, torn between good and evil.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-gollum-smeagol-lord-of-the-rings-creature.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'stealth': 95}, {'corruption': 100}],
                 'details_json': {'universe': 'The Lord of the Rings', 'species': 'Creature'}
             },
@@ -1335,12 +1335,11 @@ class Command(BaseCommand):
                 'faction': 'Fellowship',
                 'tagline': 'And my bow!',
                 'biography': 'An elf archer from Mirkwood known for his archery skills and grace in battle.',
-                'image_url': 'https://e7.pngegg.com/pngimages/625/814/png-clipart-legolas-elf-archer-lord-of-the-rings-mirkwood.png',
+                'image_url': 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
                 'stats_json': [{'archery': 98}, {'agility': 96}],
                 'details_json': {'universe': 'The Lord of the Rings', 'species': 'Elf'}
             },
         ]
-        
         
         
         for char_data in characters_data:

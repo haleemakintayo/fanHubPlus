@@ -96,6 +96,37 @@ const FALLBACK_ANALYTICS = {
   ],
 };
 
+function ImageModal({ image, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Image preview"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-h-[90vh] max-w-5xl border-2 border-black bg-white p-3 shadow-lg dark:bg-[#161B22]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <img
+          src={image}
+          alt="Character preview"
+          className="max-h-[82vh] max-w-full object-contain"
+        />
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-2 top-2 border-2 border-black bg-white px-2 py-1 text-xs font-black text-black"
+          aria-label="Close image preview"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Admin({
   embedded = false,
   initialSection = 'analytics',
@@ -110,6 +141,8 @@ export default function Admin({
   );
   const [entitySubTab, setEntitySubTab] = useState('characters'); // 'characters' | 'events' | 'merch'
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState('');
 
   // 1. Analytics State
   const [analytics, setAnalytics] = useState(FALLBACK_ANALYTICS);
@@ -673,44 +706,10 @@ export default function Admin({
     });
   };
 
-  // Add image modal for character, event, and merch edit forms
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState('');
-
   const openImageModal = (url) => {
     setSelectedImage(url);
     setIsImageModalOpen(true);
   };
-
-  // Modal component for displaying images
-  const ImageModal = () => (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Image preview"
-      onClick={() => setIsImageModalOpen(false)}
-    >
-      <div
-        className="relative max-h-[90vh] max-w-5xl border-2 border-black bg-white p-3 shadow-lg dark:bg-[#161B22]"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <img
-          src={selectedImage}
-          alt="Character preview"
-          className="max-h-[82vh] max-w-full object-contain"
-        />
-        <button
-          type="button"
-          onClick={() => setIsImageModalOpen(false)}
-          className="absolute right-2 top-2 border-2 border-black bg-white px-2 py-1 text-xs font-black text-black"
-          aria-label="Close image preview"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  );
 
   // ================= CHATBOT FAQ KNOWLEDGE BASE HANDLERS =================
   const handleSaveFaq = async (e) => {
@@ -960,7 +959,9 @@ export default function Admin({
 
   const panelBody = (
     <div className="space-y-6">
-      {isImageModalOpen && selectedImage && <ImageModal />}
+      {isImageModalOpen && selectedImage && (
+        <ImageModal image={selectedImage} onClose={() => setIsImageModalOpen(false)} />
+      )}
 
       {/* Top Admin Control Navigation Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b-2 border-black dark:border-neutral-700">

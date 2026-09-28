@@ -4,6 +4,8 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
+from django.core import mail
+from django.test import override_settings
 from fandoms.models import Category
 from .services import PasswordResetService
 
@@ -102,6 +104,34 @@ class AccountsTests(TestCase):
         self.assertTrue(success)
         user.refresh_from_db()
         self.assertTrue(user.check_password('NewPassword123!'))
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_password_reset_request_sends_email_without_exposing_token(self):
+        User.objects.create_user(
+            email='emailreset@fanhub.com',
+            username='emailreset',
+            password='OldPassword123!'
+        )
+
+        response = self.client.post('/api/accounts/password-reset/', {
+            'email': 'emailreset@fanhub.com'
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn('reset_data', response.data)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('uid=', mail.outbox[0].body)
+        self.assertIn('token=', mail.outbox[0].body)
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_password_reset_request_is_generic_for_unknown_email(self):
+        response = self.client.post('/api/accounts/password-reset/', {
+            'email': 'missing@fanhub.com'
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertNotIn('reset_data', response.data)
 
     def test_dashboard_preferences_and_greeting(self):
         user = User.objects.create_user(

@@ -191,7 +191,11 @@ export default function App() {
   })
 
   // Modal State (for overlays: 'login' | 'register' | 'feedback' | 'submission' | 'about')
-  const [activeModal, setActiveModal] = useState(null)
+  const [activeModal, setActiveModal] = useState(() => {
+    if (typeof window === 'undefined') return null
+    const params = new URLSearchParams(window.location.search)
+    return params.get('uid') && params.get('token') ? 'login' : null
+  })
   const [activeLoreCharacter, setActiveLoreCharacter] = useState(null)
 
   // Load approved character profiles so community-approved additions appear in the home archive.

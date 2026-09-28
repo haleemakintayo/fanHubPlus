@@ -5,6 +5,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.db.models import Count, Avg, Sum
+from django.conf import settings
+from django.core.mail import send_mail
+from urllib.parse import urlencode
 
 User = get_user_model()
 
@@ -412,6 +415,23 @@ class PasswordResetService:
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         return {'uid': uid, 'token': token}
+
+    @staticmethod
+    def send_reset_email(user, token_data):
+        query = urlencode(token_data)
+        reset_url = f'{settings.FRONTEND_URL}/?{query}'
+        send_mail(
+            subject='Reset your Fan Hub Plus password',
+            message=(
+                'We received a request to reset your Fan Hub Plus password.\n\n'
+                f'Open this link to choose a new password:\n{reset_url}\n\n'
+                'This link expires shortly and can only be used once. '
+                'If you did not request this, you can ignore this email.'
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
 
     @staticmethod
     def validate_and_reset(uidb64, token, new_password):

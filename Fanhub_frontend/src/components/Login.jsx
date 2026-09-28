@@ -15,10 +15,21 @@ export default function Login({ onShowToast, onClose, onAuthSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   // Password Reset Flow State
-  const [resetMode, setResetMode] = useState(false);
-  const [resetTokenData, setResetTokenData] = useState(null);
+  const [resetMode, setResetMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    return Boolean(params.get('uid') && params.get('token'));
+  });
+  const [resetTokenData, setResetTokenData] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get('uid');
+    const token = params.get('token');
+    return uid && token ? { uid, token } : null;
+  });
   const [newPassword, setNewPassword] = useState('');
   const [resetMessage, setResetMessage] = useState('');
 
@@ -56,12 +67,9 @@ export default function Login({ onShowToast, onClose, onAuthSuccess }) {
     try {
       const res = await requestPasswordReset(email);
       setResetMessage(res?.message || 'Password reset token generated.');
-      if (res?.reset_data) {
-        setResetTokenData(res.reset_data);
-      }
       onShowToast?.({
         title: 'Reset Link Dispatched',
-        message: res?.message || 'Check your reset token below to set a new password.',
+        message: res?.message || 'Check your email for a password reset link.',
         type: 'info',
       });
     } catch (err) {
@@ -171,7 +179,7 @@ export default function Login({ onShowToast, onClose, onAuthSuccess }) {
               <div className="flex items-center border-2 border-black dark:border-white px-2.5 py-2 bg-neutral-50 dark:bg-[#0D1117]">
                 <Lock className="w-4 h-4 text-neutral-500 mr-2 shrink-0" />
                 <input
-                  type="password"
+                  type={showNewPassword ? 'text' : 'password'}
                   required
                   minLength={8}
                   value={newPassword}
@@ -179,6 +187,13 @@ export default function Login({ onShowToast, onClose, onAuthSuccess }) {
                   placeholder="Enter new strong password"
                   className="w-full bg-transparent text-xs sm:text-sm font-bold text-black dark:text-white focus:outline-none"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="text-xs font-mono text-neutral-500 hover:text-neutral-700"
+                >
+                  {showNewPassword ? 'Hide' : 'Show'}
+                </button>
               </div>
             </div>
 

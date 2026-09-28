@@ -210,7 +210,6 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
           <div>
             <div className="inline-flex items-center gap-2 mb-2">
               <span className="bg-[#F43F5E] text-white font-black text-xs uppercase px-2.5 py-1 border-2 border-black brutal-shadow-sm">MERCH + RESOURCE LIBRARY</span>
-              <span className="font-mono text-xs font-bold uppercase text-neutral-500">BACKEND-CURATED DISCOVERY</span>
             </div>
             <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-black dark:text-white">COLLECTOR&apos;S VAULT</h2>
             <p className="text-neutral-700 dark:text-neutral-300 font-medium text-sm mt-1">Browse image galleries by fandom, filter official tags, and scout what drops next.</p>
