@@ -1,15 +1,21 @@
 -- =============================================================================
--- Fan Hub Plus — MySQL-Compatible Seed Data Script (seed_data.sql)
+-- Fan Hub Plus — MySQL Workbench & CLI Compatible Seed Data Script (seed_data.sql)
+-- Schema: funhubplus
 -- Synchronized with:
 --   1. fanHubPlus_backend/fandoms/management/commands/seed_data.py
 --   2. fanHubPlus_backend/seed_db.py
 --   3. Fanhub_frontend/src/data/fandomData.js
 --
--- Usage (MySQL):
---   mysql -u <user> -p <database_name> < seed_data.sql
+-- Usage in MySQL Workbench:
+--   1. File -> Open SQL Script... -> select seed_data.sql
+--   2. Click the Execute (Lightning Bolt) icon
 -- =============================================================================
 
+CREATE DATABASE IF NOT EXISTS `funhubplus` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `funhubplus`;
+
 SET NAMES utf8mb4;
+SET SQL_SAFE_UPDATES = 0;
 SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 
@@ -3015,3 +3021,4 @@ All three are currently cataloged in the Anime Universe directory with spoiler-f
 
 COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;
+SET SQL_SAFE_UPDATES = 1;

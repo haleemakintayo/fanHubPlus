@@ -95,24 +95,24 @@ WSGI_APPLICATION = 'fanhub.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# MySql Database uncomment when needed
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': os.getenv('MYSQL_NAME'),
-#         'USER': 'root',                        # Can also be swapped for os.getenv('MYSQL_USER') if needed
-#         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-#         'HOST': '127.0.0.1',
-#         'PORT': os.getenv('MYSQL_PORT', '3306'), # Defaults to '3306' if missing from the .env file
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+# MySql Database uncomment when needed
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('MYSQL_NAME'),
+        'USER': 'root',                        # Can also be swapped for os.getenv('MYSQL_USER') if needed
+        'PASSWORD': os.getenv('MYSQL_PASSWORD'),
+        'HOST': '127.0.0.1',
+        'PORT': os.getenv('MYSQL_PORT', '3306'), # Defaults to '3306' if missing from the .env file
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
