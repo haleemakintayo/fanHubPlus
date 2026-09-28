@@ -199,10 +199,15 @@ export default function App() {
     let isMounted = true
     adminApi.getCharacters()
       .then((res) => {
+        console.log('DEBUG: getCharacters response:', res)
         const profiles = Array.isArray(res) ? res : res?.results || []
         if (!isMounted || profiles.length === 0) return
+        
         const mappedProfiles = profiles.map((profile) => {
-          const category = UNIVERSES.find((universe) => universe.slug === profile.category?.slug)
+          // Find category from profile's nested category object first
+          const profileCategorySlug = profile.category?.slug
+          const category = UNIVERSES.find((universe) => universe.slug === profileCategorySlug)
+          
           const details = profile.details_json && typeof profile.details_json === 'object'
             ? profile.details_json
             : {}
@@ -238,13 +243,17 @@ export default function App() {
               })
             : []
 
+          // Determine category with proper fallback chain
+          const actualCategorySlug = profileCategorySlug || category?.slug
+          const actualCategory = UNIVERSES.find((u) => u.slug === actualCategorySlug)
+          
           return {
             id: profile.slug || `character-${profile.id}`,
             name: profile.name,
             alias: profile.alias || profile.archetype || 'Community Profile',
-            universe: profile.category?.name || 'Community Vault',
-            universeSlug: profile.category?.slug || category?.slug || 'community-vault',
-            accentColor: category?.accentColor || '#A3E635',
+            universe: actualCategory?.name || profile.category?.name || 'Community Vault',
+            universeSlug: actualCategorySlug || 'community-vault',
+            accentColor: actualCategory?.accentColor || '#A3E635',
             archetype: profile.archetype || 'Canon Icon',
             image: profile.image_url || '',
             faction: profile.faction || 'Independent',
@@ -259,7 +268,8 @@ export default function App() {
         })
         setHomeCharacters(mappedProfiles)
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('DEBUG: getCharacters error:', error)
         // Keep the curated static archive available when the API is unavailable.
       })
 
@@ -706,6 +716,7 @@ export default function App() {
             userRatings={userRatings}
             onRateItem={handleRateItem}
             onOpenModal={handleOpenRouteOrModal}
+            characters={homeCharacters}
           />
         ) : activePage === 'article' ? (
           <ArticlePage
@@ -729,6 +740,7 @@ export default function App() {
             }}
             userRatings={userRatings}
             onRateItem={handleRateItem}
+            characters={homeCharacters}
             onShowToast={(msg, type = 'info') =>
               addToast({ title: 'Article Dispatch', message: msg, type })
             }

@@ -53,7 +53,8 @@ export default function UniversePage({
   onToggleBookmark,
   userRatings = {},
   onRateItem,
-  onOpenModal
+  onOpenModal,
+  characters = []
 }) {
   const [activeTab, setActiveTab] = useState('all')
   const [localSearch, setLocalSearch] = useState('')
@@ -166,18 +167,20 @@ export default function UniversePage({
 
   // Characters for this universe (deduplicated by id/name)
   const universeCharacters = useMemo(() => {
-    const curated = homeCharacters.filter(
+    const availableCharacters = [...characters, ...backendCharacters]
+    const matchingCharacters = availableCharacters.filter(
       (c) =>
         c.universeSlug === universe.slug ||
         c.universe.toLowerCase().includes(universe.name.toLowerCase())
     )
-    const seenIds = new Set(curated.map((c) => c.id))
-    const seenNames = new Set(curated.map((c) => c.name.toLowerCase()))
-    const uniqueBackend = backendCharacters.filter(
-      (bc) => !seenIds.has(bc.id) && !seenNames.has(bc.name.toLowerCase())
-    )
-    return [...curated, ...uniqueBackend]
-  }, [universe.slug, universe.name, backendCharacters, homeCharacters])
+    const seen = new Set()
+    return matchingCharacters.filter((character) => {
+      const key = character.id || character.name.toLowerCase()
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }, [universe.slug, universe.name, backendCharacters, characters])
 
   // Multimedia & Merch related to this universe
   const universeMedia = useMemo(() => {

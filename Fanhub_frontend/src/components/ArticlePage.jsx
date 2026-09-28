@@ -37,7 +37,8 @@ export default function ArticlePage({
   onUpdateBookmarkNote,
   userRatings = {},
   onRateItem,
-  onShowToast
+  onShowToast,
+  characters = []
 }) {
   const [remoteArticleMap, setRemoteArticleMap] = useState({})
   const [noteEdits, setNoteEdits] = useState({})
@@ -110,12 +111,12 @@ export default function ArticlePage({
 
   // Related characters in this universe
   const relatedCharacters = useMemo(() => {
-    return homeCharacters.filter(
+    return characters.filter(
       (c) =>
         c.universeSlug === universe.slug ||
         c.universe.toLowerCase().includes(universe.name.toLowerCase())
     )
-  }, [universe.slug, universe.name, homeCharacters])
+  }, [universe.slug, universe.name, characters])
 
   const userStar = userRatings[article.id] || 0
   const isBookmarked = Boolean(existingBookmark)

@@ -31,9 +31,16 @@ export default function CharacterArchive({
 
   const displayedCharacters = characters.filter((char) => {
     if (selectedCategory === 'all') return true
-    const slug = (char.universeSlug || char.category?.slug || char.categorySlug || '').toLowerCase()
-    const name = (char.universe || char.category?.name || '').toLowerCase()
-    return slug === selectedCategory || name.includes(selectedCategory)
+    // Normalize both values for case-insensitive comparison
+    const charSlug = String(char.universeSlug || '').toLowerCase()
+    const charUniverseName = String(char.universe || '').toLowerCase()
+    const targetCategory = selectedCategory.toLowerCase()
+    // Match by exact slug or by universe name containing the slug
+    // Special handling: 'community-vault' slug shouldn't match names containing just 'vault'
+    if (targetCategory === 'community-vault') {
+      return charSlug === 'community-vault' || charUniverseName.includes('community')
+    }
+    return charSlug === targetCategory || charUniverseName.includes(targetCategory)
   })
 
   const indexOfLastItem = currentPage * itemsPerPage

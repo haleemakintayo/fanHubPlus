@@ -360,6 +360,29 @@ export default function Admin({
     return () => clearTimeout(timer);
   }, [loadAllAdminData]);
 
+  // ================= MODAL OVERLAY ESC KEY HANDLING =================
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        setShowContentForm(false);
+        setShowCharForm(false);
+        setShowEventForm(false);
+        setShowMerchForm(false);
+        setShowFaqForm(false);
+        setSelectedImage('');
+        setIsImageModalOpen(false);
+        setSelectedCharacterSubmission(null);
+        setEditingContent(null);
+        setEditingChar(null);
+        setEditingEvent(null);
+        setEditingMerch(null);
+        setEditingFaq(null);
+      }
+    };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, []);
+
   // ================= CONTENT & MULTIMEDIA CRUD HANDLERS =================
   const filteredContentItems = useMemo(() => {
     return contentList.filter((item) => {
@@ -650,6 +673,45 @@ export default function Admin({
     });
   };
 
+  // Add image modal for character, event, and merch edit forms
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState('');
+
+  const openImageModal = (url) => {
+    setSelectedImage(url);
+    setIsImageModalOpen(true);
+  };
+
+  // Modal component for displaying images
+  const ImageModal = () => (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Image preview"
+      onClick={() => setIsImageModalOpen(false)}
+    >
+      <div
+        className="relative max-h-[90vh] max-w-5xl border-2 border-black bg-white p-3 shadow-lg dark:bg-[#161B22]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <img
+          src={selectedImage}
+          alt="Character preview"
+          className="max-h-[82vh] max-w-full object-contain"
+        />
+        <button
+          type="button"
+          onClick={() => setIsImageModalOpen(false)}
+          className="absolute right-2 top-2 border-2 border-black bg-white px-2 py-1 text-xs font-black text-black"
+          aria-label="Close image preview"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+
   // ================= CHATBOT FAQ KNOWLEDGE BASE HANDLERS =================
   const handleSaveFaq = async (e) => {
     e.preventDefault();
@@ -898,6 +960,8 @@ export default function Admin({
 
   const panelBody = (
     <div className="space-y-6">
+      {isImageModalOpen && selectedImage && <ImageModal />}
+
       {/* Top Admin Control Navigation Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b-2 border-black dark:border-neutral-700">
         <div className="flex flex-wrap gap-1.5">
@@ -1308,12 +1372,17 @@ export default function Admin({
             </div>
           </div>
 
-          {/* Add / Edit Content Form Drawer */}
-          {showContentForm && (
-            <form
-              onSubmit={handleSaveContent}
-              className="p-4 bg-[#FDFBF7] dark:bg-[#0D1117] border-3 border-black dark:border-white space-y-3 brutal-shadow-md"
-            >
+           {/* Add / Edit Content Form Overlay */}
+           {showContentForm && (
+             <div
+               className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4"
+               onClick={() => setShowContentForm(false)}
+             >
+               <form
+                 onSubmit={handleSaveContent}
+                 onClick={(event) => event.stopPropagation()}
+                 className="w-full max-w-4xl space-y-3 border-2 border-[#A3E635] bg-gradient-to-br from-[#FDFBF7] to-[#F0FDF4] p-5 shadow-2xl dark:from-[#0D1117] dark:to-[#0A0F0A]"
+               >
               <div className="flex items-center justify-between border-b border-black/20 pb-2">
                 <h5 className="font-mono text-xs font-black uppercase text-black dark:text-white">
                   {editingContent ? `Edit Content: ${editingContent.title}` : 'Add New Fandom Content / Multimedia Entry'}
@@ -1511,7 +1580,8 @@ export default function Admin({
                 </button>
               </div>
             </form>
-          )}
+              </div>
+            )}
 
           {/* Content List Table */}
           <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
@@ -1679,308 +1749,582 @@ export default function Admin({
 
           {/* 3A: CHARACTER PROFILES MANAGER */}
           {entitySubTab === 'characters' && (
-            <div className="space-y-3">
+            <div className="space-y-4">
+              {/* Section Header */}
+              <div className="flex items-center gap-2 pb-2 border-b-2 border-[#A3E635]">
+                <div className="w-3 h-3 bg-[#A3E635] border-2 border-black"></div>
+                <h3 className="font-mono text-sm font-black uppercase text-[#A3E635]">
+                  Character Archives
+                </h3>
+                <span className="ml-auto font-mono text-xs font-bold text-neutral-500">
+                  Total: {charactersList.length} Profiles
+                </span>
+              </div>
+
               {showCharForm && (
-                <form
-                  onSubmit={handleSaveCharacter}
-                  className="p-4 bg-[#FDFBF7] dark:bg-[#0D1117] border-2 border-black dark:border-white space-y-3"
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4"
+                  onClick={() => setShowCharForm(false)}
                 >
-                  <h5 className="font-mono text-xs font-black uppercase">
-                    {editingChar ? `Edit Character: ${editingChar.name}` : 'Create Character Profile'}
-                  </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input
-                      type="text"
-                      required
-                      placeholder="Character Name"
-                      value={charForm.name}
-                      onChange={(e) => setCharForm({ ...charForm, name: e.target.value })}
-                      className="border-2 border-black p-2 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Alias / Title (e.g. Titan Slayer)"
-                      value={charForm.alias}
-                      onChange={(e) => setCharForm({ ...charForm, alias: e.target.value })}
-                      className="border-2 border-black p-2 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
-                    />
-                    <select
-                      value={charForm.category_slug}
-                      onChange={(e) =>
-                        setCharForm({ ...charForm, category_slug: e.target.value })
-                      }
-                      className="border-2 border-black p-2 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
-                    >
-                      {EIGHT_FANDOM_CATEGORIES.map((c) => (
-                        <option key={c.slug} value={c.slug}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
+                  <form
+                    onSubmit={handleSaveCharacter}
+                    onClick={(event) => event.stopPropagation()}
+                    className="w-full max-w-5xl space-y-4 border-2 border-[#A3E635] bg-gradient-to-br from-[#FDFBF7] to-[#F0FDF4] p-5 shadow-2xl dark:from-[#0D1117] dark:to-[#0A0F0A]"
+                  >
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-[#A3E635] rounded-full"></div>
+                    <h5 className="font-mono text-sm font-black uppercase text-black dark:text-white">
+                      {editingChar ? `✎ Edit Profile: ${editingChar.name}` : '+ New Character Entry'}
+                    </h5>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2">
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Character Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Enter character name"
+                        value={charForm.name}
+                        onChange={(e) => setCharForm({ ...charForm, name: e.target.value })}
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white focus:ring-2 focus:ring-[#A3E635] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Alias / Title
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Titan Slayer, Witch Hunter"
+                        value={charForm.alias}
+                        onChange={(e) => setCharForm({ ...charForm, alias: e.target.value })}
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Fandom Category
+                      </label>
+                      <select
+                        value={charForm.category_slug}
+                        onChange={(e) =>
+                          setCharForm({ ...charForm, category_slug: e.target.value })
+                        }
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      >
+                        {EIGHT_FANDOM_CATEGORIES.map((c) => (
+                          <option key={c.slug} value={c.slug}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Archetype
+                      </label>
+                      <select
+                        value={charForm.archetype}
+                        onChange={(e) =>
+                          setCharForm({ ...charForm, archetype: e.target.value })
+                        }
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      >
+                        <option value="Protagonist">Protagonist</option>
+                        <option value="Antagonist">Antagonist</option>
+                        <option value="Supporting">Supporting</option>
+                        <option value="Anti-Hero">Anti-Hero</option>
+                        <option value="Villain">Villain</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Portrait Image URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        value={charForm.image_url}
+                        onChange={(e) =>
+                          setCharForm({ ...charForm, image_url: e.target.value })
+                        }
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                      {charForm.image_url && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <img
+                            src={charForm.image_url}
+                            alt={`${charForm.name || 'Character'} preview`}
+                            className="h-16 w-16 border-2 border-black object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => openImageModal(charForm.image_url)}
+                            className="border-2 border-black bg-[#38BDF8] px-2.5 py-1.5 text-[10px] font-black uppercase text-black"
+                          >
+                            <Eye className="mr-1 inline h-3.5 w-3.5" />
+                            View Image
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Origin Realm
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Tokyo, Asgard, Westeros"
+                        value={charForm.origin}
+                        onChange={(e) => setCharForm({ ...charForm, origin: e.target.value })}
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Faction Affiliation
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Scout Regiment, House Stark"
+                        value={charForm.faction}
+                        onChange={(e) => setCharForm({ ...charForm, faction: e.target.value })}
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                      Tagline
+                    </label>
                     <input
                       type="text"
-                      placeholder="Origin Realm"
-                      value={charForm.origin}
-                      onChange={(e) => setCharForm({ ...charForm, origin: e.target.value })}
-                      className="border-2 border-black p-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Faction Affiliation"
-                      value={charForm.faction}
-                      onChange={(e) => setCharForm({ ...charForm, faction: e.target.value })}
-                      className="border-2 border-black p-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
-                    />
-                    <input
-                      type="url"
-                      placeholder="Portrait Image URL"
-                      value={charForm.image_url}
+                      placeholder="A short catchphrase or defining quote"
+                      value={charForm.tagline}
                       onChange={(e) =>
-                        setCharForm({ ...charForm, image_url: e.target.value })
+                        setCharForm({ ...charForm, tagline: e.target.value })
                       }
-                      className="border-2 border-black p-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
                     />
                   </div>
-                  <textarea
-                    rows={2}
-                    placeholder="Character Biography & Canon Dossier..."
-                    value={charForm.biography}
-                    onChange={(e) =>
-                      setCharForm({ ...charForm, biography: e.target.value })
-                    }
-                    className="w-full border-2 border-black p-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
-                  />
-                  <div className="flex justify-end gap-2">
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                      Full Biography & Canon Dossier
+                    </label>
+                    <textarea
+                      rows={4}
+                      placeholder="Comprehensive character background, abilities, relationships, and canon events..."
+                      value={charForm.biography}
+                      onChange={(e) =>
+                        setCharForm({ ...charForm, biography: e.target.value })
+                      }
+                      className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white resize-none"
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap justify-end gap-2 pt-2">
                     <button
                       type="button"
                       onClick={() => setShowCharForm(false)}
-                      className="px-3 py-1 border border-black text-xs font-bold uppercase"
+                      className="px-4 py-2 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100 dark:hover:bg-[#161B22] transition-colors"
                     >
-                      Cancel
+                      Discard Changes
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-1 bg-[#A3E635] text-black border-2 border-black text-xs font-black uppercase"
+                      className="px-6 py-2 bg-[#A3E635] text-black border-2 border-black text-xs font-black uppercase hover:bg-[#84CC16] transition-colors brutal-shadow-sm"
                     >
-                      Save Character
+                      ✅ Save Profile
                     </button>
                   </div>
-                </form>
+                  </form>
+                </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {charactersList.map((char) => (
-                  <div
-                    key={char.id || char.slug}
-                    className="p-3 bg-white dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 flex items-center justify-between gap-2"
-                  >
-                    <div>
-                      <span className="text-[10px] font-mono font-bold text-[#A3E635] bg-black px-1.5 py-0.2 uppercase">
-                        {char.category?.name || char.category_slug || 'Universe'}
-                      </span>
-                      <h5 className="font-black text-xs sm:text-sm uppercase text-black dark:text-white mt-0.5">
-                        {char.name} {char.alias ? `(${char.alias})` : ''}
-                      </h5>
-                      <span className="text-[11px] text-neutral-500 block">
-                        {char.faction || char.origin}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingChar(char);
-                          setCharForm({
-                            name: char.name || '',
-                            alias: char.alias || '',
-                            category_slug: char.category?.slug || 'anime',
-                            archetype: char.archetype || '',
-                            origin: char.origin || '',
-                            faction: char.faction || '',
-                            tagline: char.tagline || '',
-                            biography: char.biography || '',
-                            image_url: char.image_url || '',
-                            weapon: char.details_json?.weapon || '',
-                            nemesis: char.details_json?.nemesis || '',
-                          });
-                          setShowCharForm(true);
-                        }}
-                        className="p-1.5 border border-black bg-neutral-100 dark:bg-[#161B22]"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCharacter(char)}
-                        className="p-1.5 border border-black bg-red-100 text-red-700"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+              {/* Character List Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {charactersList.length === 0 ? (
+                  <div className="col-span-full py-8 text-center border-2 border-dashed border-neutral-300 dark:border-neutral-700">
+                    <p className="text-xs font-mono font-bold text-neutral-500">
+                      No character profiles found. Click "Add Character Profile" to create one.
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  charactersList.map((char) => (
+                    <div
+                      key={char.id || char.slug}
+                      className="group p-4 bg-white dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 hover:border-[#A3E635] transition-colors brutal-shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-[10px] font-mono font-black text-[#A3E635] bg-black px-2 py-0.5 uppercase border border-black">
+                              {char.category?.name || char.category_slug || 'UNIVERSE'}
+                            </span>
+                            {char.archetype && (
+                              <span className="text-[10px] font-mono font-bold text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-[#161B22] px-1.5 py-0.5 uppercase">
+                                {char.archetype}
+                              </span>
+                            )}
+                          </div>
+                          <h5 className="font-black text-sm uppercase text-black dark:text-white truncate">
+                            {char.name}
+                            {char.alias && (
+                              <span className="text-xs text-neutral-500 ml-1">
+                                ({char.alias})
+                              </span>
+                            )}
+                          </h5>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            {char.faction && (
+                              <span className="text-[11px] text-neutral-600 dark:text-neutral-400">
+                                • {char.faction}
+                              </span>
+                            )}
+                            {char.origin && (
+                              <span className="text-[11px] text-neutral-600 dark:text-neutral-400">
+                                • {char.origin}
+                              </span>
+                            )}
+                          </div>
+                          {char.tagline && (
+                            <p className="text-[11px] text-[#A3E635] italic mt-1 truncate">
+                              "{char.tagline}"
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingChar(char);
+                              setCharForm({
+                                name: char.name || '',
+                                alias: char.alias || '',
+                                category_slug: char.category?.slug || 'anime',
+                                archetype: char.archetype || 'Protagonist',
+                                origin: char.origin || '',
+                                faction: char.faction || '',
+                                tagline: char.tagline || '',
+                                biography: char.biography || '',
+                                image_url: char.image_url || '',
+                                weapon: char.details_json?.weapon || '',
+                                nemesis: char.details_json?.nemesis || '',
+                              });
+                              setShowCharForm(true);
+                            }}
+                            className="p-2 border-2 border-black bg-[#FACC15] hover:bg-[#EAB308] transition-colors"
+                            title="Edit Profile"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCharacter(char)}
+                            className="p-2 border-2 border-black bg-red-100 hover:bg-red-200 transition-colors text-red-700"
+                            title="Delete Profile"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
 
           {/* 3B: EVENT HIGHLIGHTS MANAGER */}
           {entitySubTab === 'events' && (
-            <div className="space-y-3">
+            <div className="space-y-4">
+              {/* Section Header */}
+              <div className="flex items-center gap-2 pb-2 border-b-2 border-[#C084FC]">
+                <div className="w-3 h-3 bg-[#C084FC] border-2 border-black"></div>
+                <h3 className="font-mono text-sm font-black uppercase text-[#C084FC]">
+                  Convention Radar
+                </h3>
+                <span className="ml-auto font-mono text-xs font-bold text-neutral-500">
+                  Total: {eventsList.length} Events
+                </span>
+              </div>
+
               {showEventForm && (
-                <form
-                  onSubmit={handleSaveEvent}
-                  className="p-4 bg-[#FDFBF7] dark:bg-[#0D1117] border-2 border-black dark:border-white space-y-3"
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4"
+                  onClick={() => setShowEventForm(false)}
                 >
-                  <h5 className="font-mono text-xs font-black uppercase">
-                    {editingEvent ? `Edit Event: ${editingEvent.title}` : 'Create Event Highlight'}
-                  </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input
-                      type="text"
-                      required
-                      placeholder="Event Title"
-                      value={eventForm.title}
-                      onChange={(e) =>
-                        setEventForm({ ...eventForm, title: e.target.value })
-                      }
-                      className="border-2 border-black p-2 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
-                    />
-                    <input
-                      type="text"
-                      required
-                      placeholder="City (e.g. Tokyo, London, Lagos)"
-                      value={eventForm.city}
-                      onChange={(e) =>
-                        setEventForm({ ...eventForm, city: e.target.value })
-                      }
-                      className="border-2 border-black p-2 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
-                    />
-                    <select
-                      value={eventForm.category_slug}
-                      onChange={(e) =>
-                        setEventForm({ ...eventForm, category_slug: e.target.value })
-                      }
-                      className="border-2 border-black p-2 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
-                    >
-                      {EIGHT_FANDOM_CATEGORIES.map((c) => (
-                        <option key={c.slug} value={c.slug}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
+                  <form
+                    onSubmit={handleSaveEvent}
+                    onClick={(event) => event.stopPropagation()}
+                    className="w-full max-w-5xl space-y-4 border-2 border-[#C084FC] bg-gradient-to-br from-[#FDFBF7] to-[#FAF5FF] p-5 shadow-2xl dark:from-[#0D1117] dark:to-[#0F0A10]"
+                  >
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-[#C084FC] rounded-full"></div>
+                    <h5 className="font-mono text-sm font-black uppercase text-black dark:text-white">
+                      {editingEvent ? `✎ Edit Event: ${editingEvent.title}` : '+ New Event Highlight'}
+                    </h5>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input
-                      type="text"
-                      required
-                      placeholder="Venue Name"
-                      value={eventForm.venue_name}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2">
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Event Title *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Enter event name"
+                        value={eventForm.title}
+                        onChange={(e) =>
+                          setEventForm({ ...eventForm, title: e.target.value })
+                        }
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white focus:ring-2 focus:ring-[#C084FC] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Host City *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Tokyo, Los Angeles"
+                        value={eventForm.city}
+                        onChange={(e) =>
+                          setEventForm({ ...eventForm, city: e.target.value })
+                        }
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Fandom Category
+                      </label>
+                      <select
+                        value={eventForm.category_slug}
+                        onChange={(e) =>
+                          setEventForm({ ...eventForm, category_slug: e.target.value })
+                        }
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      >
+                        {EIGHT_FANDOM_CATEGORIES.map((c) => (
+                          <option key={c.slug} value={c.slug}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Start Date *
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={eventForm.start_date}
+                        onChange={(e) =>
+                          setEventForm({ ...eventForm, start_date: e.target.value })
+                        }
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Status
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Registration Open"
+                        value={eventForm.status}
+                        onChange={(e) =>
+                          setEventForm({ ...eventForm, status: e.target.value })
+                        }
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Venue Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Tokyo Big Sight"
+                        value={eventForm.venue_name}
+                        onChange={(e) =>
+                          setEventForm({ ...eventForm, venue_name: e.target.value })
+                        }
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                        Expected Attendance
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 50,000+ Expected"
+                        value={eventForm.attendees_info}
+                        onChange={(e) =>
+                          setEventForm({ ...eventForm, attendees_info: e.target.value })
+                        }
+                        className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-neutral-600 dark:text-neutral-400 mb-1">
+                      Event Description & Details
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="Highlight details about the convention, featured guests, exclusive content..."
+                      value={eventForm.description}
                       onChange={(e) =>
-                        setEventForm({ ...eventForm, venue_name: e.target.value })
+                        setEventForm({ ...eventForm, description: e.target.value })
                       }
-                      className="border-2 border-black p-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
-                    />
-                    <input
-                      type="date"
-                      required
-                      value={eventForm.start_date}
-                      onChange={(e) =>
-                        setEventForm({ ...eventForm, start_date: e.target.value })
-                      }
-                      className="border-2 border-black p-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Status (e.g. Registration Open)"
-                      value={eventForm.status}
-                      onChange={(e) =>
-                        setEventForm({ ...eventForm, status: e.target.value })
-                      }
-                      className="border-2 border-black p-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
+                      className="w-full border-2 border-black p-2.5 text-xs font-bold bg-white dark:bg-[#161B22] text-black dark:text-white resize-none"
                     />
                   </div>
-                  <textarea
-                    rows={2}
-                    placeholder="Event Highlight Description..."
-                    value={eventForm.description}
-                    onChange={(e) =>
-                      setEventForm({ ...eventForm, description: e.target.value })
-                    }
-                    className="w-full border-2 border-black p-2 text-xs bg-white dark:bg-[#161B22] text-black dark:text-white"
-                  />
-                  <div className="flex justify-end gap-2">
+
+                  <div className="flex flex-wrap justify-end gap-2 pt-2">
                     <button
                       type="button"
                       onClick={() => setShowEventForm(false)}
-                      className="px-3 py-1 border border-black text-xs font-bold uppercase"
+                      className="px-4 py-2 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100 dark:hover:bg-[#161B22] transition-colors"
                     >
-                      Cancel
+                      Discard Changes
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-1 bg-[#A3E635] text-black border-2 border-black text-xs font-black uppercase"
+                      className="px-6 py-2 bg-[#C084FC] text-black border-2 border-black text-xs font-black uppercase hover:bg-[#A855F7] transition-colors brutal-shadow-sm"
                     >
-                      Save Event
+                      ✅ Save Event Highlight
                     </button>
                   </div>
-                </form>
+                  </form>
+                </div>
               )}
 
-              <div className="space-y-2">
-                {eventsList.map((ev) => (
-                  <div
-                    key={ev.id || ev.slug}
-                    className="p-3 bg-white dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 flex items-center justify-between gap-2"
-                  >
-                    <div>
-                      <span className="text-[10px] font-mono font-bold text-[#C084FC] bg-black px-1.5 py-0.2 uppercase">
-                        {ev.city} • {ev.date_month || ev.start_date}
-                      </span>
-                      <h5 className="font-black text-xs sm:text-sm uppercase text-black dark:text-white mt-0.5">
-                        {ev.title}
-                      </h5>
-                      <span className="text-[11px] text-neutral-500">
-                        {ev.venue_name} • {ev.status}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingEvent(ev);
-                          setEventForm({
-                            title: ev.title || '',
-                            category_slug: ev.category?.slug || 'anime',
-                            city: ev.city || '',
-                            venue_name: ev.venue_name || '',
-                            start_date: ev.start_date || '2026-10-15',
-                            date_month: ev.date_month || 'OCT',
-                            date_day: ev.date_day || '15-17',
-                            year: ev.year || '2026',
-                            latitude: ev.latitude || 35.63,
-                            longitude: ev.longitude || 139.79,
-                            attendees_info: ev.attendees_info || '',
-                            status: ev.status || '',
-                            description: ev.description || '',
-                          });
-                          setShowEventForm(true);
-                        }}
-                        className="p-1.5 border border-black bg-neutral-100 dark:bg-[#161B22]"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteEvent(ev)}
-                        className="p-1.5 border border-black bg-red-100 text-red-700"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+              {/* Events List */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {eventsList.length === 0 ? (
+                  <div className="col-span-full py-8 text-center border-2 border-dashed border-neutral-300 dark:border-neutral-700">
+                    <p className="text-xs font-mono font-bold text-neutral-500">
+                      No events found. Click "Add Event Highlight" to create one.
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  eventsList.map((ev) => {
+                    const dateObj = new Date(ev.start_date);
+                    const month = dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
+                    const day = dateObj.getDate();
+                    
+                    return (
+                      <div
+                        key={ev.id || ev.slug}
+                        className="group p-4 bg-white dark:bg-[#0D1117] border-2 border-black dark:border-neutral-700 hover:border-[#C084FC] transition-colors brutal-shadow-sm"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                              <span className="text-[10px] font-mono font-black text-[#C084FC] bg-black px-2 py-0.5 uppercase border border-black">
+                                {ev.city || 'TBD'}
+                              </span>
+                              <span className="text-[10px] font-mono font-bold text-[#C084FC] bg-[#DDD6FE] dark:bg-[#2E1065] px-1.5 py-0.5 uppercase border border-black">
+                                {month} {day}
+                              </span>
+                              {ev.status && (
+                                <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 uppercase border border-black ${
+                                  ev.status.includes('Open') 
+                                    ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' 
+                                    : 'bg-neutral-100 dark:bg-[#161B22] text-neutral-600 dark:text-neutral-400'
+                                }`}>
+                                  {ev.status}
+                                </span>
+                              )}
+                            </div>
+                            <h5 className="font-black text-sm uppercase text-black dark:text-white truncate">
+                              {ev.title}
+                            </h5>
+                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                              {ev.venue_name && (
+                                <span className="text-[11px] text-neutral-600 dark:text-neutral-400">
+                                  📍 {ev.venue_name}
+                                </span>
+                              )}
+                              {ev.attendees_info && (
+                                <span className="text-[11px] text-neutral-600 dark:text-neutral-400">
+                                  👥 {ev.attendees_info}
+                                </span>
+                              )}
+                            </div>
+                            {ev.description && (
+                              <p className="text-[11px] text-neutral-500 italic mt-1 truncate">
+                                "{ev.description}"
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingEvent(ev);
+                                setEventForm({
+                                  title: ev.title || '',
+                                  category_slug: ev.category?.slug || 'anime',
+                                  city: ev.city || '',
+                                  venue_name: ev.venue_name || '',
+                                  start_date: ev.start_date || '2026-10-15',
+                                  date_month: ev.date_month || 'OCT',
+                                  date_day: ev.date_day || '15-17',
+                                  year: ev.year || '2026',
+                                  latitude: ev.latitude || 35.63,
+                                  longitude: ev.longitude || 139.79,
+                                  attendees_info: ev.attendees_info || '',
+                                  status: ev.status || '',
+                                  description: ev.description || '',
+                                });
+                                setShowEventForm(true);
+                              }}
+                              className="p-2 border-2 border-black bg-[#FACC15] hover:bg-[#EAB308] transition-colors"
+                              title="Edit Event"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteEvent(ev)}
+                              className="p-2 border-2 border-black bg-red-100 hover:bg-red-200 transition-colors text-red-700"
+                              title="Delete Event"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}
@@ -1989,10 +2333,15 @@ export default function Admin({
           {entitySubTab === 'merch' && (
             <div className="space-y-3">
               {showMerchForm && (
-                <form
-                  onSubmit={handleSaveMerch}
-                  className="p-4 bg-[#FDFBF7] dark:bg-[#0D1117] border-2 border-black dark:border-white space-y-3"
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4"
+                  onClick={() => setShowMerchForm(false)}
                 >
+                  <form
+                    onSubmit={handleSaveMerch}
+                    onClick={(event) => event.stopPropagation()}
+                    className="w-full max-w-4xl space-y-3 border-2 border-black bg-[#FDFBF7] p-4 shadow-2xl dark:border-white dark:bg-[#0D1117]"
+                  >
                   <h5 className="font-mono text-xs font-black uppercase">
                     {editingMerch ? `Edit Merchandise: ${editingMerch.name}` : 'Add Merchandise Showcase Item'}
                   </h5>
@@ -2089,7 +2438,8 @@ export default function Admin({
                       Save Merchandise
                     </button>
                   </div>
-                </form>
+                  </form>
+                </div>
               )}
 
               <div className="space-y-2">
@@ -2185,11 +2535,16 @@ export default function Admin({
             </button>
           </div>
 
-          {showFaqForm && (
-            <form
-              onSubmit={handleSaveFaq}
-              className="p-4 bg-[#FDFBF7] dark:bg-[#0D1117] border-2 border-black dark:border-white space-y-3 brutal-shadow-sm"
-            >
+           {showFaqForm && (
+             <div
+               className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4"
+               onClick={() => setShowFaqForm(false)}
+             >
+               <form
+                 onSubmit={handleSaveFaq}
+                 onClick={(event) => event.stopPropagation()}
+                 className="w-full max-w-4xl space-y-3 border-2 border-[#A3E635] bg-gradient-to-br from-[#FDFBF7] to-[#F0FDF4] p-5 shadow-2xl dark:from-[#0D1117] dark:to-[#0A0F0A]"
+               >
               <h5 className="font-mono text-xs font-black uppercase">
                 {editingFaq ? 'Update Chatbot Knowledge Base Entry' : 'New Chatbot FAQ Entry'}
               </h5>
@@ -2299,7 +2654,8 @@ export default function Admin({
                 </button>
               </div>
             </form>
-          )}
+              </div>
+            )}
 
           <div className="space-y-2.5">
             {faqsList.map((faq) => (
