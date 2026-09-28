@@ -11,8 +11,8 @@
 --   2. Click the Execute (Lightning Bolt) icon
 -- =============================================================================
 
-CREATE DATABASE IF NOT EXISTS `funhubplus` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `funhubplus`;
+CREATE DATABASE IF NOT EXISTS `fanhubplus` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `fanhubplus`;
 
 SET NAMES utf8mb4;
 SET SQL_SAFE_UPDATES = 0;
