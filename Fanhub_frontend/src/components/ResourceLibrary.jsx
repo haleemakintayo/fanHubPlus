@@ -160,10 +160,10 @@ export default function ResourceLibrary({ merchDrops = [], bookmarkedItems = {},
   }, [items, isFiltering])
   const pagedGroups = useMemo(() => {
     if (!isFiltering) {
-      // Unfiltered view: paginate the flat list directly, 10 items per page
+      // Unfiltered view: paginate the flat list directly, 6 items per page
       const pages = []
-      for (let start = 0; start < items.length; start += 10) {
-        pages.push([['all', items.slice(start, start + 10)]])
+      for (let start = 0; start < items.length; start += 6) {
+        pages.push([['all', items.slice(start, start + 6)]])
       }
       return pages.length > 0 ? pages : [[]]
     }

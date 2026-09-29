@@ -20,6 +20,7 @@ import ArticlePage from './components/ArticlePage'
 import AboutPage from './components/AboutPage'
 import ErrorPage, { ERROR_CATALOG } from './components/ErrorPage'
 import { interactionsApi, adminApi, getAuthToken } from './services/api'
+import { useAuth } from './hooks/useAuth'
 
 import {
   UNIVERSES,
@@ -97,6 +98,9 @@ function parseRouteFromLocation() {
 }
 
 export default function App() {
+  const { user } = useAuth()
+  const isAdmin = user?.role?.toUpperCase() === 'ADMIN'
+
   // Dedicated Page Routing State ('home' | 'universe' | 'article' | 'dashboard' | 'admin' | 'error')
   const initialRoute = useMemo(() => parseRouteFromLocation(), [])
   const [activePage, setActivePage] = useState(initialRoute.page)
@@ -390,6 +394,7 @@ export default function App() {
     }
 
     if (page === 'moderation') {
+      if (!isAdmin) return
       setAdminInitialSection('moderation')
       setActivePage('admin')
       if (typeof window !== 'undefined') {
@@ -400,6 +405,7 @@ export default function App() {
     }
 
     if (page === 'admin') {
+      if (!isAdmin) return
       setAdminInitialSection('analytics')
       setActivePage('admin')
       if (typeof window !== 'undefined') {
@@ -443,7 +449,16 @@ export default function App() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
     }
-  }, [])
+  }, [isAdmin])
+
+  useEffect(() => {
+    if (activePage === 'admin' && !isAdmin) {
+      setActivePage('home')
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, '', '/')
+      }
+    }
+  }, [activePage, isAdmin])
 
   // Unified handler for opening either a dedicated page ('dashboard', 'admin', 'moderation', 'about', 'error-404', etc.) or a modal ('login', 'register', 'feedback', 'submission')
   const handleOpenRouteOrModal = useCallback((target) => {
@@ -851,14 +866,16 @@ export default function App() {
                     <MessageSquarePlus className="w-3.5 h-3.5" />
                     <span>Report Feedback</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => navigateToPage('admin')}
-                    className="px-3 py-1.5 bg-[#F43F5E] text-white font-mono font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn flex items-center gap-1.5"
-                  >
-                    <ShieldAlert className="w-3.5 h-3.5" />
-                    <span>Admin Control Panel</span>
-                  </button>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => navigateToPage('admin')}
+                      className="px-3 py-1.5 bg-[#F43F5E] text-white font-mono font-black text-xs uppercase border-2 border-black brutal-shadow-sm brutal-btn flex items-center gap-1.5"
+                    >
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                      <span>Admin Control Panel</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1064,6 +1081,7 @@ export default function App() {
         onOpenUniversePage={openUniversePage}
         onOpenAuth={handleOpenRouteOrModal}
         onOpenModal={handleOpenRouteOrModal}
+        isAdmin={isAdmin}
       />
 
       {/* Unified Modals Container (Auth, Character Lore, Feedback, Submissions, About) */}
@@ -1075,6 +1093,7 @@ export default function App() {
           setActiveLoreCharacter(null)
         }}
         onSetActiveModal={handleOpenRouteOrModal}
+        isAdmin={isAdmin}
         onShowToast={addToast}
         bookmarkedItems={bookmarkedItems}
         toggleBookmark={toggleBookmark}

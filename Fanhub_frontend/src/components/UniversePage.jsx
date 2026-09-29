@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   ArrowLeft,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Search,
   Bookmark,
   Star,
@@ -44,6 +46,8 @@ const ICON_MAP = {
   ShieldCheck
 }
 
+const ARTICLES_PER_PAGE = 6
+
 export default function UniversePage({
   universeSlug,
   onNavigateHome,
@@ -59,6 +63,8 @@ export default function UniversePage({
   const [activeTab, setActiveTab] = useState('all')
   const [localSearch, setLocalSearch] = useState('')
   const [selectedTag, setSelectedTag] = useState('ALL')
+  const [articlePage, setArticlePage] = useState(1)
+  const [characterPage, setCharacterPage] = useState(1)
   const [backendArticles, setBackendArticles] = useState([])
   const [backendCharacters, setBackendCharacters] = useState([])
   const [activeCharacterModal, setActiveCharacterModal] = useState(null)
@@ -165,6 +171,20 @@ export default function UniversePage({
     })
   }, [allUniverseArticles, selectedTag, localSearch])
 
+  const totalArticlePages = Math.max(1, Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE))
+  const visibleArticles = useMemo(() => {
+    const start = (articlePage - 1) * ARTICLES_PER_PAGE
+    return filteredArticles.slice(start, start + ARTICLES_PER_PAGE)
+  }, [articlePage, filteredArticles])
+
+  useEffect(() => {
+    setArticlePage(1)
+  }, [universe.slug, selectedTag, localSearch])
+
+  useEffect(() => {
+    setArticlePage((page) => Math.min(page, totalArticlePages))
+  }, [totalArticlePages])
+
   // Characters for this universe (deduplicated by id/name)
   const universeCharacters = useMemo(() => {
     const availableCharacters = [...characters, ...backendCharacters]
@@ -181,6 +201,20 @@ export default function UniversePage({
       return true
     })
   }, [universe.slug, universe.name, backendCharacters, characters])
+
+  const totalCharacterPages = Math.max(1, Math.ceil(universeCharacters.length / ARTICLES_PER_PAGE))
+  const visibleCharacters = useMemo(() => {
+    const start = (characterPage - 1) * ARTICLES_PER_PAGE
+    return universeCharacters.slice(start, start + ARTICLES_PER_PAGE)
+  }, [characterPage, universeCharacters])
+
+  useEffect(() => {
+    setCharacterPage(1)
+  }, [universe.slug])
+
+  useEffect(() => {
+    setCharacterPage((page) => Math.min(page, totalCharacterPages))
+  }, [totalCharacterPages])
 
   // Multimedia & Merch related to this universe
   const universeMedia = useMemo(() => {
@@ -607,9 +641,10 @@ export default function UniversePage({
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredArticles.map((article, idx) => {
+                {visibleArticles.map((article, idx) => {
                   const bookmarked = isBookmarked(article.id)
                   const userStar = userRatings[article.id] || 0
+                  const issueNumber = (articlePage - 1) * ARTICLES_PER_PAGE + idx + 1
 
                   return (
                     <article
@@ -634,7 +669,7 @@ export default function UniversePage({
                               className="px-2 py-0.5 text-[10px] font-mono font-black uppercase border border-black text-black"
                               style={{ backgroundColor: universe.accentColor }}
                             >
-                              ISSUE #{idx + 1}
+                              ISSUE #{issueNumber}
                             </span>
                             <span className="px-2 py-0.5 bg-black/85 text-white text-[10px] font-mono font-bold uppercase border border-white/40 flex items-center gap-1">
                               <Clock className="w-3 h-3 text-[#FACC15]" />
@@ -736,6 +771,40 @@ export default function UniversePage({
                 })}
               </div>
             )}
+
+            {totalArticlePages > 1 && (
+              <nav
+                aria-label={`${universe.name} article pagination`}
+                className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3"
+              >
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setArticlePage((page) => Math.max(page - 1, 1))}
+                    disabled={articlePage === 1}
+                    aria-label="Previous article page"
+                    className="p-2 border-2 border-black dark:border-white bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm brutal-btn disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="px-3 font-mono text-xs font-black uppercase text-black dark:text-white">
+                    Page {articlePage} / {totalArticlePages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setArticlePage((page) => Math.min(page + 1, totalArticlePages))}
+                    disabled={articlePage === totalArticlePages}
+                    aria-label="Next article page"
+                    className="p-2 border-2 border-black dark:border-white bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm brutal-btn disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+                <span className="font-mono text-[10px] font-black uppercase text-neutral-500">
+                  {ARTICLES_PER_PAGE} articles per page
+                </span>
+              </nav>
+            )}
           </section>
         )}
 
@@ -757,7 +826,7 @@ export default function UniversePage({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {universeCharacters.map((char) => (
+              {visibleCharacters.map((char) => (
                 <div
                   key={char.id}
                   className="bg-white dark:bg-[#161B22] border-3 border-black dark:border-neutral-200 brutal-shadow overflow-hidden flex flex-col sm:flex-row"
@@ -808,6 +877,40 @@ export default function UniversePage({
                 </div>
               ))}
             </div>
+
+            {totalCharacterPages > 1 && (
+              <nav
+                aria-label={`${universe.name} character pagination`}
+                className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3"
+              >
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setCharacterPage((page) => Math.max(page - 1, 1))}
+                    disabled={characterPage === 1}
+                    aria-label="Previous character page"
+                    className="p-2 border-2 border-black dark:border-white bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm brutal-btn disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="px-3 font-mono text-xs font-black uppercase text-black dark:text-white">
+                    Page {characterPage} / {totalCharacterPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCharacterPage((page) => Math.min(page + 1, totalCharacterPages))}
+                    disabled={characterPage === totalCharacterPages}
+                    aria-label="Next character page"
+                    className="p-2 border-2 border-black dark:border-white bg-white dark:bg-[#161B22] text-black dark:text-white brutal-shadow-sm brutal-btn disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+                <span className="font-mono text-[10px] font-black uppercase text-neutral-500">
+                  {ARTICLES_PER_PAGE} characters per page
+                </span>
+              </nav>
+            )}
           </section>
         )}
 

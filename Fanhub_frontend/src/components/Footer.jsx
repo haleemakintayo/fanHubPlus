@@ -6,7 +6,8 @@ export default function Footer({
   onSelectUniverse, 
   onOpenUniversePage,
   onOpenAuth, 
-  onOpenModal 
+  onOpenModal,
+  isAdmin = false
 }) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -201,22 +202,22 @@ export default function Footer({
                   Collector Dashboard
                 </button>
               </li>
-              <li>
+              {isAdmin && <li>
                 <button 
                   onClick={() => onOpenModal('admin')} 
                   className="hover:text-black dark:hover:text-white hover:underline text-left block py-0.5 text-[#F43F5E]"
                 >
                   Admin Control Panel
                 </button>
-              </li>
-              <li>
+              </li>}
+              {isAdmin && <li>
                 <button 
                   onClick={() => onOpenModal('moderation')} 
                   className="hover:text-black dark:hover:text-white hover:underline text-left block py-0.5"
                 >
                   Moderation Queue (Audit)
                 </button>
-              </li>
+              </li>}
               <li className="pt-1 border-t border-black/15 dark:border-neutral-800">
                 <div className="flex flex-wrap items-center gap-2 pt-0.5">
                   <button

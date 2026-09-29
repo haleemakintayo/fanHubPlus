@@ -36,6 +36,7 @@ export default function Modals({
   onSelectUniverse,
   onApplyDisplayPreferences,
   onRecordActivity,
+  isAdmin = false,
 }) {
   // Auth Form State
   const [authMode, setAuthMode] = useState(activeModal === 'register' ? 'register' : 'login')
@@ -348,7 +349,7 @@ export default function Modals({
   }
 
   // ================= 3. ADMIN CONTROL PANEL & MODERATION QUEUE =================
-  if (activeModal === 'admin' || activeModal === 'moderation') {
+  if (isAdmin && (activeModal === 'admin' || activeModal === 'moderation')) {
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in"
