@@ -3,6 +3,7 @@
 import time
 import re
 import json
+import logging
 
 from google import genai
 
@@ -10,6 +11,8 @@ from django.conf import settings
 
 from .models import ChatbotFAQ, ChatbotQuery
 from fandoms.models import Content, Category
+
+logger = logging.getLogger(__name__)
 
 
 class ContextMatcher:
@@ -64,20 +67,21 @@ class PromptOrchestrator:
     ]
 
     SYSTEM_PROMPT = (
-        "You are FandomBot, the Fan Hub Plus conversational assistant. "
-        "Answer questions about the platform and its fandom content using the supplied context. "
-        "Recommend content or categories when the user's preferences support it, and say when "
-        "a recommendation is an informed suggestion rather than a catalog fact. "
-        "When a new user needs help, guide them through the platform one step at a time: ask "
-        "what fandoms they like, explain the relevant directory or feature, then offer the next "
-        "step. Keep answers concise, friendly, and practical. Do not invent Fan Hub Plus features "
-        "or claim access to private data."
+        "You are FandomBot, the Fan Hub Plus conversational assistant and multiverse lore guide. "
+        "You are an expert on pop culture, anime, manga, gaming, comics, movies, television, and fandom lore. "
+        "When users ask questions about characters, plots, lore, or fandoms (even if not explicitly listed in the platform archive, such as 'who is naruto'), "
+        "answer accurately, enthusiastically, and concisely using your extensive fandom lore knowledge. "
+        "Answer questions about the Fan Hub Plus platform, submissions, events, and community features using the supplied context. "
+        "Recommend content or categories when the user's preferences support it, and say when a recommendation is an informed suggestion rather than a catalog fact. "
+        "When a new user needs help, guide them through the platform one step at a time: ask what fandoms they like, explain the relevant directory or feature, then offer the next step. "
+        "Keep answers concise, friendly, engaging, and practical. Do not invent Fan Hub Plus features or claim access to private data."
     )
 
     @staticmethod
     def _clean_response_markdown(response_text):
-        """Remove bold Markdown markers because the chat UI renders plain text."""
-        return re.sub(r'\*\*', '', response_text or '').strip()
+        """Remove bold and italic Markdown markers because the chat UI renders plain text."""
+        cleaned = re.sub(r'\*{1,2}([^*]+)\*{1,2}', r'\1', response_text or '')
+        return re.sub(r'\*', '', cleaned).strip()
 
     @classmethod
     def generate_response(cls, user_message, session_id=None, user=None):
@@ -160,16 +164,59 @@ class PromptOrchestrator:
             f'User\'s new message: {user_message}'
         )
 
+        configured_model = getattr(settings, 'GEMINI_MODEL', 'gemini-3.5-flash-lite')
+        fallback_models = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-lite-latest']
+        models_to_try = [configured_model]
+        for m in fallback_models:
+            if m not in models_to_try:
+                models_to_try.append(m)
+
+        timeout_ms = int(getattr(settings, 'GEMINI_TIMEOUT_SECONDS', 12) * 1000)
+
         try:
             client = genai.Client(api_key=api_key)
-            interaction = client.interactions.create(
-                model=getattr(settings, 'GEMINI_MODEL', 'gemini-3.8-flash'),
-                input=prompt,
-            )
-            response_text = getattr(interaction, 'output_text', '')
-            return response_text.strip() if response_text else None
-        except Exception:
+        except Exception as e:
+            logger.error("Failed to initialize genai.Client: %s", e)
             return None
+
+        for model_name in models_to_try:
+            # 1. Try client.interactions.create (preserves test mock compatibility)
+            try:
+                try:
+                    interaction = client.interactions.create(
+                        model=model_name,
+                        input=prompt,
+                        timeout=timeout_ms,
+                    )
+                except TypeError:
+                    interaction = client.interactions.create(
+                        model=model_name,
+                        input=prompt,
+                    )
+                text = getattr(interaction, 'output_text', '')
+                if not text and hasattr(interaction, 'outputs') and interaction.outputs:
+                    for out in interaction.outputs:
+                        if hasattr(out, 'text') and out.text:
+                            text = out.text
+                            break
+                if text and text.strip():
+                    return text.strip()
+            except Exception as e_inter:
+                logger.warning("Interactions call failed for model %s: %s", model_name, e_inter)
+
+            # 2. Try client.models.generate_content as fast, resilient fallback
+            try:
+                res = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+                text = getattr(res, 'text', '')
+                if text and text.strip():
+                    return text.strip()
+            except Exception as e_gen:
+                logger.warning("generate_content failed for model %s: %s", model_name, e_gen)
+
+        return None
 
     @classmethod
     def _orchestrate_fallback(cls, message):

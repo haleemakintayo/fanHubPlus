@@ -216,7 +216,7 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
 
 GEMINI_FANHUB_APIKEY = os.getenv('GEMINI_FANHUB_APIKEY', '')
-GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.8-flash')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.5-flash-lite')
 GEMINI_TIMEOUT_SECONDS = float(os.getenv('GEMINI_TIMEOUT_SECONDS', '12'))
 CHATBOT_ENABLE_GEMINI = os.getenv(
     'CHATBOT_ENABLE_GEMINI',
